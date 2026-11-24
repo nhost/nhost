@@ -886,6 +886,58 @@ func TestStorageToolSchemas(t *testing.T) {
 	}
 }
 
+func TestStorageInputSchemaKeywords(t *testing.T) {
+	t.Parallel()
+
+	c := storageClient(t, "https://storage.example/v1")
+
+	result, err := c.ListTools(t.Context(), mcp.ListToolsRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	schemas := make(map[string]mcp.ToolInputSchema, len(result.Tools))
+	for _, tool := range result.Tools {
+		schemas[tool.Name] = tool.InputSchema
+	}
+
+	tests := []struct {
+		tool     string
+		property string
+		keyword  string
+		want     any
+	}{
+		{"storage-upload", "files", "minItems", float64(1)},
+		{"storage-download", "q", "minimum", float64(1)},
+		{"storage-download", "q", "maximum", float64(100)},
+		{"storage-download", "h", "minimum", float64(1)},
+		{"storage-download", "w", "minimum", float64(1)},
+		{"storage-download", "b", "minimum", float64(0)},
+		{
+			"storage-download",
+			"f",
+			"enum",
+			[]any{"auto", "same", "jpeg", "webp", "png", "avif", "heic"},
+		},
+		{"storage-update", "file", "description", "Replacement file; its name is used by default"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.tool+"/"+tt.property+"/"+tt.keyword, func(t *testing.T) {
+			t.Parallel()
+
+			prop, ok := schemas[tt.tool].Properties[tt.property].(map[string]any)
+			if !ok {
+				t.Fatal("missing property schema")
+			}
+
+			if diff := cmp.Diff(tt.want, prop[tt.keyword]); diff != "" {
+				t.Errorf("schema keyword mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestStorageInvalidInputs(t *testing.T) {
 	t.Parallel()
 

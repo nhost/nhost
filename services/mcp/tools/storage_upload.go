@@ -7,16 +7,17 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
 
 type storageFile struct {
-	Name string `json:"name" jsonschema:"description=Filename including extension"`
+	Name string `json:"name" jsonschema:"Filename including extension"`
 
-	Data string `json:"data" jsonschema:"description=Standard base64 file bytes; not a data URL"`
+	Data string `json:"data" jsonschema:"Standard base64 file bytes; not a data URL"`
 
-	ContentType string `json:"contentType,omitempty" jsonschema:"description=Optional multipart MIME type"`
+	ContentType string `json:"contentType,omitempty" jsonschema:"Optional multipart MIME type"`
 }
 
 type storageUploadMetadata struct {
@@ -26,11 +27,11 @@ type storageUploadMetadata struct {
 }
 
 type storageUploadRequest struct {
-	Files []storageFile `json:"files" jsonschema:"minItems=1,description=Files in upload order"`
+	Files []storageFile `json:"files" jsonschema:"Files in upload order"`
 
-	BucketID *string `json:"bucketId,omitempty" jsonschema:"description=Target bucket; omit for default"`
+	BucketID *string `json:"bucketId,omitempty" jsonschema:"Target bucket; omit for default"`
 
-	Metadata []storageUploadMetadata `json:"metadata,omitempty" jsonschema:"description=One entry per file or omit"`
+	Metadata []storageUploadMetadata `json:"metadata,omitempty" jsonschema:"One entry per file or omit"`
 }
 
 type storageUpdateMetadata struct {
@@ -39,14 +40,22 @@ type storageUpdateMetadata struct {
 }
 
 type storageUpdateRequest struct {
-	ID string `json:"id" jsonschema:"description=File ID to preserve and replace"`
+	ID string `json:"id" jsonschema:"File ID to preserve and replace"`
 
-	File storageFile `json:"file" jsonschema:"description=Replacement file; its name is used by default"`
+	File storageFile `json:"file" jsonschema:"Replacement file; its name is used by default"`
 
-	Metadata *storageUpdateMetadata `json:"metadata,omitempty" jsonschema:"description=Name override and custom JSON"`
+	Metadata *storageUpdateMetadata `json:"metadata,omitempty" jsonschema:"Name override and custom JSON"`
 }
 
-func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
+func storageUploadInputSchema() (mcp.ToolOption, error) {
+	return constrainedStorageInputSchema[storageUploadRequest](
+		func(props map[string]*jsonschema.Schema) {
+			props["files"].MinItems = new(1)
+		},
+	)
+}
+
+func (t *storageTool) registerUpload(server *mcpserver.MCPServer, schema mcp.ToolOption) {
 	limit := fmt.Sprintf(
 		"The decoded files must total at most %d bytes per call; split larger batches. ",
 		t.maxTransferBytes,
@@ -64,7 +73,7 @@ func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
 				"Uploads are not atomic; do not blindly retry a failed batch.",
 		),
 		storageAnnotation("Upload Storage Files", false, false, false),
-		mcp.WithInputSchema[storageUploadRequest](),
+		schema,
 	), mcp.NewTypedToolHandler(t.handleUpload))
 }
 

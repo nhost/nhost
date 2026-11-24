@@ -76,7 +76,7 @@ func (t *Tool) RegisterYourTool(mcpServer *mcpserver.MCPServer) {
 
 ```go
 type YourToolRequest struct {
-    Param string `json:"param" jsonschema:"required,description=Parameter description"`
+    Param string `json:"param" jsonschema:"Parameter description"`
 }
 
 func (t *Tool) handleYourTool(
@@ -124,6 +124,7 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 
 - `--storage-url` / `MCP_STORAGE_URL` explicitly configures the storage API URL for the same backend, including its API prefix (normally `/v1`). Without it, no storage tools are registered. Do not infer service URLs from arbitrary GraphQL hosts.
 - `tools.RegisterStorage` registers `storage-upload`, `storage-download`, `storage-update`, and `storage-delete`. Keep parity with POST `/files` and GET/PUT/DELETE `/files/{id}` in `services/storage/controller/openapi.yaml`.
+- Use plain descriptions in `jsonschema` struct tags; mcp-go's reflector rejects `description=`, `minimum=`, and `minItems=` tags. Derive constrained upload/download schemas from their request structs, then set validation keywords on the generated properties.
 - Forward the caller's Authorization header via the same context/interceptor as GraphQL. Never add admin secrets, accept arbitrary request URLs/headers, or follow upstream redirects.
 - Transfer bytes as base64; do not read server-local paths or fetch user-provided source URLs. Upload/update use real multipart field names (`file[]`/`metadata[]`/`bucket-id`, or `file`/`metadata`). Preserve metadata ordering and explicit empty custom metadata objects.
 - `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` sets the decoded upload batch and upstream response budget (default 50,000,000 bytes). `--storage-max-request-bytes` / `MCP_STORAGE_MAX_REQUEST_BYTES` sets the MCP POST body budget (default 70,000,000 bytes). Both must be positive and less than MaxInt64. Keep flags, environment variables, registry metadata, public docs and tool descriptions synchronized; descriptions/errors must show the configured budget, not a hard-coded value.

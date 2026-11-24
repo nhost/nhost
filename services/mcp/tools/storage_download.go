@@ -7,37 +7,53 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
 
 type storageDownloadRequest struct {
-	ID string `json:"id" jsonschema:"description=Stored file ID"`
+	ID string `json:"id" jsonschema:"Stored file ID"`
 
-	Q *int `json:"q,omitempty" jsonschema:"minimum=1,maximum=100,description=Image quality"`
+	Q *int `json:"q,omitempty" jsonschema:"Image quality"`
 
-	H *int `json:"h,omitempty" jsonschema:"minimum=1,description=Max height in pixels; preserves aspect ratio"`
+	H *int `json:"h,omitempty" jsonschema:"Max height in pixels; preserves aspect ratio"`
 
-	W *int `json:"w,omitempty" jsonschema:"minimum=1,description=Max width in pixels; preserves aspect ratio"`
+	W *int `json:"w,omitempty" jsonschema:"Max width in pixels; preserves aspect ratio"`
 
-	B *float64 `json:"b,omitempty" jsonschema:"minimum=0,description=Blur sigma"`
+	B *float64 `json:"b,omitempty" jsonschema:"Blur sigma"`
 
-	F string `json:"f,omitempty" jsonschema:"enum=auto,enum=same,enum=jpeg,enum=webp,enum=png,enum=avif,enum=heic"`
+	F string `json:"f,omitempty" jsonschema:"Output image format"`
 
-	Accept string `json:"accept,omitempty" jsonschema:"description=Accept header for f=auto (e.g. image/webp)"`
+	Accept string `json:"accept,omitempty" jsonschema:"Accept header for f=auto (e.g. image/webp)"`
 
-	Range string `json:"range,omitempty" jsonschema:"description=Range header (e.g. bytes=0-1023)"`
+	Range string `json:"range,omitempty" jsonschema:"Range header (e.g. bytes=0-1023)"`
 
-	IfMatch string `json:"ifMatch,omitempty" jsonschema:"description=If-Match ETag condition"`
+	IfMatch string `json:"ifMatch,omitempty" jsonschema:"If-Match ETag condition"`
 
-	IfNoneMatch string `json:"ifNoneMatch,omitempty" jsonschema:"description=If-None-Match ETag condition"`
+	IfNoneMatch string `json:"ifNoneMatch,omitempty" jsonschema:"If-None-Match ETag condition"`
 
-	IfModifiedSince string `json:"ifModifiedSince,omitempty" jsonschema:"description=If-Modified-Since HTTP date"`
+	IfModifiedSince string `json:"ifModifiedSince,omitempty" jsonschema:"If-Modified-Since HTTP date"`
 
-	IfUnmodifiedSince string `json:"ifUnmodifiedSince,omitempty" jsonschema:"description=If-Unmodified-Since HTTP date"`
+	IfUnmodifiedSince string `json:"ifUnmodifiedSince,omitempty" jsonschema:"If-Unmodified-Since HTTP date"`
 }
 
-func (t *storageTool) registerDownload(server *mcpserver.MCPServer) {
+func storageDownloadInputSchema() (mcp.ToolOption, error) {
+	const maxImageQuality = 100.0
+
+	return constrainedStorageInputSchema[storageDownloadRequest](
+		func(props map[string]*jsonschema.Schema) {
+			props["q"].Minimum = new(1.0)
+			props["q"].Maximum = new(maxImageQuality)
+			props["h"].Minimum = new(1.0)
+			props["w"].Minimum = new(1.0)
+			props["b"].Minimum = new(0.0)
+			props["f"].Enum = []any{"auto", "same", "jpeg", "webp", "png", "avif", "heic"}
+		},
+	)
+}
+
+func (t *storageTool) registerDownload(server *mcpserver.MCPServer, schema mcp.ToolOption) {
 	limit := fmt.Sprintf("Responses are limited to %d bytes; ", t.maxTransferBytes)
 	server.AddTool(mcp.NewTool(
 		"storage-download",
@@ -52,7 +68,7 @@ func (t *storageTool) registerDownload(server *mcpserver.MCPServer) {
 				"a 412 is a precondition failure with headers preserved.",
 		),
 		storageAnnotation("Download Storage File", true, false, true),
-		mcp.WithInputSchema[storageDownloadRequest](),
+		schema,
 	), mcp.NewTypedToolHandler(t.handleDownload))
 }
 

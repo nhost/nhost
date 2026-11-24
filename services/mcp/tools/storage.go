@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
@@ -64,6 +65,16 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBy
 		return errStorageURL
 	}
 
+	uploadSchema, err := storageUploadInputSchema()
+	if err != nil {
+		return fmt.Errorf("building storage-upload schema: %w", err)
+	}
+
+	downloadSchema, err := storageDownloadInputSchema()
+	if err != nil {
+		return fmt.Errorf("building storage-download schema: %w", err)
+	}
+
 	const timeout = 5 * time.Minute
 
 	t := &storageTool{
@@ -77,12 +88,30 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBy
 			},
 		},
 	}
-	t.registerUpload(server)
-	t.registerDownload(server)
+	t.registerUpload(server, uploadSchema)
+	t.registerDownload(server, downloadSchema)
 	t.registerUpdate(server)
 	t.registerDelete(server)
 
 	return nil
+}
+
+func constrainedStorageInputSchema[T any](
+	configure func(map[string]*jsonschema.Schema),
+) (mcp.ToolOption, error) {
+	schema, err := jsonschema.For[T](nil)
+	if err != nil {
+		return nil, fmt.Errorf("deriving schema from request type: %w", err)
+	}
+
+	configure(schema.Properties)
+
+	raw, err := json.Marshal(schema)
+	if err != nil {
+		return nil, fmt.Errorf("encoding input schema: %w", err)
+	}
+
+	return mcp.WithRawInputSchema(raw), nil
 }
 
 func storageAnnotation(title string, readOnly, destructive, idempotent bool) mcp.ToolOption {
@@ -260,7 +289,7 @@ func (t *storageTool) downloadResult(resp *http.Response) *mcp.CallToolResult {
 }
 
 type storageIDRequest struct {
-	ID string `json:"id" jsonschema:"description=ID of the stored file"`
+	ID string `json:"id" jsonschema:"ID of the stored file"`
 }
 
 func (t *storageTool) registerDelete(server *mcpserver.MCPServer) {
