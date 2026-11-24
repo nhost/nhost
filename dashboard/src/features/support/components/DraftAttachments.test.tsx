@@ -12,6 +12,7 @@ import type {
 import { mockMultipartFormData } from '@/tests/mock-multipart-form-data';
 import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
+import { expectInputValue, selectEditorText } from '@/tests/supportEditor';
 import {
   act,
   fireEvent,
@@ -129,6 +130,28 @@ function authorize(agent: boolean) {
   mockSession.accessToken = `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + 3600, 'https://hasura.io/jwt/claims': claims }))}.test-signature`;
 }
 const server = setupServer(
+  nhostGraphQLLink.query('dashboardSupportInlineAttachment', ({ variables }) =>
+    HttpResponse.json({
+      data: {
+        supportAttachmentUploads: records
+          .filter(
+            (item) =>
+              item.id === variables.id &&
+              item.completed &&
+              !item.discarded &&
+              item.draftID === draftID,
+          )
+          .map((item) => ({
+            file: {
+              id: item.id,
+              name: item.name,
+              mimeType: item.mimeType,
+              size: 30,
+            },
+          })),
+      },
+    }),
+  ),
   http.get(
     'https://local.storage.local.nhost.run/v1/files/:id',
     ({ request }) => {
@@ -450,10 +473,8 @@ async function fillForm(user: TestUserEvent) {
     screen.getByRole('textbox', { name: 'Title' }),
     'Uploads fail',
   );
-  await user.type(
-    screen.getByRole('textbox', { name: 'Description' }),
-    '**Diagnostic details**',
-  );
+  await user.click(screen.getByRole('textbox', { name: 'Description' }));
+  await user.paste('**Diagnostic details**');
   await user.click(screen.getByRole('button', { name: 'Storage' }));
 }
 async function uploadFiles(user: TestUserEvent, names = ['logs.txt']) {
@@ -465,8 +486,12 @@ async function uploadFiles(user: TestUserEvent, names = ['logs.txt']) {
   );
 }
 async function uploaded() {
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: 'Create ticket' })).toBeEnabled(),
+  await waitFor(
+    () =>
+      expect(
+        screen.getByRole('button', { name: 'Create ticket' }),
+      ).toBeEnabled(),
+    { timeout: 5_000 },
   );
 }
 
@@ -476,11 +501,10 @@ describe('new ticket attachment drafts', () => {
     render(<NewTicket />);
     await screen.findByRole('heading', { name: 'New ticket' });
     const zone = screen.getByRole('button', { name: 'Attach files' });
-    expect(zone).toHaveAttribute('aria-disabled', 'true');
-    expect(zone).not.toHaveAttribute('disabled');
-    expect(zone).toHaveTextContent('Pick an organization to attach files');
+    expect(zone).toBeDisabled();
+    expect(screen.getByText('Drag files here')).toBeVisible();
     await selectOrganization(user);
-    expect(zone).not.toHaveAttribute('aria-disabled');
+    expect(zone).toBeEnabled();
     const picker = vi.spyOn(
       screen.getByLabelText('Choose attachments'),
       'click',
@@ -496,24 +520,18 @@ describe('new ticket attachment drafts', () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await screen.findByRole('heading', { name: 'New ticket' });
-    const zone = screen.getByRole('button', { name: 'Attach files' });
+    const box = screen.getByRole('group', { name: 'Description editor' });
     const transfer = {
       types: ['Files'],
       files: [new File(['image'], 'photo.png', { type: 'image/png' })],
     };
-    expect(fireEvent.dragOver(zone, { dataTransfer: transfer })).toBe(false);
-    expect(zone).toHaveTextContent('Pick an organization first');
-    expect(zone).toHaveClass('border-destructive');
-    expect(fireEvent.drop(zone, { dataTransfer: transfer })).toBe(false);
-    expect(
-      within(
-        screen.getByRole('region', { name: 'Draft attachments' }),
-      ).getByText('Pick an organization first'),
-    ).toHaveClass('sr-only');
-    const editor = screen.getByRole('textbox', { name: 'Description' });
-    expect(fireEvent.dragOver(editor, { dataTransfer: transfer })).toBe(false);
-    expect(editor).not.toHaveClass('ring-2');
-    expect(fireEvent.drop(editor, { dataTransfer: transfer })).toBe(false);
+    expect(fireEvent.dragOver(box, { dataTransfer: transfer })).toBe(false);
+    expect(within(box).getByRole('status')).toHaveTextContent(
+      'Pick an organization first',
+    );
+    expect(box).toHaveClass('border-destructive');
+    expect(fireEvent.drop(box, { dataTransfer: transfer })).toBe(false);
+    expect(within(box).queryByRole('status')).not.toBeInTheDocument();
     await selectOrganization(user);
     expect(
       fireEvent.drop(screen.getByRole('textbox', { name: 'Title' }), {
@@ -524,33 +542,30 @@ describe('new ticket attachment drafts', () => {
     expect(requests).toHaveLength(0);
   });
 
-  it('shows the drag state and accepts additional files dropped on the attachment list', async () => {
+  it('shows the drag state and accepts additional files dropped on the description', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);
-    const zone = screen.getByRole('button', { name: 'Attach files' });
+    const zone = screen.getByRole('group', { name: 'Description editor' });
     const transfer = {
       types: ['Files'],
       files: [new File(['logs'], 'first.txt')],
     };
     expect(fireEvent.dragOver(zone, { dataTransfer: transfer })).toBe(false);
     expect(zone).toHaveTextContent('Drop to attach');
-    expect(zone).toHaveClass('border-solid', 'bg-primary/5', 'text-primary');
+    expect(zone).toHaveClass('ring-2', 'border-primary');
     fireEvent.drop(zone, { dataTransfer: transfer });
-    await screen.findByRole('button', { name: 'Remove attachment first.txt' });
+    await screen.findByRole('button', { name: 'Remove first.txt' });
     await uploaded();
-    const row = screen
-      .getByRole('button', { name: 'Remove attachment first.txt' })
-      .closest('li')!;
     expect(
-      fireEvent.drop(row, {
+      fireEvent.drop(zone, {
         dataTransfer: {
           types: ['Files'],
           files: [new File(['more logs'], 'second.txt')],
         },
       }),
     ).toBe(false);
-    await screen.findByRole('button', { name: 'Remove attachment second.txt' });
+    await screen.findByRole('button', { name: 'Remove second.txt' });
     await uploaded();
     expect(storageRequests.map((request) => request.name)).toEqual([
       'first.txt',
@@ -561,11 +576,11 @@ describe('new ticket attachment drafts', () => {
     ).toHaveLength(1);
   });
 
-  it('uploads multiple files from the drop zone and inserts confirmed links', async () => {
+  it('uploads multiple files from the description and inserts confirmed links', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);
-    fireEvent.drop(screen.getByRole('button', { name: 'Attach files' }), {
+    fireEvent.drop(screen.getByRole('group', { name: 'Description editor' }), {
       dataTransfer: {
         types: ['Files'],
         files: [
@@ -574,18 +589,48 @@ describe('new ticket attachment drafts', () => {
         ],
       },
     });
-    await screen.findByRole('button', { name: 'Remove attachment second.txt' });
+    await screen.findByRole(
+      'button',
+      { name: 'Remove second.txt' },
+      { timeout: 10_000 },
+    );
     await uploaded();
     await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
-        `**Diagnostic details**[first.txt](attachment:${records[0].id})\n[second.txt](attachment:${records[1].id})`,
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Description' }),
+        `**Diagnostic details**\n[first.txt](attachment:${records[0].id})\n[second.txt](attachment:${records[1].id})\n`,
       ),
     );
-    expect(screen.getAllByText('1 KB')).toHaveLength(2);
     expect(
-      screen.queryByRole('button', { name: /Download/ }),
+      within(
+        screen.getByRole('region', { name: 'Draft attachments' }),
+      ).queryByRole('list'),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Download second.txt' }),
+    ).toBeEnabled();
   });
+  it('discards the upload when its card is removed', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await uploadFiles(user);
+    await uploaded();
+    await user.click(
+      await screen.findByRole('button', { name: 'Remove logs.txt' }),
+    );
+    await waitFor(() => {
+      expect(records[0].discarded).toBe(true);
+      expect(
+        screen.queryByRole('button', { name: 'Remove logs.txt' }),
+      ).not.toBeInTheDocument();
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Description' }),
+        '**Diagnostic details**\n\n',
+      );
+    });
+  });
+
   it('shows resized draft image thumbnails as user even for a support agent', async () => {
     authorize(true);
     const user = new TestUserEvent();
@@ -596,7 +641,7 @@ describe('new ticket attachment drafts', () => {
       new File(['image'], 'screenshot.png', { type: 'image/png' }),
     );
     expect(
-      await screen.findByRole('img', { name: 'Preview of screenshot.png' }),
+      await screen.findByRole('img', { name: 'screenshot.png' }),
     ).toHaveAttribute('src', 'blob:draft-thumbnail');
     expect(previewRequests).toEqual([
       { role: 'user', params: { w: '128', h: '128', q: '75', f: 'webp' } },
@@ -617,9 +662,11 @@ describe('new ticket attachment drafts', () => {
           ],
         },
       });
-      await screen.findByRole('button', {
-        name: 'Remove attachment dropped.txt',
-      });
+      await screen.findByRole(
+        'button',
+        { name: 'Remove dropped.txt' },
+        { timeout: 10000 },
+      );
       await uploaded();
       expect(storageRequests).toHaveLength(1);
       expect(storageRequests[0]).toMatchObject({
@@ -632,10 +679,9 @@ describe('new ticket attachment drafts', () => {
         screen.queryByRole('button', { name: 'Upload files' }),
       ).not.toBeInTheDocument();
       await waitFor(() =>
-        expect(
+        expectInputValue(
           screen.getByRole('textbox', { name: 'Description' }),
-        ).toHaveValue(
-          `**Diagnostic details**${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${records[0].id})`,
+          `**Diagnostic details**\n${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${records[0].id})\n`,
         ),
       );
     },
@@ -657,8 +703,9 @@ describe('new ticket attachment drafts', () => {
     });
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
-        `**Diagnostic details**[kept.txt](attachment:${records[0].id})\n`,
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Description' }),
+        `**Diagnostic details**\n[kept.txt](attachment:${records[0].id})\n\n`,
       ),
     );
     expect(
@@ -673,15 +720,15 @@ describe('new ticket attachment drafts', () => {
     await fillForm(user);
     const editor = screen.getByRole('textbox', {
       name: 'Description',
-    }) as HTMLTextAreaElement;
-    editor.setSelectionRange(0, 0);
+    });
+    selectEditorText(editor, 0);
     await user.upload(screen.getByLabelText('Choose attachments'), [
       new File(['logs'], 'logs [safe].txt', { type: 'text/plain' }),
       new File(['image'], 'screenshot.png', { type: 'image/png' }),
     ]);
     await uploaded();
-    const markdown = `[logs \\[safe\\].txt](attachment:${records[0].id})\n![screenshot.png](attachment:${records[1].id})**Diagnostic details**`;
-    await waitFor(() => expect(editor).toHaveValue(markdown));
+    const markdown = `[logs \\[safe\\].txt](attachment:${records[0].id})\n![screenshot.png](attachment:${records[1].id})\n\n**Diagnostic details**`;
+    await waitFor(() => expectInputValue(editor, markdown));
     expect(
       screen.queryByRole('button', { name: /Insert .* into description/ }),
     ).not.toBeInTheDocument();
@@ -734,7 +781,7 @@ describe('new ticket attachment drafts', () => {
           input: {
             attachmentDraftID: draftID,
             organizationID,
-            description: `**Diagnostic details**[logs.txt](attachment:${records[0].id})`,
+            description: `**Diagnostic details**\n[logs.txt](attachment:${records[0].id})`,
           },
         },
       });
@@ -746,9 +793,6 @@ describe('new ticket attachment drafts', () => {
       expect(records[0]).toMatchObject({ draftID: null, ticketID });
       await screen.findByRole('link', { name: 'Open the created ticket' });
       expect(screen.getByLabelText('Choose attachments')).toBeDisabled();
-      expect(
-        screen.getByRole('button', { name: 'Discard draft attachments' }),
-      ).toBeDisabled();
     },
   );
 
@@ -762,11 +806,14 @@ describe('new ticket attachment drafts', () => {
       new File([], 'empty.txt'),
       new File([new Uint8Array(5_000_001)], 'large.txt'),
     ]);
+    const draftList = within(
+      screen.getByRole('region', { name: 'Draft attachments' }),
+    );
     expect(
-      screen.getByText('Empty files cannot be attached.'),
+      draftList.getByText('Empty files cannot be attached.'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Files must be 5 MB or smaller.'),
+      draftList.getByText('Files must be 5 MB or smaller.'),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Retry' }),
@@ -795,7 +842,7 @@ describe('new ticket attachment drafts', () => {
       true,
     );
     expect(
-      screen.getByRole('button', { name: 'Remove attachment kept.txt' }),
+      screen.getByRole('button', { name: 'Remove kept.txt' }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() => expect(router.push).toHaveBeenCalled());
@@ -853,10 +900,16 @@ describe('new ticket attachment drafts', () => {
     await waitFor(() => expect(discard).toBeEnabled());
     expect(storageRequests).toEqual([]);
     await user.click(discard);
+    await waitFor(() => expect(discard).not.toBeInTheDocument());
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled(),
     );
     await user.click(screen.getByRole('button', { name: 'Retry' }));
+    await screen.findByRole(
+      'button',
+      { name: 'Remove logs.txt' },
+      { timeout: 10_000 },
+    );
     await uploaded();
     expect(records[0].discarded).toBe(true);
     expect(records[1].completed).toBe(true);
@@ -952,13 +1005,7 @@ describe('new ticket attachment drafts', () => {
       attachmentDraftID: draftID,
     });
     expect(
-      screen.getByRole('combobox', { name: 'Organization' }),
-    ).toBeDisabled();
-    expect(
       screen.getByRole('button', { name: 'Create ticket' }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: 'Discard draft attachments' }),
     ).toBeDisabled();
     expect(requests.filter((item) => item.operation === 'cancel')).toHaveLength(
       0,
@@ -988,12 +1035,17 @@ describe('new ticket attachment drafts', () => {
     await uploaded();
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await screen.findByText(/The previous submission could not be confirmed/);
-    expect(
-      screen.getByRole('button', { name: 'Discard draft attachments' }),
-    ).toBeDisabled();
+    await selectOrganization(user, 'Other org');
+    await user.click(
+      await screen.findByRole('button', { name: 'Remove files and change' }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+    );
     expect(
       screen.getByRole('combobox', { name: 'Organization' }),
-    ).toBeDisabled();
+    ).toHaveTextContent('Acme');
+
     expect(screen.getByText(draftID)).toBeInTheDocument();
     expect(draft?.id).toBe(draftID);
     publishDraft();
@@ -1018,16 +1070,24 @@ describe('new ticket attachment drafts', () => {
     await fillForm(user);
     await uploadFiles(user);
     await uploaded();
+    await selectOrganization(user, 'Other org');
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Change organization?',
+    });
     expect(
-      screen.getByRole('combobox', { name: 'Organization' }),
-    ).toBeDisabled();
+      within(dialog).getByRole('button', { name: 'Cancel' }),
+    ).toHaveFocus();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+    );
+    expect(records[0].discarded).toBe(false);
+    await selectOrganization(user, 'Other org');
     await user.click(
-      screen.getByRole('button', { name: 'Discard draft attachments' }),
+      await screen.findByRole('button', { name: 'Remove files and change' }),
     );
     await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Organization' }),
-      ).toBeEnabled(),
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
     );
     expect(requests.find((item) => item.operation === 'discard')).toMatchObject(
       {
@@ -1037,10 +1097,12 @@ describe('new ticket attachment drafts', () => {
     );
     expect(records[0].discarded).toBe(true);
     expect(draft?.id).toBe(draftID);
-    expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
-      `**Diagnostic details**[logs.txt](attachment:${records[0].id})`,
+    await waitFor(() =>
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Description' }),
+        '**Diagnostic details**\n\n',
+      ),
     );
-    await selectOrganization(user, 'Other org');
     expect(
       screen.getByRole('combobox', { name: 'Organization' }),
     ).toHaveTextContent('Other org');
@@ -1056,14 +1118,14 @@ describe('new ticket attachment drafts', () => {
     await queryClient.invalidateQueries({ queryKey: ['support'] });
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Remove attachment logs.txt' }),
+        screen.getByRole('button', { name: 'Remove logs.txt' }),
       ).toBeEnabled(),
     );
     expect(screen.queryByText(/Draft created/)).not.toBeInTheDocument();
     expect(screen.getByLabelText('Choose attachments')).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Create ticket' })).toBeEnabled();
     expect(
-      screen.getByRole('button', { name: 'Remove attachment logs.txt' }),
+      screen.getByRole('button', { name: 'Remove logs.txt' }),
     ).toBeEnabled();
   });
 
@@ -1077,7 +1139,7 @@ describe('new ticket attachment drafts', () => {
     await queryClient.invalidateQueries({ queryKey: ['support'] });
     await screen.findByText(/Unable to load draft attachments/);
     expect(
-      screen.queryByRole('button', { name: 'Remove attachment logs.txt' }),
+      screen.queryByRole('button', { name: 'Remove logs.txt' }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Create ticket' }),

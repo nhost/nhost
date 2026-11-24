@@ -25,6 +25,7 @@ import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
+import { expectInputValue } from '@/tests/supportEditor';
 import {
   act,
   mockScrollIntoViewAndPointerCapture,
@@ -1304,22 +1305,34 @@ describe('native dashboard support', () => {
     },
   );
 
-  it('groups the form in three numbered steps and leaves the message editable before an organization is picked', async () => {
+  it('groups the form in three numbered steps and keeps later groups inactive before an organization is picked', async () => {
     render(<NewTicket />);
     await screen.findByRole('heading', { name: 'New ticket' });
     for (const name of ['Where', 'What', 'Details']) {
       expect(screen.getByRole('group', { name })).toBeInTheDocument();
     }
-    expect(screen.getByRole('textbox', { name: 'Title' })).toBeEnabled();
+    expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
+    for (const name of ['What', 'Details']) {
+      const step = screen.getByRole('group', { name });
+      expect(step).toBeDisabled();
+      expect(step.closest('[inert]')).toHaveClass('opacity-20');
+    }
+    expect(
+      screen.getByRole('group', { name: 'Where' }).closest('[inert]'),
+    ).toBeNull();
+    expect(screen.getByRole('button', { name: 'Attach files' })).toBeDisabled();
+    expect(screen.queryByText('Unlock with')).not.toBeInTheDocument();
     const description = screen.getByRole('textbox', { name: 'Description' });
-    expect(description).not.toHaveAttribute('readonly');
+    expect(description).toHaveAttribute('aria-readonly', 'true');
     expect(description).not.toHaveAttribute('placeholder');
     expect(screen.getByRole('textbox', { name: 'Title' })).not.toHaveAttribute(
       'placeholder',
     );
     expect(screen.queryByText('Pick one or more')).not.toBeInTheDocument();
-    expect(description).toHaveValue('');
-    expect(screen.getAllByText('Pick an organization first')).toHaveLength(2);
+    expectInputValue(description, '');
+    expect(
+      screen.queryByText('Pick an organization first'),
+    ).not.toBeInTheDocument();
     for (const name of ['Low', 'Normal', 'High', 'Urgent']) {
       expect(screen.getByRole('radio', { name })).toBeDisabled();
     }
@@ -1374,6 +1387,7 @@ describe('native dashboard support', () => {
     const help = screen.getByRole('button', {
       name: 'Normal plan availability',
     });
+    expect(help).toHaveAccessibleDescription('Unlock with Team Enterprise');
     await user.pointer({ target: help });
     const popup = await screen.findByRole('dialog', {
       name: 'Normal plan availability',
@@ -1406,6 +1420,8 @@ describe('native dashboard support', () => {
       ).not.toBeInTheDocument(),
     );
     expect(screen.queryAllByText('Team')).toHaveLength(0);
+    expect(screen.queryByText('Enterprise')).not.toBeInTheDocument();
+    expect(screen.queryByText('Unlock with')).not.toBeInTheDocument();
   });
 
   it('supports keyboard severity selection and clicking the whole card', async () => {
@@ -1432,13 +1448,20 @@ describe('native dashboard support', () => {
     for (const name of ['Normal', 'High', 'Urgent']) {
       expect(screen.getByRole('radio', { name })).toBeDisabled();
     }
-    expect(screen.getAllByText('Team')).toHaveLength(3);
+    expect(screen.getAllByText('Team')).toHaveLength(1);
+    expect(screen.getAllByText('Enterprise')).toHaveLength(1);
+    expect(screen.getByText('Unlock with')).toHaveAttribute(
+      'id',
+      'support-severity-plans',
+    );
     for (const badge of screen.getAllByText('Team')) {
       expect(badge).toHaveClass('border-brand-violet/20', 'text-brand-violet');
     }
     expect(
       screen.getByRole('radio', { name: 'Normal' }),
-    ).toHaveAccessibleDescription('Team plan Something works, but not well');
+    ).toHaveAccessibleDescription(
+      'Unlock with Team Enterprise Something works, but not well',
+    );
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() =>
       expect(
@@ -1501,7 +1524,7 @@ describe('native dashboard support', () => {
       expect(screen.getByRole('radio', { name: 'Low' })).toBeChecked(),
     );
   });
-  it('creates tickets with the raw Markdown description after previewing', async () => {
+  it('creates tickets with the raw Markdown description', async () => {
     const user = new TestUserEvent();
     const markdown = '## Reproduction\n\n```json\n{"error":"denied"}\n```';
     render(<NewTicket />);
@@ -1510,10 +1533,7 @@ describe('native dashboard support', () => {
     await user.clear(description);
     await user.click(description);
     await user.paste(markdown);
-    await user.click(screen.getByRole('button', { name: 'Preview' }));
-    expect(
-      screen.getByRole('heading', { name: 'Reproduction' }),
-    ).toBeInTheDocument();
+    expectInputValue(description, markdown);
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() =>
       expect(
@@ -1649,7 +1669,7 @@ describe('native dashboard support', () => {
         variables: { ticketId, body: 'Here are more details' },
       }),
     );
-    await waitFor(() => expect(reply).toHaveValue(''));
+    await waitFor(() => expectInputValue(reply, ''));
   });
   it('renders Markdown descriptions and comments and sends raw Markdown replies', async () => {
     ticket.description = '## Reproduction\n\n**Upload fails** with `403`.';
@@ -1678,8 +1698,10 @@ describe('native dashboard support', () => {
     const markdown = '## Logs\n\n```text\nAccess denied\n```';
     await user.click(screen.getByRole('textbox', { name: 'Your reply' }));
     await user.paste(markdown);
-    await user.click(screen.getByRole('button', { name: 'Preview' }));
-    expect(screen.getByRole('heading', { name: 'Logs' })).toBeInTheDocument();
+    expectInputValue(
+      screen.getByRole('textbox', { name: 'Your reply' }),
+      markdown,
+    );
     await user.click(screen.getByRole('button', { name: 'Send reply' }));
     await waitFor(() =>
       expect(
@@ -1701,7 +1723,7 @@ describe('native dashboard support', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Send reply' })).toBeEnabled(),
     );
-    expect(reply).toHaveValue('Keep this draft');
+    expectInputValue(reply, 'Keep this draft');
     expect(screen.queryByText('Reply sent')).not.toBeInTheDocument();
   });
   it('assigns a ticket to the current agent with optimistic concurrency', async () => {
@@ -1978,9 +2000,10 @@ describe('native dashboard support', () => {
     });
     view.rerender(<TicketList />);
     await waitFor(() =>
-      expect(
+      expectInputValue(
         screen.getByRole('textbox', { name: 'Search tickets' }),
-      ).toHaveValue('Sign in'),
+        'Sign in',
+      ),
     );
     expect(
       screen.getByRole('textbox', { name: 'Filter by organization' }),

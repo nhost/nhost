@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { Pagination } from '@/components/common/Pagination';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
@@ -36,6 +37,7 @@ import {
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
   PAGE_SIZE,
+  SAMPLE_TICKET_PAGE_SIZE,
   STATUSES,
   supportDate,
   supportLabel,
@@ -50,7 +52,8 @@ import {
 
 export default function TicketList() {
   const router = useRouter();
-  const { user, isAgent, queryKey, request } = useSupportSession();
+  const { user, isAgent, isSample, queryKey, request } = useSupportSession();
+  const pageSize = isSample ? SAMPLE_TICKET_PAGE_SIZE : PAGE_SIZE;
   const search = ticketSearchSchema.parse(router.query);
   const [query, setQuery] = useState(search.q);
   const [organization, setOrganization] = useState(search.organization);
@@ -61,11 +64,11 @@ export default function TicketList() {
   const tickets = useQuery({
     queryKey: [...queryKey, 'tickets', search],
     queryFn: ({ signal }) =>
-      request<DashboardSupportTicketsQuery>(
+      request<DashboardSupportTicketsQuery & { sampleTicketCount?: number }>(
         DashboardSupportTicketsDocument,
         {
           where: ticketFilter(search, user?.id ?? '', isAgent),
-          offset: search.page * PAGE_SIZE,
+          offset: search.page * pageSize,
         },
         signal,
       ),
@@ -75,6 +78,8 @@ export default function TicketList() {
     refetchInterval: 30000,
   });
   const rows = tickets.data?.supportTickets ?? [];
+  const sampleTicketCount = tickets.data?.sampleTicketCount ?? 0;
+  const samplePageCount = Math.ceil(sampleTicketCount / pageSize);
   const emptyQueue =
     !tickets.isLoading &&
     !tickets.isError &&
@@ -252,7 +257,7 @@ export default function TicketList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.slice(0, PAGE_SIZE).map((ticket) => (
+              {rows.slice(0, pageSize).map((ticket) => (
                 <TableRow key={ticket.id} className="hover:bg-muted/20">
                   <TableCell className="min-w-56 max-w-md">
                     <Link
@@ -292,28 +297,43 @@ export default function TicketList() {
           </Table>
         </div>
       )}
-      {!tickets.isLoading && (search.page > 0 || rows.length > PAGE_SIZE) && (
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={search.page === 0 || tickets.isFetching}
-            onClick={() => changeSearch({ page: search.page - 1 })}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={
-              tickets.isError || rows.length <= PAGE_SIZE || tickets.isFetching
-            }
-            onClick={() => changeSearch({ page: search.page + 1 })}
-          >
-            Next
-          </Button>
-        </div>
+      {isSample && !tickets.isError && samplePageCount > 1 && (
+        <Pagination
+          className="px-2 [&>nav]:order-last [&>nav]:ml-auto"
+          totalNrOfPages={samplePageCount}
+          currentPageNumber={search.page + 1}
+          totalNrOfElements={sampleTicketCount}
+          itemsLabel="tickets"
+          elementsPerPage={pageSize}
+          onPrevPageClick={() => changeSearch({ page: search.page - 1 })}
+          onNextPageClick={() => changeSearch({ page: search.page + 1 })}
+          onPageChange={(page) => changeSearch({ page: page - 1 })}
+        />
       )}
+      {!isSample &&
+        !tickets.isLoading &&
+        (search.page > 0 || rows.length > pageSize) && (
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={search.page === 0 || tickets.isFetching}
+              onClick={() => changeSearch({ page: search.page - 1 })}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={
+                tickets.isError || rows.length <= pageSize || tickets.isFetching
+              }
+              onClick={() => changeSearch({ page: search.page + 1 })}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       {!isAgent && (
         <section aria-labelledby="support-help-heading">
           <h2 id="support-help-heading" className="sr-only">

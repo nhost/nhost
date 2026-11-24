@@ -1,6 +1,11 @@
-import { Loader2, Paperclip, X } from 'lucide-react';
+import { Paperclip, X } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import {
+  type MouseEventHandler,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -9,15 +14,17 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
-import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
+import type { RemoveSupportAttachmentTokens } from '@/features/support/components/SupportMarkdownEditor';
 import type { SupportAttachmentDraftController } from '@/features/support/hooks/use-support-attachment-draft';
+import type { SupportAttachmentUploaded } from '@/features/support/utils/attachments';
 import { cn } from '@/lib/utils';
 
 interface DraftAttachmentsProps {
   draft: SupportAttachmentDraftController;
   disabled: boolean;
-  organizationSelected: boolean;
-  onFiles: (files: File[]) => Promise<void>;
+  onRemoveTokens: RemoveSupportAttachmentTokens;
+  focusAttach: VoidFunction;
+  onRetriedUpload?: SupportAttachmentUploaded;
 }
 
 function fileSize(size: number) {
@@ -33,7 +40,7 @@ function RemoveFile({
 }: {
   disabled: boolean;
   label: string;
-  onClick: VoidFunction;
+  onClick: MouseEventHandler<HTMLButtonElement>;
 }) {
   return (
     <Tooltip>
@@ -44,6 +51,7 @@ function RemoveFile({
           variant="ghost"
           disabled={disabled}
           aria-label={label}
+          data-draft-remove
           onClick={onClick}
           className="shrink-0 hover:bg-destructive/10 hover:text-destructive"
         >
@@ -58,13 +66,12 @@ function RemoveFile({
 export default function DraftAttachments({
   draft,
   disabled,
-  organizationSelected,
-  onFiles,
+  onRemoveTokens,
+  focusAttach,
+  onRetriedUpload,
 }: DraftAttachmentsProps) {
-  const input = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const [rejectedDrop, setRejectedDrop] = useState(false);
-  const data = draft.query.data?.draft;
+  const list = useRef<HTMLUListElement>(null);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const ticketID = draft.query.data?.ticketID;
   const unavailable =
     disabled ||
@@ -72,108 +79,80 @@ export default function DraftAttachments({
     draft.query.isError ||
     !!ticketID ||
     draft.submissionUncertain;
+  useLayoutEffect(() => {
+    if (focusIndex === null || draft.busy) {
+      return;
+    }
+    const buttons = list.current?.querySelectorAll<HTMLButtonElement>(
+      'button[data-draft-remove]:enabled',
+    );
+    if (buttons?.length) {
+      buttons[Math.min(focusIndex, buttons.length - 1)].focus();
+    } else {
+      focusAttach();
+    }
+    setFocusIndex(null);
+  }, [draft.busy, focusAttach, focusIndex]);
+
   async function perform(
     operation: Parameters<typeof draft.action.mutateAsync>[0],
     loadingMessage: string,
     successMessage: string,
+    trigger?: HTMLButtonElement,
   ) {
-    await execPromiseWithErrorToast(() => draft.action.mutateAsync(operation), {
-      loadingMessage,
-      successMessage,
-      errorMessage: 'Unable to update draft attachments. Please try again.',
-    });
+    const buttons = list.current?.querySelectorAll<HTMLButtonElement>(
+      'button[data-draft-remove]',
+    );
+    const index = trigger && buttons ? Array.from(buttons).indexOf(trigger) : 0;
+    const removedItem =
+      operation.type === 'remove'
+        ? draft.uploads.find((item) => item.id === operation.id)
+        : undefined;
+    const result = await execPromiseWithErrorToast(
+      () => draft.action.mutateAsync(operation),
+      {
+        loadingMessage,
+        successMessage,
+        errorMessage: 'Unable to update draft attachments. Please try again.',
+      },
+    );
+    if (result === null || operation.type === 'upload') {
+      return;
+    }
+    if (operation.type === 'discard') {
+      onRemoveTokens({ id: operation.id });
+    } else if (removedItem) {
+      onRemoveTokens({ id: removedItem.reservationID, file: removedItem.file });
+    }
+    setFocusIndex(Math.max(0, index));
   }
-  const queue = draft.uploads.filter((item) => item.status !== 'uploaded');
+  const queue = draft.uploads.filter(
+    (item) =>
+      item.status === 'failed' ||
+      item.status === 'invalid' ||
+      (item.status === 'pending' && !draft.busy),
+  );
   const unidentified = draft.unfinished.filter(
     (item) => !draft.uploads.some((local) => local.reservationID === item.id),
   );
 
+  const showList =
+    !draft.query.isError &&
+    !ticketID &&
+    !!(unidentified.length || queue.length);
+
   return (
     <section
       aria-label="Draft attachments"
-      className="space-y-3 bg-background"
-      onDragOver={(event) => {
-        if (!event.dataTransfer.types.includes('Files')) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const transfer = event.dataTransfer;
-        transfer.dropEffect = unavailable ? 'none' : 'copy';
-        setDragging(true);
-      }}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          setDragging(false);
-        }
-      }}
-      onDrop={(event) => {
-        if (!event.dataTransfer.types.includes('Files')) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        setDragging(false);
-        setRejectedDrop(!organizationSelected);
-        if (!unavailable) {
-          void onFiles(Array.from(event.dataTransfer.files));
-        }
-      }}
+      className={cn(
+        'space-y-3 bg-background',
+        !showList &&
+          !(draft.identity && draft.query.isError) &&
+          !draft.submissionUncertain &&
+          !ticketID &&
+          'sr-only',
+      )}
     >
-      <button
-        type="button"
-        aria-disabled={unavailable || undefined}
-        aria-label="Attach files"
-        className={cn(
-          'w-full rounded-md border border-dashed p-4 text-center text-muted-foreground text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          unavailable
-            ? 'cursor-not-allowed'
-            : 'cursor-pointer hover:border-primary hover:bg-muted/20',
-          unavailable && !dragging && 'opacity-50',
-          dragging &&
-            !unavailable &&
-            'border-primary border-solid bg-primary/5 text-primary hover:bg-primary/5',
-          dragging && !organizationSelected && 'border-destructive',
-        )}
-        onClick={() => {
-          if (!unavailable) {
-            input.current?.click();
-          }
-        }}
-      >
-        <Paperclip aria-hidden="true" className="mx-auto mb-2 size-4" />
-        {dragging && !organizationSelected ? (
-          <span className="block">Pick an organization first</span>
-        ) : dragging && !unavailable ? (
-          <span className="block">Drop to attach</span>
-        ) : !organizationSelected ? (
-          <span className="block">Pick an organization to attach files</span>
-        ) : (
-          <span className="block">
-            Drop files here or{' '}
-            <span className="font-medium text-foreground underline underline-offset-4">
-              browse
-            </span>
-          </span>
-        )}
-        <span className="mt-1 block text-xs">Up to 5 MB each</span>
-      </button>
-      <input
-        ref={input}
-        type="file"
-        multiple
-        hidden
-        disabled={unavailable}
-        aria-label="Choose attachments"
-        onChange={(event) => {
-          const target = event.currentTarget;
-          const files = Array.from(target.files ?? []);
-          target.value = '';
-          if (files.length > 0 && !unavailable) {
-            void onFiles(files);
-          }
-        }}
-      />
       {draft.identity && draft.query.isError && (
         <SupportError
           message="Unable to load draft attachments. The draft may already have created a ticket, or your access may have changed. Retry to check before starting another ticket."
@@ -215,64 +194,9 @@ export default function DraftAttachments({
           )}
         </div>
       )}
-      {draft.hasFiles && (
-        <p className="text-sm">
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="h-auto p-0"
-            disabled={
-              disabled || draft.busy || !!ticketID || draft.submissionUncertain
-            }
-            onClick={() => {
-              void perform(
-                { type: 'clear' },
-                'Discarding draft attachments…',
-                'Draft attachments discarded',
-              );
-            }}
-          >
-            Discard draft attachments
-          </Button>{' '}
-          to change organization. Ticket text is kept.
-        </p>
-      )}
       <div aria-live="polite">
-        {!organizationSelected && (dragging || rejectedDrop) && (
-          <p className="sr-only">Pick an organization first</p>
-        )}
-        {!draft.query.isError && !ticketID && (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {data?.attachments.map((item) => (
-              <li
-                key={item.id}
-                className="flex min-w-0 items-center gap-3 rounded-md border p-3 text-sm"
-              >
-                <SupportAttachmentPreview file={item.file} requestRole="user" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate">
-                    {item.file?.name ?? 'Attachment unavailable'}
-                  </p>
-                  {item.file?.size != null && (
-                    <p className="text-muted-foreground text-xs">
-                      {fileSize(item.file.size)}
-                    </p>
-                  )}
-                </div>
-                <RemoveFile
-                  disabled={unavailable}
-                  label={`Remove attachment ${item.file?.name ?? item.id}`}
-                  onClick={() => {
-                    void perform(
-                      { type: 'discard', id: item.id },
-                      'Removing attachment…',
-                      'Attachment removed',
-                    );
-                  }}
-                />
-              </li>
-            ))}
+        {showList && (
+          <ul ref={list} className="grid gap-2 sm:grid-cols-2">
             {unidentified.map((item) => (
               <li
                 key={item.id}
@@ -285,11 +209,12 @@ export default function DraftAttachments({
                 <RemoveFile
                   disabled={unavailable}
                   label={`Discard unfinished upload ${item.id}`}
-                  onClick={() => {
+                  onClick={(event) => {
                     void perform(
                       { type: 'discard', id: item.id },
                       'Discarding unfinished upload…',
                       'Unfinished upload discarded',
+                      event.currentTarget,
                     );
                   }}
                 />
@@ -303,22 +228,13 @@ export default function DraftAttachments({
                   item.status === 'failed' && 'border-destructive',
                 )}
               >
-                {item.status === 'uploading' ? (
-                  <Loader2
-                    aria-hidden="true"
-                    className="size-5 shrink-0 animate-spin"
-                  />
-                ) : (
-                  <Paperclip aria-hidden="true" className="size-5 shrink-0" />
-                )}
+                <Paperclip aria-hidden="true" className="size-5 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate">{item.file.name}</p>
                   <p className="text-muted-foreground text-xs">
-                    {item.status === 'uploading'
-                      ? 'Uploading…'
-                      : item.status === 'failed'
-                        ? 'Upload failed'
-                        : 'Ready to upload'}{' '}
+                    {item.status === 'failed'
+                      ? 'Upload failed'
+                      : 'Ready to upload'}{' '}
                     · {fileSize(item.file.size)}
                   </p>
                   {item.error && (
@@ -333,7 +249,7 @@ export default function DraftAttachments({
                     disabled={unavailable}
                     onClick={() => {
                       void perform(
-                        { type: 'upload' },
+                        { type: 'upload', onUploaded: onRetriedUpload },
                         'Uploading draft attachments…',
                         'Files uploaded',
                       );
@@ -345,11 +261,12 @@ export default function DraftAttachments({
                 <RemoveFile
                   disabled={unavailable}
                   label={`Remove ${item.file.name}`}
-                  onClick={() => {
+                  onClick={(event) => {
                     void perform(
                       { type: 'remove', id: item.id },
                       'Removing file…',
                       'File removed',
+                      event.currentTarget,
                     );
                   }}
                 />

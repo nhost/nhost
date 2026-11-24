@@ -34,6 +34,7 @@ export const SERVICES = [
   'other',
 ] as const;
 export const PAGE_SIZE = 50;
+export const SAMPLE_TICKET_PAGE_SIZE = 25;
 
 export const ticketFormSchema = z.object({
   organizationID: z.uuid('Select an organization'),

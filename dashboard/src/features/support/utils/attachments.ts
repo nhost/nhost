@@ -15,6 +15,9 @@ export type SupportAttachmentScope =
   | { ticketId: string; draftId?: never }
   | { draftId: string; ticketId?: never };
 
+export const SUPPORT_ATTACHMENT_TOKEN_PATTERN =
+  /(!?)\[((?:\\.|[^\]\\\n])*)\]\(attachment:([^\s)]+)\)/g;
+
 export function supportAttachmentId(url: string): string | undefined {
   if (!url.startsWith('attachment:')) {
     return undefined;

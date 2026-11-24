@@ -23,15 +23,16 @@ export interface UseCurrenOrgReturnType {
   ) => Promise<any>;
 }
 
-export default function useCurrentOrg(): UseCurrenOrgReturnType {
+export default function useCurrentOrg(slug?: string): UseCurrenOrgReturnType {
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const {
-    query: { orgSlug },
+    query: { orgSlug: routeOrgSlug },
     isReady: isRouterReady,
   } = useRouter();
 
+  const orgSlug = slug ?? routeOrgSlug;
   const isOrgSlugAvailable = Boolean(orgSlug);
 
   const shouldFetchOrg =

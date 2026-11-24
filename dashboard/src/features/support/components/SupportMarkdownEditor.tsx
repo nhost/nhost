@@ -1,4 +1,4 @@
-import { Bold, Code, Italic, Link } from 'lucide-react';
+import { Bold, Code, Italic, Link, Paperclip } from 'lucide-react';
 import { type ReactNode, useId, useRef, useState } from 'react';
 import {
   type Control,
@@ -10,22 +10,34 @@ import { mergeRefs } from 'react-merge-refs';
 import { Button } from '@/components/ui/v3/button';
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Textarea } from '@/components/ui/v3/textarea';
-import SupportMarkdown from '@/features/support/components/SupportMarkdown';
+import { Separator } from '@/components/ui/v3/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import SupportAttachmentEditor, {
+  type SupportEditorHandle,
+} from '@/features/support/components/SupportAttachmentEditor';
 import {
   attachmentValidationError,
+  SUPPORT_ATTACHMENT_TOKEN_PATTERN,
   type SupportAttachmentFile,
   type SupportAttachmentScope,
   type SupportAttachmentUploaded,
+  supportAttachmentId,
   supportAttachmentMarkdown,
 } from '@/features/support/utils/attachments';
-import { cn } from '@/lib/utils';
+
+export type RemoveSupportAttachmentTokens = (target?: {
+  id?: string;
+  file?: File;
+}) => void;
 
 interface SupportMarkdownEditorProps<T extends FieldValues> {
   control: Control<T>;
@@ -34,6 +46,9 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
   placeholder?: string;
   disabled?: boolean;
   filesDisabled?: boolean;
+  organizationRequired?: boolean;
+  attachmentPickerInFooter?: boolean;
+  onDiscardInlineAttachment?: (id: string) => Promise<boolean>;
   onFilesDrop?: (
     files: File[],
     onUploaded: SupportAttachmentUploaded,
@@ -42,6 +57,8 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
   attachments?: (
     insert: (file: SupportAttachmentFile) => void,
     uploadFiles: (files: File[]) => Promise<void>,
+    remove: RemoveSupportAttachmentTokens,
+    focusAttach: VoidFunction,
   ) => ReactNode;
 }
 
@@ -49,18 +66,27 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
   control,
   name,
   label,
-  placeholder,
   disabled,
   filesDisabled,
+  organizationRequired = false,
+  attachmentPickerInFooter = false,
+  onDiscardInlineAttachment,
   onFilesDrop,
   attachmentScope,
   attachments,
 }: SupportMarkdownEditorProps<T>) {
-  const editor = useRef<HTMLTextAreaElement>(null);
-  const uploadID = useId();
+  const editor = useRef<SupportEditorHandle>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const attachButton = useRef<HTMLButtonElement>(null);
+  const activeMarkers = useRef(new Map<File, string>());
+  const uploadPrefix = `upload-${useId()}-`;
+  const attachmentsDisabled =
+    !!disabled || !!filesDisabled || organizationRequired;
+  const attachTooltip = organizationRequired
+    ? 'Pick an organization'
+    : 'Attach files';
   const nextUpload = useRef(0);
   const { getValues } = useFormContext<T>();
-  const [preview, setPreview] = useState(false);
   const [dragging, setDragging] = useState(false);
 
   return (
@@ -70,80 +96,101 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
       render={({ field }) => {
         const value = typeof field.value === 'string' ? field.value : '';
         function formatSelection(before: string, after = before) {
-          const textarea = editor.current;
-          if (!textarea) {
+          const view = editor.current?.view;
+          if (!view || disabled) {
             return;
           }
-          const { selectionStart: start, selectionEnd: end } = textarea;
-          field.onChange(
-            `${value.slice(0, start)}${before}${value.slice(start, end)}${after}${value.slice(end)}`,
-          );
-          requestAnimationFrame(() => {
-            textarea.focus();
-            textarea.setSelectionRange(
-              start + before.length,
-              end + before.length,
-            );
+          const { from, to } = view.state.selection.main;
+          const selected = view.state.doc.sliceString(from, to);
+          view.dispatch({
+            changes: { from, to, insert: `${before}${selected}${after}` },
+            selection: {
+              anchor: from + before.length,
+              head: from + before.length + selected.length,
+            },
+            userEvent: 'input',
           });
+          view.focus();
+        }
+        function insertMarkdown(markdown: string, position?: number | null) {
+          const view = editor.current?.view;
+          if (!view) {
+            return;
+          }
+          const { from, to } = view.state.selection.main;
+          const start = position ?? from;
+          const end = position == null ? to : start;
+          const doc = view.state.doc;
+          const before =
+            start > 0 && doc.sliceString(start - 1, start) !== '\n' ? '\n' : '';
+          const after =
+            end < doc.length && doc.sliceString(end, end + 1) !== '\n'
+              ? '\n'
+              : '';
+          const insert = `${before}${markdown}\n${after}`;
+          view.dispatch({
+            changes: { from: start, to: end, insert },
+            selection: { anchor: start + insert.length },
+            userEvent: 'input',
+          });
+          view.focus();
         }
         function insertAttachment(file: SupportAttachmentFile) {
           if (disabled || filesDisabled) {
             return;
           }
-          const textarea = editor.current;
-          const start = textarea?.selectionStart ?? value.length;
-          const end = textarea?.selectionEnd ?? value.length;
-          const markdown = supportAttachmentMarkdown(file);
-          field.onChange(
-            `${value.slice(0, start)}${markdown}${value.slice(end)}`,
-          );
-          setPreview(false);
-          requestAnimationFrame(() => {
-            textarea?.focus();
-            textarea?.setSelectionRange(
-              start + markdown.length,
-              start + markdown.length,
-            );
-          });
+          insertMarkdown(supportAttachmentMarkdown(file));
         }
-        async function uploadDroppedFiles(files: File[]) {
-          if (!onFilesDrop || files.length === 0) {
+        const remove: RemoveSupportAttachmentTokens = (target) => {
+          const view = editor.current?.view;
+          if (!view || view.state.readOnly) {
             return;
           }
-          const textarea = editor.current;
+          const pendingID =
+            target?.file && activeMarkers.current.get(target.file);
+          const changes = Array.from(
+            view.state.doc
+              .toString()
+              .matchAll(SUPPORT_ATTACHMENT_TOKEN_PATTERN),
+          ).flatMap((match) => {
+            const id = match[3];
+            const shouldRemove = target
+              ? id === target.id || id === pendingID
+              : id.startsWith(uploadPrefix) ||
+                !!supportAttachmentId(`attachment:${id}`);
+            return shouldRemove
+              ? [{ from: match.index, to: match.index + match[0].length }]
+              : [];
+          });
+          if (changes.length > 0) {
+            view.dispatch({ changes, userEvent: 'support.removeAttachment' });
+          }
+        };
+        async function uploadDroppedFiles(
+          files: File[],
+          position?: number | null,
+        ) {
+          if (!onFilesDrop || attachmentsDisabled || files.length === 0) {
+            return;
+          }
           const markers = new Map<File, string>();
           const completed = new Map<File, string>();
           for (const file of files) {
             if (!attachmentValidationError(file)) {
               nextUpload.current += 1;
+              const id = `${uploadPrefix}${nextUpload.current}`;
+              activeMarkers.current.set(file, id);
               markers.set(
                 file,
                 supportAttachmentMarkdown({
-                  id: `upload-${uploadID}-${nextUpload.current}`,
+                  id,
                   name: `Uploading ${file.name}…`,
                 }),
               );
             }
           }
           if (markers.size > 0) {
-            const start = textarea?.selectionStart ?? value.length;
-            const end = textarea?.selectionEnd ?? value.length;
-            const pending = [...markers.values()].join('\n');
-            const pendingValue = `${value.slice(0, start)}${pending}${value.slice(end)}`;
-            field.onChange(pendingValue);
-            requestAnimationFrame(() => {
-              if (
-                textarea &&
-                !textarea.hidden &&
-                textarea.value === pendingValue
-              ) {
-                textarea.focus();
-                textarea.setSelectionRange(
-                  start + pending.length,
-                  start + pending.length,
-                );
-              }
-            });
+            insertMarkdown([...markers.values()].join('\n'), position);
           }
           try {
             await onFilesDrop(files, (attachment, source) => {
@@ -155,69 +202,95 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
               error instanceof Error ? error.message : 'Unknown error',
             );
           } finally {
-            // Replace tokens in the latest text so typing during uploads is never overwritten.
-            const current = getValues(name);
+            for (const file of markers.keys()) {
+              activeMarkers.current.delete(file);
+            }
+            // Resolve markers against the live document, preserving edits and selection during uploads.
+            const view = editor.current?.view;
+            const current = view?.state.doc.toString() ?? getValues(name);
             if (typeof current === 'string') {
-              let updated: string = current;
-              let start = textarea?.selectionStart ?? current.length;
-              let end = textarea?.selectionEnd ?? current.length;
-              for (const [source, marker] of markers) {
-                const position = updated.indexOf(marker);
-                if (position < 0) {
-                  continue;
+              const changes = [...markers]
+                .flatMap(([source, marker]) => {
+                  const from = current.indexOf(marker);
+                  return from < 0
+                    ? []
+                    : [
+                        {
+                          from,
+                          to: from + marker.length,
+                          insert: completed.get(source) ?? '',
+                        },
+                      ];
+                })
+                .sort((a, b) => a.from - b.from);
+              if (view && changes.length > 0) {
+                view.dispatch({ changes });
+              } else if (!view) {
+                let updated = current;
+                for (const [source, marker] of markers) {
+                  updated = updated.replace(
+                    marker,
+                    () => completed.get(source) ?? '',
+                  );
                 }
-                const replacement = completed.get(source) ?? '';
-                const adjust = (offset: number) =>
-                  offset <= position
-                    ? offset
-                    : offset >= position + marker.length
-                      ? offset + replacement.length - marker.length
-                      : position + replacement.length;
-                start = adjust(start);
-                end = adjust(end);
-                updated = `${updated.slice(0, position)}${replacement}${updated.slice(position + marker.length)}`;
-              }
-              if (updated !== current) {
-                field.onChange(updated);
-                requestAnimationFrame(() => {
-                  if (
-                    textarea &&
-                    document.activeElement === textarea &&
-                    textarea.value === updated
-                  ) {
-                    textarea.setSelectionRange(start, end);
-                  }
-                });
+                if (updated !== current) {
+                  field.onChange(updated);
+                }
               }
             }
           }
         }
+        const picker = onFilesDrop && (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex shrink-0">
+                  <Button
+                    ref={attachButton}
+                    type="button"
+                    variant={attachmentPickerInFooter ? 'link' : 'ghost'}
+                    size="sm"
+                    className={
+                      attachmentPickerInFooter
+                        ? 'h-auto cursor-pointer whitespace-nowrap p-0 text-xs hover:text-foreground'
+                        : undefined
+                    }
+                    aria-label="Attach files"
+                    disabled={attachmentsDisabled}
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    {attachmentPickerInFooter ? (
+                      'browse'
+                    ) : (
+                      <Paperclip aria-hidden="true" className="size-4" />
+                    )}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{attachTooltip}</TooltipContent>
+            </Tooltip>
+            <input
+              ref={fileInput}
+              type="file"
+              multiple
+              hidden
+              disabled={attachmentsDisabled}
+              aria-label="Choose attachments"
+              onChange={(event) => {
+                const input = event.currentTarget;
+                const files = Array.from(input.files ?? []);
+                input.value = '';
+                void uploadDroppedFiles(files);
+              }}
+            />
+          </>
+        );
         return (
           <FormItem>
             <FormLabel>{label}</FormLabel>
             <div className="flex flex-wrap items-center gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-pressed={!preview}
-                disabled={disabled}
-                onClick={() => setPreview(false)}
-              >
-                Write
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-pressed={preview}
-                disabled={disabled}
-                onClick={() => setPreview(true)}
-              >
-                Preview
-              </Button>
-              {!preview && (
-                <>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
@@ -228,6 +301,11 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   >
                     <Bold className="size-4" />
                   </Button>
+                </TooltipTrigger>
+                <TooltipContent>Bold</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
@@ -238,6 +316,11 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   >
                     <Italic className="size-4" />
                   </Button>
+                </TooltipTrigger>
+                <TooltipContent>Italic</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
@@ -248,6 +331,11 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   >
                     <Code className="size-4" />
                   </Button>
+                </TooltipTrigger>
+                <TooltipContent>Code</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
@@ -258,72 +346,65 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   >
                     <Link className="size-4" />
                   </Button>
-                </>
+                </TooltipTrigger>
+                <TooltipContent>Link</TooltipContent>
+              </Tooltip>
+              {!attachmentPickerInFooter && picker && (
+                <div className="flex items-center gap-1">
+                  <Separator orientation="vertical" className="mx-1 h-5" />
+                  {picker}
+                </div>
               )}
             </div>
             <FormControl>
-              <Textarea
-                {...field}
-                value={value}
+              <SupportAttachmentEditor
                 ref={mergeRefs([field.ref, editor])}
-                placeholder={placeholder}
-                hidden={preview}
-                readOnly={disabled}
-                aria-disabled={disabled || undefined}
-                onDragOver={(event) => {
-                  if (!event.dataTransfer.types.includes('Files')) {
-                    return;
-                  }
-                  event.preventDefault();
-                  const allowed = !!onFilesDrop && !disabled && !filesDisabled;
-                  const transfer = event.dataTransfer;
-                  transfer.dropEffect = allowed ? 'copy' : 'none';
-                  setDragging(allowed);
+                value={value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                label={label}
+                disabled={disabled}
+                dragging={dragging}
+                scope={attachmentScope}
+                uploadPrefix={uploadPrefix}
+                onFormat={formatSelection}
+                filesDisabled={attachmentsDisabled || !onFilesDrop}
+                organizationRequired={organizationRequired}
+                onDiscardAttachment={
+                  onDiscardInlineAttachment
+                    ? async (id) => {
+                        if (await onDiscardInlineAttachment(id)) {
+                          remove({ id });
+                          editor.current?.focus();
+                        }
+                      }
+                    : undefined
+                }
+                footer={
+                  attachmentPickerInFooter &&
+                  picker && (
+                    <div className="flex w-full items-center gap-2 rounded-b-md border-input border-t bg-background px-3 py-2 text-muted-foreground text-xs">
+                      <Paperclip
+                        aria-hidden="true"
+                        className="size-3.5 shrink-0"
+                      />
+                      <div>
+                        <span>Drag files here</span> or {picker}. Up to 5 MB
+                        each.
+                      </div>
+                    </div>
+                  )
+                }
+                onFilesDrop={(files, position) => {
+                  void uploadDroppedFiles(files, position);
                 }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={(event) => {
-                  if (!event.dataTransfer.types.includes('Files')) {
-                    return;
-                  }
-                  event.preventDefault();
-                  setDragging(false);
-                  if (!disabled && !filesDisabled && onFilesDrop) {
-                    void uploadDroppedFiles(
-                      Array.from(event.dataTransfer.files),
-                    );
-                  }
-                }}
-                className={cn(
-                  'min-h-40 font-mono placeholder:font-sans',
-                  preview && 'hidden',
-                  dragging &&
-                    !disabled &&
-                    !filesDisabled &&
-                    'border-primary ring-2 ring-primary/30',
-                )}
+                onDraggingChange={setDragging}
               />
             </FormControl>
-            {preview && (
-              <section
-                aria-label={`${label} preview`}
-                className="min-h-40 rounded-md border p-4"
-              >
-                {value.trim() ? (
-                  <SupportMarkdown attachmentScope={attachmentScope}>
-                    {value}
-                  </SupportMarkdown>
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    Nothing to preview.
-                  </p>
-                )}
-              </section>
-            )}
-            <FormDescription>
-              Markdown supported. Drop files to attach.
-            </FormDescription>
             <FormMessage />
-            {attachments?.(insertAttachment, uploadDroppedFiles)}
+            {attachments?.(insertAttachment, uploadDroppedFiles, remove, () => {
+              attachButton.current?.focus();
+            })}
           </FormItem>
         );
       }}

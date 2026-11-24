@@ -19,6 +19,7 @@ import {
   MAX_SUPPORT_ATTACHMENT_SIZE,
   type SupportAttachmentFile,
 } from '@/features/support/utils/attachments';
+import { cn } from '@/lib/utils';
 
 function attachmentIcon(file?: SupportAttachmentFile | null) {
   const mime = file?.mimeType?.toLowerCase() ?? '';
@@ -66,11 +67,15 @@ function attachmentIcon(file?: SupportAttachmentFile | null) {
 interface SupportAttachmentPreviewProps {
   file?: SupportAttachmentFile | null;
   requestRole?: SupportRole;
+  variant?: 'list' | 'editor';
+  className?: string;
 }
 
 export default function SupportAttachmentPreview({
   file,
   requestRole,
+  variant = 'list',
+  className,
 }: SupportAttachmentPreviewProps) {
   const { user, role, downloadAttachment } = useSupportSession();
   const actorRole = requestRole ?? role;
@@ -144,18 +149,32 @@ export default function SupportAttachmentPreview({
   return (
     <div
       ref={container}
-      className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/50"
+      className={cn(
+        'flex shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/50',
+        variant === 'editor' ? 'max-h-40 max-w-full' : 'size-16',
+        className,
+      )}
       aria-busy={preview.isFetching}
     >
       {blob && image?.blob === blob && image.url !== failedURL ? (
         // biome-ignore lint/performance/noImgElement: Private authenticated blob URLs must not go through the image optimizer.
         <img
           src={image.url}
-          alt={`Preview of ${file?.name ?? 'attachment'}`}
-          width={64}
-          height={64}
+          alt={
+            variant === 'editor'
+              ? (file?.name ?? 'attachment')
+              : `Preview of ${file?.name ?? 'attachment'}`
+          }
+          width={variant === 'editor' ? 160 : 64}
+          height={variant === 'editor' ? 160 : 64}
           loading="lazy"
-          className="size-full object-contain"
+          draggable={variant !== 'editor'}
+          className={cn(
+            'object-contain',
+            variant === 'editor'
+              ? 'h-40 max-h-40 w-auto max-w-full'
+              : 'size-full',
+          )}
           onError={() => setFailedURL(image.url)}
         />
       ) : (

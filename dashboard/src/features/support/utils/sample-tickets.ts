@@ -1,6 +1,10 @@
 import type { GetFileParams } from '@nhost/nhost-js/storage';
 import { type DocumentNode, getOperationAST } from 'graphql';
-import { SEVERITIES, STATUSES } from '@/features/support/utils/tickets';
+import {
+  SAMPLE_TICKET_PAGE_SIZE,
+  SEVERITIES,
+  STATUSES,
+} from '@/features/support/utils/tickets';
 import {
   type DashboardSupportAttachmentsQuery,
   type DashboardSupportCommentsQuery,
@@ -57,6 +61,32 @@ function createState(actor: SampleActor): SampleState {
     'Storage uploads stop before finishing',
     'Help setting up a deployment preview',
     'How can I export my project logs?',
+    'Custom domain verification is pending',
+    'Password reset emails are not arriving',
+    'GraphQL subscription disconnects after a minute',
+    'Where can I download my latest invoice?',
+    'Scheduled function ran twice',
+    'Preview deployment uses the wrong environment',
+    'How do I restore a database backup?',
+    'Invite link has expired',
+    'Storage permissions differ between environments',
+    'Can I move a project to another organization?',
+    'One database query is slower than usual',
+    'Need help configuring a webhook',
+    'Dashboard shows an old project name',
+    'GitHub deployment did not start',
+    'How do I set a file upload limit?',
+    'Magic link redirects to the wrong page',
+    'Project logs are missing recent entries',
+    'Can I keep a staging project paused?',
+    'Role permissions are not applied to new users',
+    'How do I rotate project credentials?',
+    'Image previews are not updating',
+    'Function deployment is stuck in progress',
+    'Need help setting up a database migration',
+    'Cannot add a second billing contact',
+    'Search results omit an existing record',
+    'How do I set up a test environment?',
   ];
   const state: SampleState = {
     tickets: [],
@@ -65,14 +95,15 @@ function createState(actor: SampleActor): SampleState {
     files: new Map(),
   };
   state.tickets = titles.map((title, index): Ticket => {
-    const createdAt = new Date(Date.UTC(2026, 10, 20, 9, index)).toISOString();
+    const minute = index < STATUSES.length ? index : STATUSES.length - 1 - index;
+    const createdAt = new Date(Date.UTC(2026, 10, 20, 9, minute)).toISOString();
     const assigneeID =
       index % 3 === 0 ? actor.id : index % 3 === 1 ? otherAgentID : null;
     return {
       id: sampleID(index + 1),
       number: 1042 + index,
       title,
-      status: STATUSES[index],
+      status: STATUSES[index < STATUSES.length ? index : index % 4],
       severity: SEVERITIES[index % SEVERITIES.length],
       services: [
         index === 1 ? 'billing' : index === 3 ? 'storage' : 'database',
@@ -254,16 +285,21 @@ export function sampleSupportRequest<TData>(
   const offset = Math.max(0, Number(variables.offset) || 0);
   let result: unknown;
   switch (operation) {
-    case 'dashboardSupportTickets':
+    case 'dashboardSupportTickets': {
+      const matchingTickets = state.tickets
+        .filter((item) =>
+          matches(item, variables.where as SupportTickets_Bool_Exp),
+        )
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       result = {
-        supportTickets: state.tickets
-          .filter((item) =>
-            matches(item, variables.where as SupportTickets_Bool_Exp),
-          )
-          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-          .slice(offset, offset + 51),
+        supportTickets: matchingTickets.slice(
+          offset,
+          offset + SAMPLE_TICKET_PAGE_SIZE,
+        ),
+        sampleTicketCount: matchingTickets.length,
       };
       break;
+    }
     case 'dashboardSupportTicket':
       result = {
         supportTicket: ticket ?? null,
@@ -322,16 +358,14 @@ export function sampleSupportRequest<TData>(
         oldValue: string | null,
         newValue: string | null,
       ) {
-        state.events
-          .get(ticketID)
-          ?.unshift({
-            id: crypto.randomUUID(),
-            actorName: actor.displayName || 'You',
-            kind,
-            oldValue,
-            newValue,
-            createdAt: now,
-          });
+        state.events.get(ticketID)?.unshift({
+          id: crypto.randomUUID(),
+          actorName: actor.displayName || 'You',
+          kind,
+          oldValue,
+          newValue,
+          createdAt: now,
+        });
       }
       if (changes.status) {
         if (

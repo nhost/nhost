@@ -5,6 +5,11 @@ import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import type { SupportAttachmentUploaded } from '@/features/support/utils/attachments';
 import {
+  editorValue,
+  expectInputValue,
+  selectEditorText,
+} from '@/tests/supportEditor';
+import {
   act,
   fireEvent,
   render,
@@ -60,7 +65,9 @@ describe('support Markdown', () => {
         />,
       );
       const textbox = screen.getByRole('textbox', { name: 'Description' });
-      await new TestUserEvent().type(textbox, 'Keep my text');
+      const user = new TestUserEvent();
+      await user.click(textbox);
+      await user.paste('Keep my text');
       fireEvent.dragOver(textbox, {
         dataTransfer: { types: ['Files'], dropEffect: 'none' },
       });
@@ -71,7 +78,12 @@ describe('support Markdown', () => {
       if (!filesDisabled) {
         expect(drop).toHaveBeenCalledWith([file], expect.any(Function));
       }
-      await waitFor(() => expect(textbox).toHaveValue('Keep my text'));
+      await waitFor(() =>
+        expectInputValue(
+          textbox,
+          filesDisabled ? 'Keep my text' : 'Keep my text\n\n',
+        ),
+      );
       expect(submit).not.toHaveBeenCalled();
     },
   );
@@ -97,32 +109,29 @@ describe('support Markdown', () => {
       render(<Editor onSubmit={vi.fn()} onFilesDrop={drop} />);
       const textbox = screen.getByRole('textbox', {
         name: 'Description',
-      }) as HTMLTextAreaElement;
+      });
       await user.type(textbox, 'before after');
-      textbox.setSelectionRange(7, 7);
+      selectEditorText(textbox, 7);
       fireEvent.drop(textbox, {
         dataTransfer: { types: ['Files'], files: [file] },
       });
-      expect(textbox.value).toContain('Uploading logs.txt');
+      expect(editorValue(textbox)).toContain('Uploading logs.txt');
       if (removePlaceholder) {
         await user.clear(textbox);
         await user.type(textbox, 'replacement text');
       } else {
-        await waitFor(() =>
-          expect(textbox.selectionStart).toBe(textbox.value.indexOf('after')),
-        );
-        await user.type(textbox, ' typed while uploading', {
-          initialSelectionStart: textbox.value.length,
-        });
+        selectEditorText(textbox, editorValue(textbox).length);
+        await user.keyboard(' typed while uploading');
       }
       await act(async () => {
         uploaded({ id, name: file.name, mimeType: file.type }, file);
         finish();
       });
-      expect(textbox).toHaveValue(
+      expectInputValue(
+        textbox,
         removePlaceholder
           ? 'replacement text'
-          : `before [logs.txt](attachment:${id})after typed while uploading`,
+          : `before \n[logs.txt](attachment:${id})\n\nafter typed while uploading`,
       );
     },
   );
@@ -133,7 +142,7 @@ describe('support Markdown', () => {
     const textbox = screen.getByRole('textbox', { name: 'Description' });
     expect(
       fireEvent.drop(textbox, {
-        dataTransfer: { types: ['text/plain'], files: [] },
+        dataTransfer: { types: ['text/plain'], files: [], getData: () => '' },
       }),
     ).toBe(true);
     expect(drop).not.toHaveBeenCalled();
@@ -181,7 +190,7 @@ describe('support Markdown', () => {
     expect(screen.getByText('[Image: attachment]')).toBeInTheDocument();
   });
 
-  it('previews without changing the raw Markdown submitted by the form', async () => {
+  it('submits the raw Markdown without a preview mode', async () => {
     const submit = vi.fn();
     const user = new TestUserEvent();
     const markdown =
@@ -189,18 +198,9 @@ describe('support Markdown', () => {
     render(<Editor onSubmit={submit} />);
     await user.click(screen.getByRole('textbox', { name: 'Description' }));
     await user.paste(markdown);
-    await user.click(screen.getByRole('button', { name: 'Preview' }));
-    expect(
-      screen.getByRole('region', { name: 'Description preview' }),
-    ).toHaveTextContent('Details');
-    expect(
-      screen.getByRole('heading', { name: 'Upload failure' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('textbox', { name: 'Description' }),
-    ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Write' }));
-    expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expectInputValue(
+      screen.getByRole('textbox', { name: 'Description' }),
       markdown,
     );
     await user.click(screen.getByRole('button', { name: 'Submit' }));
@@ -217,9 +217,48 @@ describe('support Markdown', () => {
     await user.type(textbox, 'important');
     await user.keyboard('{Control>}a{/Control}');
     await user.click(screen.getByRole('button', { name: 'Bold' }));
-    expect(textbox).toHaveValue('**important**');
+    expectInputValue(textbox, '**important**');
     expect(submit).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Preview' }));
-    expect(screen.getByText('important').tagName).toBe('STRONG');
+    expect(
+      screen.queryByRole('button', { name: 'Preview' }),
+    ).not.toBeInTheDocument();
   });
+  it('reveals removal over an attachment and removes its complete Markdown reference', async () => {
+    const user = new TestUserEvent();
+    render(<Editor onSubmit={vi.fn()} />);
+    const textbox = screen.getByRole('textbox', { name: 'Description' });
+    const markdown =
+      '![screenshot.png](attachment:41261576-2d59-4c12-bc6e-e573bdba3af1)';
+    await user.click(textbox);
+    await user.paste(markdown);
+    const remove = await screen.findByRole('button', {
+      name: 'Remove screenshot.png',
+    });
+    expect(remove.parentElement).toHaveClass(
+      'opacity-0',
+      'pointer-events-none',
+    );
+    expect(textbox).not.toHaveTextContent('attachment:');
+    remove.focus();
+    expect(remove).toHaveFocus();
+    await user.click(remove);
+    expectInputValue(textbox, '');
+  });
+
+  it.each(['Backspace', 'Delete'])(
+    'deletes an attachment atomically with %s',
+    async (key) => {
+      const user = new TestUserEvent();
+      render(<Editor onSubmit={vi.fn()} />);
+      const textbox = screen.getByRole('textbox', { name: 'Description' });
+      const markdown =
+        '[logs.txt](attachment:41261576-2d59-4c12-bc6e-e573bdba3af1)';
+      await user.click(textbox);
+      await user.paste(markdown);
+      await screen.findByRole('button', { name: 'Remove logs.txt' });
+      selectEditorText(textbox, key === 'Backspace' ? markdown.length : 0);
+      await user.keyboard(`{${key}}`);
+      expectInputValue(textbox, '');
+    },
+  );
 });

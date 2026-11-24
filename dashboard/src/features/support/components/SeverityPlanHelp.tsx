@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
@@ -11,7 +10,9 @@ interface SeverityPlanHelpProps {
   children: ReactElement;
   severity: string;
   explanation: string;
+  describedBy?: string;
   billingHref?: string;
+  onSeePlans?: VoidFunction;
   disabled?: boolean;
 }
 
@@ -21,7 +22,9 @@ export default function SeverityPlanHelp({
   children,
   severity,
   explanation,
+  describedBy,
   billingHref,
+  onSeePlans,
   disabled,
 }: SeverityPlanHelpProps) {
   const [open, setOpen] = useState(false);
@@ -68,13 +71,14 @@ export default function SeverityPlanHelp({
         onFocusCapture={show}
         onBlurCapture={closeLater}
       >
-        <PopoverAnchor asChild>{children}</PopoverAnchor>
+        {children}
         <PopoverTrigger asChild>
           <button
             ref={button}
             type="button"
             disabled={disabled}
             aria-label={`${severity} plan availability`}
+            aria-describedby={describedBy}
             className="absolute inset-0 cursor-help rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed"
             onClick={(event) => {
               event.preventDefault();
@@ -93,7 +97,9 @@ export default function SeverityPlanHelp({
       <PopoverContent
         ref={content}
         aria-label={`${severity} plan availability`}
-        className="space-y-3 text-sm"
+        side="top"
+        align="center"
+        className="space-y-3 text-muted-foreground text-sm"
         onOpenAutoFocus={(event) => event.preventDefault()}
         onCloseAutoFocus={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => {
@@ -110,7 +116,21 @@ export default function SeverityPlanHelp({
         {billingHref && (
           <Link
             href={billingHref}
-            className="inline-block rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={(event) => {
+              if (
+                !onSeePlans ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              ) {
+                return;
+              }
+              event.preventDefault();
+              setOpen(false);
+              onSeePlans();
+            }}
+            className="inline-block rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             See plans
           </Link>

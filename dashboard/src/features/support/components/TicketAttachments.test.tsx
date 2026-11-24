@@ -13,6 +13,7 @@ import { useNhostClient } from '@/providers/nhost';
 import { mockMultipartFormData } from '@/tests/mock-multipart-form-data';
 import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
+import { expectInputValue, selectEditorText } from '@/tests/supportEditor';
 import {
   fireEvent,
   queryClient,
@@ -76,6 +77,15 @@ function setRole(role: 'user' | 'support_agent') {
   mockSession.accessToken = `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + 3600, 'https://hasura.io/jwt/claims': claims }))}.test-signature`;
 }
 const server = setupServer(
+  nhostGraphQLLink.query('dashboardSupportInlineAttachment', ({ variables }) =>
+    HttpResponse.json({
+      data: {
+        supportAttachmentUploads: files
+          .filter((item) => item.id === variables.id)
+          .map((item) => ({ file: item.file })),
+      },
+    }),
+  ),
   http.post('https://local.auth.local.nhost.run/v1/token', () =>
     HttpResponse.json({ ...mockSession }),
   ),
@@ -201,9 +211,14 @@ afterAll(() => server.close());
 
 async function chooseFiles(user: TestUserEvent, selected: File[]) {
   await waitFor(() =>
-    expect(screen.getByLabelText('Attach files')).toBeEnabled(),
+    expect(
+      screen.getByLabelText('Attach files', { selector: 'input' }),
+    ).toBeEnabled(),
   );
-  await user.upload(screen.getByLabelText('Attach files'), selected);
+  await user.upload(
+    screen.getByLabelText('Attach files', { selector: 'input' }),
+    selected,
+  );
 }
 function Attachments({ closed = false }: { closed?: boolean }) {
   const controller = useSupportTicketAttachments(ticketId, closed, false);
@@ -288,7 +303,9 @@ describe('ticket attachments', () => {
     async (mimeType) => {
       renderAttachments();
       await waitFor(() =>
-        expect(screen.getByLabelText('Attach files')).toBeEnabled(),
+        expect(
+          screen.getByLabelText('Attach files', { selector: 'input' }),
+        ).toBeEnabled(),
       );
       fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
         dataTransfer: {
@@ -305,8 +322,9 @@ describe('ticket attachments', () => {
         screen.queryByRole('button', { name: 'Upload files' }),
       ).not.toBeInTheDocument();
       await waitFor(() =>
-        expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue(
-          `${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${reservations[0].id})`,
+        expectInputValue(
+          screen.getByRole('textbox', { name: 'Your reply' }),
+          `${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${reservations[0].id})\n`,
         ),
       );
     },
@@ -316,7 +334,9 @@ describe('ticket attachments', () => {
     failures.add('failed.txt');
     renderAttachments();
     await waitFor(() =>
-      expect(screen.getByLabelText('Attach files')).toBeEnabled(),
+      expect(
+        screen.getByLabelText('Attach files', { selector: 'input' }),
+      ).toBeEnabled(),
     );
     fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
       dataTransfer: {
@@ -329,8 +349,9 @@ describe('ticket attachments', () => {
     });
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue(
-        `[kept.txt](attachment:${reservations[0].id})\n`,
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Your reply' }),
+        `[kept.txt](attachment:${reservations[0].id})\n\n`,
       ),
     );
     expect(
@@ -353,12 +374,13 @@ describe('ticket attachments', () => {
       });
       const editor = screen.getByRole('textbox', {
         name: 'Your reply',
-      }) as HTMLTextAreaElement;
+      });
       await user.type(editor, 'before selected after');
-      editor.setSelectionRange(7, 15);
+      selectEditorText(editor, 7, 15);
       await user.click(insert);
-      expect(editor).toHaveValue(
-        `before ${mimeType === 'image/png' ? '!' : ''}[${name}](attachment:${id}) after`,
+      expectInputValue(
+        editor,
+        `before \n${mimeType === 'image/png' ? '!' : ''}[${name}](attachment:${id})\n\n after`,
       );
     },
   );
@@ -485,7 +507,9 @@ describe('ticket attachments', () => {
       expect(
         document.querySelector('iframe, embed, article script'),
       ).toBeNull();
-      expect(screen.queryByLabelText('Attach files')).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText('Attach files', { selector: 'input' }),
+      ).not.toBeInTheDocument();
       await waitFor(
         () =>
           expect(revokeObjectURL).toHaveBeenCalledWith(
@@ -559,7 +583,9 @@ describe('ticket attachments', () => {
     await queryClient.invalidateQueries({ queryKey: ['support'] });
     await screen.findByText(/Unable to load attachments/);
     expect(screen.queryByText('diagnostic.html')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Attach files')).toBeDisabled();
+    expect(
+      screen.getByLabelText('Attach files', { selector: 'input' }),
+    ).toBeDisabled();
   });
 
   it('discards a download if the signed-in account changes while bytes are in flight', async () => {

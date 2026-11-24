@@ -1,25 +1,43 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Lock } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { SelectItem } from '@/components/ui/v3/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
+import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import DraftAttachments from '@/features/support/components/DraftAttachments';
 import SeverityPlanHelp from '@/features/support/components/SeverityPlanHelp';
@@ -30,6 +48,11 @@ import {
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import { useSupportAttachmentDraft } from '@/features/support/hooks/use-support-attachment-draft';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import {
+  attachmentValidationError,
+  SUPPORT_ATTACHMENT_TOKEN_PATTERN,
+  supportAttachmentId,
+} from '@/features/support/utils/attachments';
 import { SERVICE_ICONS } from '@/features/support/utils/service-icons';
 import {
   getAllowedSupportSeverities,
@@ -62,6 +85,7 @@ export default function NewTicket() {
 
 function NewTicketForm() {
   const router = useRouter();
+  const isPlatform = useIsPlatform();
   const client = useQueryClient();
   const { user, request } = useSupportSession();
   const form = useForm<TicketFormValues>({
@@ -76,6 +100,10 @@ function NewTicketForm() {
     },
   });
   const organizationID = form.watch('organizationID');
+  const [upgradeOrgSlug, setUpgradeOrgSlug] = useState<string>();
+  const organizationTrigger = useRef<HTMLButtonElement>(null);
+  const [pendingOrganization, setPendingOrganization] = useState<string>();
+  const [changingOrganization, setChangingOrganization] = useState(false);
   const draft = useSupportAttachmentDraft(organizationID);
   const organizations = useQuery({
     queryKey: ['support', user?.id, 'user', 'organizations'],
@@ -92,9 +120,14 @@ function NewTicketForm() {
   });
   const availableOrganizations = organizations.data?.organizations;
   const organizationLocked =
-    draft.hasFiles || draft.busy || form.formState.isSubmitting;
+    draft.busy || changingOrganization || form.formState.isSubmitting;
   useEffect(() => {
-    if (availableOrganizations?.length !== 1 || organizationLocked) {
+    if (
+      availableOrganizations?.length !== 1 ||
+      organizationLocked ||
+      draft.hasFiles ||
+      pendingOrganization
+    ) {
       return;
     }
     const singleOrganization = availableOrganizations[0];
@@ -104,7 +137,54 @@ function NewTicketForm() {
       });
       form.setValue('projectID', 'none');
     }
-  }, [availableOrganizations, organizationLocked, form]);
+  }, [
+    availableOrganizations,
+    organizationLocked,
+    draft.hasFiles,
+    pendingOrganization,
+    form,
+  ]);
+
+  function changeOrganization(id: string) {
+    form.setValue('projectID', 'none');
+    form.setValue('organizationID', id, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  async function confirmOrganizationChange() {
+    if (!pendingOrganization || organizationLocked) {
+      return;
+    }
+    setChangingOrganization(true);
+    try {
+      const result = await execPromiseWithErrorToast(
+        () => draft.action.mutateAsync({ type: 'clear' }),
+        {
+          loadingMessage: 'Discarding draft attachments…',
+          successMessage: 'Draft attachments discarded',
+          errorMessage: 'Unable to update draft attachments. Please try again.',
+        },
+      );
+      if (result === null) {
+        return;
+      }
+      const description = form.getValues('description');
+      const withoutAttachments = description.replace(
+        SUPPORT_ATTACHMENT_TOKEN_PATTERN,
+        (token: string, _image: string, _label: string, id: string) =>
+          supportAttachmentId(`attachment:${id}`) ? '' : token,
+      );
+      if (withoutAttachments !== description) {
+        form.setValue('description', withoutAttachments, { shouldDirty: true });
+      }
+      changeOrganization(pendingOrganization);
+    } finally {
+      setPendingOrganization(undefined);
+      setChangingOrganization(false);
+    }
+  }
   const selectedOrganization = organizations.data?.organizations.find(
     (organization) => organization.id === organizationID,
   );
@@ -124,6 +204,10 @@ function NewTicketForm() {
   const allowedSeverities = getAllowedSupportSeverities(
     selectedOrganization?.plan?.supportAllowedSeverities,
   );
+  const showSeverityPlans =
+    isPlatform &&
+    !!selectedOrganization &&
+    allowedSeverities.length < SEVERITIES.length;
   const planName = selectedOrganization?.plan?.name || 'current';
   const billingHref = selectedOrganization?.slug
     ? `/orgs/${encodeURIComponent(selectedOrganization.slug)}/billing?openUpgradeModal=true`
@@ -257,6 +341,9 @@ function NewTicketForm() {
               }
             }}
             onSubmit={async (values: TicketFormValues) => {
+              if (pendingOrganization) {
+                return;
+              }
               await execPromiseWithErrorToast(
                 () => create.mutateAsync(values),
                 {
@@ -268,14 +355,14 @@ function NewTicketForm() {
               );
             }}
           >
-            <section className="rounded-lg border bg-background">
-              <fieldset className="min-w-0 border-b p-6">
+            <section>
+              <fieldset className="min-w-0 rounded-t-lg border bg-background p-6">
                 <legend className="sr-only">Where</legend>
                 <div className="grid gap-8 lg:grid-cols-support-ticket">
                   <div className="flex items-start gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex size-7 shrink-0 items-center justify-center rounded-full border text-muted-foreground text-sm"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full border text-base text-muted-foreground"
                     >
                       1
                     </span>
@@ -292,26 +379,53 @@ function NewTicketForm() {
                     </div>
                   </div>
                   <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-                    <FormSelect
+                    <FormField
                       control={form.control}
                       name="organizationID"
-                      label="Organization"
-                      placeholder="Select an organization"
-                      disabled={
-                        organizationLocked ||
-                        availableOrganizations?.length === 1
-                      }
-                      onChange={() => form.setValue('projectID', 'none')}
-                    >
-                      {organizations.data?.organizations.map((organization) => (
-                        <SelectItem
-                          key={organization.id}
-                          value={organization.id}
-                        >
-                          {organization.name}
-                        </SelectItem>
-                      ))}
-                    </FormSelect>
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Organization</FormLabel>
+                          <Select
+                            name={field.name}
+                            value={field.value}
+                            disabled={
+                              organizationLocked ||
+                              availableOrganizations?.length === 1
+                            }
+                            onValueChange={(id) => {
+                              if (id === field.value || organizationLocked) {
+                                return;
+                              }
+                              if (draft.hasFiles) {
+                                setPendingOrganization(id);
+                                return;
+                              }
+                              changeOrganization(id);
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger
+                                ref={organizationTrigger}
+                                onBlur={field.onBlur}
+                              >
+                                <SelectValue placeholder="Select an organization" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {availableOrganizations?.map((organization) => (
+                                <SelectItem
+                                  key={organization.id}
+                                  value={organization.id}
+                                >
+                                  {organization.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormSelect
                       control={form.control}
                       name="projectID"
@@ -332,282 +446,396 @@ function NewTicketForm() {
                   </div>
                 </div>
               </fieldset>
-              <fieldset className="min-w-0 border-b p-6">
-                <legend className="sr-only">What</legend>
-                <div className="grid gap-8 lg:grid-cols-support-ticket">
-                  <div className="flex items-start gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="flex size-7 shrink-0 items-center justify-center rounded-full border text-muted-foreground text-sm"
-                    >
-                      2
-                    </span>
-                    <div className="space-y-1">
-                      <span
-                        aria-hidden="true"
-                        className="block font-medium text-base"
-                      >
-                        What
-                      </span>
-                      <p className="text-muted-foreground text-sm">
-                        How bad is it, and which parts are affected?
-                      </p>
-                    </div>
-                  </div>
-                  <div className="min-w-0 space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="severity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Severity</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              aria-label="Severity"
-                              name={field.name}
-                              value={
-                                selectedOrganization &&
-                                allowedSeverities.includes(field.value)
-                                  ? field.value
-                                  : ''
-                              }
-                              onValueChange={field.onChange}
-                              onBlur={field.onBlur}
-                              ref={field.ref}
-                              className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4"
-                            >
-                              {SEVERITIES.map((severity) => {
-                                const locked =
-                                  !selectedOrganization ||
-                                  !allowedSeverities.includes(severity);
-                                const disabled =
-                                  locked || form.formState.isSubmitting;
-                                const card = (
-                                  <label
-                                    key={severity}
-                                    htmlFor={`support-severity-${severity}`}
-                                    className={cn(
-                                      'block h-full min-w-0 space-y-1 rounded-md border bg-muted/10 p-3 text-left text-foreground transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-                                      disabled
-                                        ? 'cursor-not-allowed opacity-60'
-                                        : 'cursor-pointer hover:border-primary/50 hover:bg-muted/20',
-                                      locked && 'border-dashed',
-                                      !locked &&
-                                        field.value === severity &&
-                                        'border-primary',
-                                      !disabled &&
-                                        field.value === severity &&
-                                        'hover:border-primary',
-                                    )}
-                                  >
-                                    <RadioGroupItem
-                                      id={`support-severity-${severity}`}
-                                      value={severity}
-                                      disabled={disabled}
-                                      aria-label={supportLabel(severity)}
-                                      aria-describedby={`${selectedOrganization && locked ? `support-severity-plan-${severity} ` : ''}support-severity-hint-${severity}`}
-                                      className="sr-only"
-                                    />
-                                    <span className="flex items-center justify-between gap-2 font-medium text-sm">
-                                      {supportLabel(severity)}
-                                      {selectedOrganization && locked && (
-                                        <span
-                                          id={`support-severity-plan-${severity}`}
-                                          className="inline-flex items-center"
-                                        >
-                                          <OrganizationPlanBadge plan="Team" />{' '}
-                                          <span className="sr-only">plan</span>
-                                        </span>
-                                      )}
-                                    </span>
-                                    <span
-                                      id={`support-severity-hint-${severity}`}
-                                      className="block text-muted-foreground text-xs"
-                                    >
-                                      {severityHints[severity]}
-                                    </span>
-                                  </label>
-                                );
-                                return selectedOrganization && locked ? (
-                                  <SeverityPlanHelp
-                                    key={severity}
-                                    severity={supportLabel(severity)}
-                                    explanation={planExplanation}
-                                    billingHref={billingHref}
-                                    disabled={form.formState.isSubmitting}
-                                  >
-                                    {card}
-                                  </SeverityPlanHelp>
-                                ) : (
-                                  card
-                                );
-                              })}
-                            </RadioGroup>
-                          </FormControl>
-                          {!selectedOrganization && (
-                            <FormDescription>
-                              Pick an organization first
-                            </FormDescription>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="services"
-                      render={({ field, fieldState }) => (
-                        <FormItem>
-                          <FormLabel>Services</FormLabel>
-                          <FormControl>
-                            <ToggleGroup
-                              type="multiple"
-                              aria-label="Services"
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              onBlur={field.onBlur}
-                              ref={field.ref}
-                              disabled={
-                                !selectedOrganization ||
-                                form.formState.isSubmitting
-                              }
-                              className="flex flex-wrap justify-start gap-2"
-                            >
-                              {SERVICES.map((service) => {
-                                const Icon = SERVICE_ICONS[service];
-                                return (
-                                  <ToggleGroupItem
-                                    key={service}
-                                    value={service}
-                                    className={cn(
-                                      'h-9 justify-start rounded-full border bg-muted/10 px-3 text-foreground hover:border-primary/50 hover:bg-muted/20 hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-muted/10 data-[state=on]:text-foreground data-[state=on]:hover:border-primary data-[state=on]:hover:bg-muted/20',
-                                      fieldState.invalid &&
-                                        'border-destructive',
-                                    )}
-                                  >
-                                    <Icon
-                                      aria-hidden="true"
-                                      className="size-4 shrink-0"
-                                    />
-                                    <span className="text-left">
-                                      {supportLabel(service)}
-                                    </span>
-                                  </ToggleGroupItem>
-                                );
-                              })}
-                            </ToggleGroup>
-                          </FormControl>
-                          {!selectedOrganization && (
-                            <FormDescription>
-                              Pick an organization first
-                            </FormDescription>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </fieldset>
-              <fieldset className="min-w-0 border-b p-6">
-                <legend className="sr-only">Details</legend>
-                <div className="grid gap-8 lg:grid-cols-support-ticket">
-                  <div className="flex items-start gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="flex size-7 shrink-0 items-center justify-center rounded-full border text-muted-foreground text-sm"
-                    >
-                      3
-                    </span>
-                    <div className="space-y-1">
-                      <span
-                        aria-hidden="true"
-                        className="block font-medium text-base"
-                      >
-                        Details
-                      </span>
-                      <p className="text-muted-foreground text-sm">
-                        What happened, and how can we reproduce it?
-                      </p>
-                    </div>
-                  </div>
-                  <div className="min-w-0 space-y-6">
-                    <FormInput
-                      control={form.control}
-                      name="title"
-                      label="Title"
-                      disabled={form.formState.isSubmitting}
-                    />
-                    <SupportMarkdownEditor
-                      control={form.control}
-                      name="description"
-                      label="Description"
-                      disabled={form.formState.isSubmitting}
-                      filesDisabled={
-                        !selectedOrganization ||
-                        draft.busy ||
-                        draft.query.isError ||
-                        !!draft.query.data?.ticketID ||
-                        draft.submissionUncertain
-                      }
-                      attachmentScope={
-                        draft.identity
-                          ? { draftId: draft.identity.id }
-                          : undefined
-                      }
-                      onFilesDrop={(files, onUploaded) => {
-                        return execPromiseWithErrorToast(
-                          () =>
-                            draft.action.mutateAsync({
-                              type: 'upload',
-                              files,
-                              onUploaded,
-                            }),
-                          {
-                            loadingMessage: 'Uploading draft attachments…',
-                            successMessage: 'Files uploaded',
-                            errorMessage: 'Unable to upload draft attachments.',
-                          },
-                        );
-                      }}
-                      attachments={(_insert, uploadFiles) => (
-                        <DraftAttachments
-                          draft={draft}
-                          disabled={
-                            form.formState.isSubmitting || !selectedOrganization
-                          }
-                          onFiles={uploadFiles}
-                          organizationSelected={!!selectedOrganization}
-                        />
-                      )}
-                    />
-                    {draft.blocked && !draft.busy && !draft.query.isError && (
-                      <p className="text-muted-foreground text-sm">
-                        Upload or remove unfinished attachments before creating
-                        the ticket.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </fieldset>
-              <div className="flex flex-wrap items-center justify-between gap-4 p-6">
-                <p className="text-muted-foreground text-xs">
-                  Visible to everyone in your organization. Don't share
-                  passwords or keys.
-                </p>
-                <ButtonWithLoading
-                  type="submit"
-                  loading={form.formState.isSubmitting}
-                  disabled={
-                    draft.blocked ||
-                    !allowedSeverities.includes(selectedSeverity)
-                  }
+              <div
+                inert={!selectedOrganization}
+                className={cn(
+                  'rounded-b-lg border border-t-0 bg-background transition-opacity',
+                  !selectedOrganization && 'opacity-20',
+                )}
+              >
+                <fieldset
+                  disabled={!selectedOrganization}
+                  className="min-w-0 border-b p-6"
                 >
-                  Create ticket
-                </ButtonWithLoading>
+                  <legend className="sr-only">What</legend>
+                  <div className="grid gap-8 lg:grid-cols-support-ticket">
+                    <div className="flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full border text-base text-muted-foreground"
+                      >
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <span
+                          aria-hidden="true"
+                          className="block font-medium text-base"
+                        >
+                          What
+                        </span>
+                        <p className="text-muted-foreground text-sm">
+                          How bad is it, and which parts are affected?
+                        </p>
+                      </div>
+                    </div>
+                    <div className="min-w-0 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="severity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <FormLabel>Severity</FormLabel>
+                              {showSeverityPlans && (
+                                <span
+                                  id="support-severity-plans"
+                                  className="inline-flex shrink-0 items-center text-muted-foreground text-xs"
+                                >
+                                  Unlock with
+                                  <OrganizationPlanBadge plan="Team" />
+                                  <OrganizationPlanBadge plan="Enterprise" />
+                                </span>
+                              )}
+                            </div>
+                            <FormControl>
+                              <RadioGroup
+                                aria-label="Severity"
+                                name={field.name}
+                                value={
+                                  selectedOrganization &&
+                                  allowedSeverities.includes(field.value)
+                                    ? field.value
+                                    : ''
+                                }
+                                onValueChange={field.onChange}
+                                onBlur={field.onBlur}
+                                ref={field.ref}
+                                className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4"
+                              >
+                                {SEVERITIES.map((severity) => {
+                                  const locked =
+                                    !selectedOrganization ||
+                                    !allowedSeverities.includes(severity);
+                                  const disabled =
+                                    locked || form.formState.isSubmitting;
+                                  const card = (
+                                    <label
+                                      key={severity}
+                                      htmlFor={`support-severity-${severity}`}
+                                      className={cn(
+                                        'block h-full min-w-0 space-y-1 rounded-md border bg-muted/10 p-3 text-left text-foreground transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
+                                        disabled
+                                          ? 'cursor-not-allowed opacity-60'
+                                          : 'cursor-pointer hover:border-primary/50 hover:bg-muted/20',
+                                        locked && 'border-dashed',
+                                        !locked &&
+                                          field.value === severity &&
+                                          'border-primary',
+                                        !disabled &&
+                                          field.value === severity &&
+                                          'hover:border-primary',
+                                      )}
+                                    >
+                                      <RadioGroupItem
+                                        id={`support-severity-${severity}`}
+                                        value={severity}
+                                        disabled={disabled}
+                                        aria-label={supportLabel(severity)}
+                                        aria-describedby={`${showSeverityPlans && locked ? 'support-severity-plans ' : ''}support-severity-hint-${severity}`}
+                                        className="sr-only"
+                                      />
+                                      <span className="flex items-center justify-between gap-2 font-medium text-sm">
+                                        {supportLabel(severity)}
+                                        {selectedOrganization && locked && (
+                                          <Lock
+                                            aria-hidden="true"
+                                            className="size-3.5 shrink-0 text-muted-foreground"
+                                          />
+                                        )}
+                                      </span>
+                                      <span
+                                        id={`support-severity-hint-${severity}`}
+                                        className="block text-muted-foreground text-xs"
+                                      >
+                                        {severityHints[severity]}
+                                      </span>
+                                    </label>
+                                  );
+                                  return selectedOrganization && locked ? (
+                                    <SeverityPlanHelp
+                                      key={severity}
+                                      severity={supportLabel(severity)}
+                                      explanation={planExplanation}
+                                      describedBy={
+                                        showSeverityPlans
+                                          ? 'support-severity-plans'
+                                          : undefined
+                                      }
+                                      billingHref={billingHref}
+                                      onSeePlans={() => {
+                                        setUpgradeOrgSlug(
+                                          selectedOrganization?.slug ??
+                                            undefined,
+                                        );
+                                      }}
+                                      disabled={form.formState.isSubmitting}
+                                    >
+                                      {card}
+                                    </SeverityPlanHelp>
+                                  ) : (
+                                    card
+                                  );
+                                })}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="services"
+                        render={({ field, fieldState }) => (
+                          <FormItem>
+                            <FormLabel>Services</FormLabel>
+                            <FormControl>
+                              <ToggleGroup
+                                type="multiple"
+                                aria-label="Services"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                onBlur={field.onBlur}
+                                ref={field.ref}
+                                disabled={
+                                  !selectedOrganization ||
+                                  form.formState.isSubmitting
+                                }
+                                className="flex flex-wrap justify-start gap-2"
+                              >
+                                {SERVICES.map((service) => {
+                                  const Icon = SERVICE_ICONS[service];
+                                  return (
+                                    <ToggleGroupItem
+                                      key={service}
+                                      value={service}
+                                      className={cn(
+                                        'h-9 justify-start rounded-full border bg-muted/10 px-3 text-foreground hover:border-primary/50 hover:bg-muted/20 hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-muted/10 data-[state=on]:text-foreground data-[state=on]:hover:border-primary data-[state=on]:hover:bg-muted/20',
+                                        fieldState.invalid &&
+                                          'border-destructive',
+                                      )}
+                                    >
+                                      <Icon
+                                        aria-hidden="true"
+                                        className="size-4 shrink-0"
+                                      />
+                                      <span className="text-left">
+                                        {supportLabel(service)}
+                                      </span>
+                                    </ToggleGroupItem>
+                                  );
+                                })}
+                              </ToggleGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+                <fieldset
+                  disabled={!selectedOrganization}
+                  className="min-w-0 border-b p-6"
+                >
+                  <legend className="sr-only">Details</legend>
+                  <div className="grid gap-8 lg:grid-cols-support-ticket">
+                    <div className="flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full border text-base text-muted-foreground"
+                      >
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <span
+                          aria-hidden="true"
+                          className="block font-medium text-base"
+                        >
+                          Details
+                        </span>
+                        <p className="text-muted-foreground text-sm">
+                          What happened, and how can we reproduce it?
+                        </p>
+                      </div>
+                    </div>
+                    <div className="min-w-0 space-y-6">
+                      <FormInput
+                        control={form.control}
+                        name="title"
+                        label="Title"
+                        disabled={
+                          !selectedOrganization || form.formState.isSubmitting
+                        }
+                      />
+                      <SupportMarkdownEditor
+                        control={form.control}
+                        name="description"
+                        label="Description"
+                        disabled={
+                          !selectedOrganization || form.formState.isSubmitting
+                        }
+                        organizationRequired={!selectedOrganization}
+                        attachmentPickerInFooter
+                        onDiscardInlineAttachment={async (id) => {
+                          const result = await execPromiseWithErrorToast(
+                            () =>
+                              draft.action.mutateAsync({ type: 'discard', id }),
+                            {
+                              loadingMessage: 'Removing attachment…',
+                              successMessage: 'Attachment removed',
+                              errorMessage:
+                                'Unable to update draft attachments. Please try again.',
+                            },
+                          );
+                          return result !== null;
+                        }}
+                        filesDisabled={
+                          draft.busy ||
+                          draft.query.isError ||
+                          !!draft.query.data?.ticketID ||
+                          draft.submissionUncertain
+                        }
+                        attachmentScope={
+                          draft.identity && !draft.query.isError
+                            ? { draftId: draft.identity.id }
+                            : undefined
+                        }
+                        onFilesDrop={async (files, onUploaded) => {
+                          let hasValidFile = false;
+                          for (const file of files) {
+                            const error = attachmentValidationError(file);
+                            if (error) {
+                              toast.error(error);
+                            } else {
+                              hasValidFile = true;
+                            }
+                          }
+                          if (!hasValidFile) {
+                            draft.addFiles(files);
+                            return;
+                          }
+                          return execPromiseWithErrorToast(
+                            () =>
+                              draft.action.mutateAsync({
+                                type: 'upload',
+                                files,
+                                onUploaded,
+                              }),
+                            {
+                              loadingMessage: 'Uploading draft attachments…',
+                              successMessage: 'Files uploaded',
+                              errorMessage:
+                                'Unable to upload draft attachments.',
+                            },
+                          );
+                        }}
+                        attachments={(
+                          insert,
+                          _uploadFiles,
+                          remove,
+                          focusAttach,
+                        ) => (
+                          <DraftAttachments
+                            draft={draft}
+                            disabled={
+                              form.formState.isSubmitting ||
+                              !selectedOrganization
+                            }
+                            onRemoveTokens={remove}
+                            focusAttach={focusAttach}
+                            onRetriedUpload={insert}
+                          />
+                        )}
+                      />
+                      {draft.blocked && !draft.busy && !draft.query.isError && (
+                        <p className="text-muted-foreground text-sm">
+                          Upload or remove unfinished attachments before
+                          creating the ticket.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </fieldset>
+                <div className="flex flex-wrap items-center justify-between gap-4 p-6">
+                  <p className="text-muted-foreground text-xs">
+                    Visible to everyone in your organization. Don't share
+                    passwords or keys.
+                  </p>
+                  <ButtonWithLoading
+                    type="submit"
+                    loading={form.formState.isSubmitting}
+                    disabled={
+                      !selectedOrganization ||
+                      draft.blocked ||
+                      !allowedSeverities.includes(selectedSeverity)
+                    }
+                  >
+                    Create ticket
+                  </ButtonWithLoading>
+                </div>
               </div>
             </section>
           </Form>
+          {upgradeOrgSlug && (
+            <SubscriptionPlan
+              key={upgradeOrgSlug}
+              dialogOnly={{
+                orgSlug: upgradeOrgSlug,
+                onClose: () => setUpgradeOrgSlug(undefined),
+              }}
+            />
+          )}
+          <AlertDialog
+            open={!!pendingOrganization}
+            onOpenChange={(open) => {
+              if (!open && !changingOrganization) {
+                setPendingOrganization(undefined);
+              }
+            }}
+          >
+            <AlertDialogContent
+              className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground"
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                organizationTrigger.current?.focus();
+              }}
+            >
+              <AlertDialogHeader className="gap-2">
+                <AlertDialogTitle className="text-xl">
+                  Change organization?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Attached files will be removed. Your title and description
+                  stay.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-6 gap-2 sm:space-x-0">
+                <AlertDialogCancel disabled={changingOrganization}>
+                  Cancel
+                </AlertDialogCancel>
+                <ButtonWithLoading
+                  type="button"
+                  loading={changingOrganization}
+                  disabled={organizationLocked}
+                  onClick={() => {
+                    void confirmOrganizationChange();
+                  }}
+                >
+                  Remove files and change
+                </ButtonWithLoading>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </FormProvider>
       )}
     </div>
