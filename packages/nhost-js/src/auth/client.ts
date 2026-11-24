@@ -1203,14 +1203,14 @@ export interface SignInWebauthnVerifyRequest {
 /**
  * 
  @property refreshToken? (`string`) - Refresh token for the current session
- @property all? (`boolean`) - Sign out from all connected devices*/
+ @property all? (`boolean`) - Sign out from all connected devices (personal access tokens stay valid)*/
 export interface SignOutRequest {
   /**
    * Refresh token for the current session
    */
   refreshToken?: string;
   /**
-   * Sign out from all connected devices
+   * Sign out from all connected devices (personal access tokens stay valid)
    */
   all?: boolean;
 }

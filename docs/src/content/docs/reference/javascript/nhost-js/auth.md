@@ -3974,7 +3974,7 @@ Format - email
 all?: boolean;
 ```
 
-Sign out from all connected devices
+Sign out from all connected devices (personal access tokens stay valid)
 
 #### refreshToken?
 

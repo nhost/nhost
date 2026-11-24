@@ -385,7 +385,7 @@ sql.Text(hashedToken)
 // Single token
 wf.db.DeleteRefreshToken(ctx, pgtype.Text{String: hashedToken, Valid: true})
 
-// All user tokens
+// All regular (session) tokens; PATs are kept
 wf.db.DeleteRefreshTokens(ctx, userID)
 ```
 

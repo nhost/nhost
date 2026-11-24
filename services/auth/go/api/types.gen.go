@@ -1509,7 +1509,7 @@ type SignInWebauthnVerifyRequest struct {
 
 // SignOutRequest defines model for SignOutRequest.
 type SignOutRequest struct {
-	// All Sign out from all connected devices
+	// All Sign out from all connected devices (personal access tokens stay valid)
 	All *bool `json:"all,omitempty"`
 
 	// RefreshToken Refresh token for the current session
