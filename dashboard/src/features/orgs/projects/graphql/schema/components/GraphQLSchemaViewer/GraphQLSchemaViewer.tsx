@@ -1,5 +1,5 @@
 import { buildClientSchema, type GraphQLSchema, printSchema } from 'graphql';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   StickyHeaderCard,
   StickyHeaderCardContent,
@@ -10,8 +10,7 @@ import { Button } from '@/components/ui/v3/button';
 import {
   GraphQLSchemaBrowser,
   SchemaSearchBar,
-  type SchemaSearchHandle,
-  type SchemaSearchResult,
+  useSchemaSearch,
 } from '@/features/orgs/projects/graphql/common/components/GraphQLSchemaBrowser';
 import { SchemaRoleSelect } from '@/features/orgs/projects/graphql/schema/components/SchemaRoleSelect';
 import { SchemaSdlView } from '@/features/orgs/projects/graphql/schema/components/SchemaSdlView';
@@ -37,11 +36,7 @@ function printSdl(schema: GraphQLSchema) {
 export default function GraphQLSchemaViewer() {
   const [role, setRole] = useState('admin');
   const [view, setView] = useState<SchemaView>('tree');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResult, setSearchResult] = useState<SchemaSearchResult | null>(
-    null,
-  );
-  const searchRef = useRef<SchemaSearchHandle>(null);
+  const search = useSchemaSearch();
   const { data, error, isLoading, refetch } =
     useIntrospectGraphQLSchemaQuery(role);
 
@@ -53,37 +48,12 @@ export default function GraphQLSchemaViewer() {
 
   const handleRoleChange = (nextRole: string) => {
     setRole(nextRole);
-    setSearchResult(null);
+    search.resetResult();
   };
 
   const handleViewChange = (nextView: SchemaView) => {
     setView(nextView);
-    setSearchResult(null);
-  };
-
-  const handleTermChange = (term: string) => {
-    setSearchTerm(term);
-    setSearchResult(null);
-
-    if (!term.trim()) {
-      searchRef.current?.clear();
-    }
-  };
-
-  const handleFind = () => {
-    if (!searchTerm.trim() || !searchRef.current) {
-      return;
-    }
-
-    setSearchResult(searchRef.current.find(searchTerm));
-  };
-
-  const handleStep = (direction: 'next' | 'previous') => {
-    const result = searchRef.current?.[direction]();
-
-    if (result) {
-      setSearchResult(result);
-    }
+    search.resetResult();
   };
 
   const renderContent = () => {
@@ -125,12 +95,12 @@ export default function GraphQLSchemaViewer() {
     }
 
     if (printed) {
-      return <SchemaSdlView ref={searchRef} sdl={printed.sdl} />;
+      return <SchemaSdlView ref={search.searchRef} sdl={printed.sdl} />;
     }
 
     return (
       <GraphQLSchemaBrowser
-        ref={searchRef}
+        ref={search.searchRef}
         schema={schema}
         className="min-h-96"
       />
@@ -145,12 +115,12 @@ export default function GraphQLSchemaViewer() {
           {schema && !error && !printed?.error && (
             <SchemaSearchBar
               className="min-w-0 flex-1"
-              term={searchTerm}
-              result={searchResult}
-              onTermChange={handleTermChange}
-              onFind={handleFind}
-              onNext={() => handleStep('next')}
-              onPrevious={() => handleStep('previous')}
+              term={search.term}
+              result={search.result}
+              onTermChange={search.changeTerm}
+              onFind={search.find}
+              onNext={search.next}
+              onPrevious={search.previous}
             />
           )}
         </div>
