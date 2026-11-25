@@ -36,7 +36,10 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
-import { SupportBreadcrumb, SupportError } from '@/features/support/components/SupportArea';
+import {
+  SupportBreadcrumb,
+  SupportError,
+} from '@/features/support/components/SupportArea';
 import {
   TicketSeverity,
   TicketStatus,
@@ -190,18 +193,25 @@ export default function TicketList() {
     search.queue === 'all';
   function changeSearch(changes: Partial<TicketSearch>) {
     void router.replace(
-      { pathname: router.pathname, query: { ...urlSearch, page: 0, ...changes } },
+      {
+        pathname: router.pathname,
+        query: { ...urlSearch, page: 0, ...changes },
+      },
       undefined,
       { shallow: true },
     );
   }
 
   return (
-    <div className="space-y-6 p-5 sm:p-8">
-      {router.pathname === '/support/tickets' && <SupportBreadcrumb currentPage="All tickets" isTicketList />}
+    <div className="flex grow flex-col gap-6 p-5 sm:p-8">
+      {router.pathname === '/support/tickets' && (
+        <SupportBreadcrumb currentPage="All tickets" isTicketList />
+      )}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-2xl">{router.pathname === '/support' ? 'Support' : 'Tickets'}</h1>
+          <h1 className="font-semibold text-2xl">
+            {router.pathname === '/support' ? 'Support' : 'Tickets'}
+          </h1>
           {isAgent && <Badge variant="outline">Agent</Badge>}
         </div>
         {(isAgent || (!loadingTickets && !emptyQueue)) && (
@@ -516,8 +526,15 @@ export default function TicketList() {
           </Button>
         </div>
       )}
-      <section className="mt-10" aria-labelledby="support-help-heading" hidden={loadingTickets}>
-        <h2 id="support-help-heading" className="mb-3 font-medium text-muted-foreground text-sm">
+      <section
+        className="mt-auto pt-6"
+        aria-labelledby="support-help-heading"
+        hidden={loadingTickets}
+      >
+        <h2
+          id="support-help-heading"
+          className="mb-3 font-medium text-muted-foreground text-sm"
+        >
           Other ways to get help
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">

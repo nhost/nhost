@@ -27,9 +27,7 @@ export default function SupportHelpCard({
       className="group flex min-h-48 flex-col rounded-xl border bg-muted/10 p-6 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <span className="flex items-start justify-between">
-        <span
-          className="flex size-12 items-center justify-center rounded-lg bg-muted text-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary"
-        >
+        <span className="flex size-12 items-center justify-center rounded-lg bg-muted text-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
           {icon}
         </span>
         {external ? (

@@ -323,7 +323,8 @@ function expectHelpFooter(visible: boolean) {
     return;
   }
   expect(heading).toBeInTheDocument();
-  expect(heading).toHaveClass('sr-only');
+  expect(heading).toBeVisible();
+  expect(heading).not.toHaveClass('sr-only');
   expect(
     screen.getByRole('region', { name: 'Other ways to get help' }),
   ).toContainElement(heading);
@@ -366,20 +367,13 @@ function expectHelpFooter(visible: boolean) {
 describe('native dashboard support', () => {
   it.each([
     { page: 'new', current: 'New ticket' },
-    { page: 'ticket', current: '#42' },
+    { page: 'ticket', current: initialTicket.title },
   ])('shows the breadcrumb on the $page page', async ({ page, current }) => {
     render(page === 'new' ? <NewTicket /> : <TicketDetail />);
     if (page === 'ticket') {
       await screen.findByRole('heading', { name: initialTicket.title });
     } else if (page === 'new') {
       await screen.findByRole('heading', { name: 'New ticket' });
-    }
-    if (page === 'ticket') {
-      expect(screen.getByRole('link', { name: 'All tickets' })).toHaveAttribute(
-        'href',
-        '/support',
-      );
-      return;
     }
     const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(
@@ -389,7 +383,10 @@ describe('native dashboard support', () => {
       within(nav)
         .getAllByRole('listitem')
         .filter((item) => item.getAttribute('aria-hidden') !== 'true'),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
+    expect(
+      within(nav).getByRole('link', { name: 'All tickets' }),
+    ).toHaveAttribute('href', '/support/tickets');
     const last = within(nav).getByText(current);
     expect(last).toHaveAttribute('aria-current', 'page');
     expect(last.tagName).toBe('LI');

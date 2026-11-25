@@ -343,7 +343,7 @@ describe('CommandPaletteTrigger', () => {
       name: /^Account Settings(?:Page)?$/,
     });
     const support = screen.getByRole('option', {
-      name: /^Support(?:Page)?$/,
+      name: /^Support tickets/,
     });
     const docs = screen.getByRole('option', { name: /^Docs/ });
 
@@ -365,7 +365,7 @@ describe('CommandPaletteTrigger', () => {
     await replaceQuery(input, 'help');
     expect(
       await screen.findByRole('option', {
-        name: /^Support(?:Page)?$/,
+        name: /^Support tickets/,
       }),
     ).toBeInTheDocument();
   });
@@ -397,12 +397,13 @@ describe('CommandPaletteTrigger', () => {
 
     await user.click(
       await screen.findByRole('option', {
-        name: /^Support(?:Page)?$/,
+        name: (_name, element) =>
+          element.textContent?.startsWith('Support tickets') === true,
       }),
     );
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith('/support', undefined, {
+      expect(push).toHaveBeenCalledWith('/support/tickets', undefined, {
         shallow: true,
       });
     });
@@ -640,7 +641,7 @@ describe('CommandPaletteTrigger', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
-        name: /^Support(?:Page)?$/,
+        name: /^Support tickets/,
       }),
     ).not.toBeInTheDocument();
 
@@ -655,7 +656,7 @@ describe('CommandPaletteTrigger', () => {
     await replaceQuery(input, 'help');
     expect(
       screen.queryByRole('option', {
-        name: /^Support(?:Page)?$/,
+        name: /^Support tickets/,
       }),
     ).not.toBeInTheDocument();
   });
