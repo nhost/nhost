@@ -719,6 +719,10 @@ func (response ErrorRedirectResponse) VisitVerifyTicketResponse(w http.ResponseW
 	return response.visit(w)
 }
 
+func (response ErrorRedirectResponse) VisitSignInOidcCallbackResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorRedirectResponse) VisitSignInProviderResponse(
 	w http.ResponseWriter,
 ) error {

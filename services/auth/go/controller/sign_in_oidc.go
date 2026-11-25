@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
@@ -28,6 +29,7 @@ type oidcBrowserState struct {
 	ClientID          string          `json:"clientId"`
 	Nonce             string          `json:"nonce"`
 	UpstreamChallenge string          `json:"upstreamChallenge"`
+	ConnectUserID     *uuid.UUID      `json:"connectUserId,omitempty"`
 	Intent            providers.State `json:"intent"`
 }
 
@@ -40,52 +42,75 @@ func (ctrl *Controller) SignInOidc( //nolint:ireturn
 	}
 
 	return api.SignInOidc302Response{
-		Headers: api.SignInOidc302ResponseHeaders{Location: location, SetCookie: &cookie},
+		Headers: api.SignInOidc302ResponseHeaders{Location: location, SetCookie: cookie},
 	}, nil
 }
 
 func (ctrl *Controller) SignUpOidc( //nolint:ireturn
 	ctx context.Context, req api.SignUpOidcRequestObject,
 ) (api.SignUpOidcResponseObject, error) {
-	location, cookie, apiErr := ctrl.startOIDC(
-		ctx, req.Provider, api.SignInOidcParams(req.Params), providers.FlowSignup,
-	)
+	params := api.SignInOidcParams{
+		CodeChallenge: &req.Params.CodeChallenge,
+		Connect:       nil,
+		RedirectTo:    req.Params.RedirectTo,
+		State:         req.Params.State,
+		AllowedRoles:  req.Params.AllowedRoles,
+		DefaultRole:   req.Params.DefaultRole,
+		DisplayName:   req.Params.DisplayName,
+		Locale:        req.Params.Locale,
+		Metadata:      req.Params.Metadata,
+	}
+
+	location, cookie, apiErr := ctrl.startOIDC(ctx, req.Provider, params, providers.FlowSignup)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
 	return api.SignUpOidc302Response{
-		Headers: api.SignUpOidc302ResponseHeaders{Location: location, SetCookie: &cookie},
+		Headers: api.SignUpOidc302ResponseHeaders{Location: location, SetCookie: cookie},
 	}, nil
 }
 
-func (ctrl *Controller) startOIDC(
-	ctx context.Context, slug string, params api.SignInOidcParams, flow string,
-) (string, string, *APIError) {
+func (ctrl *Controller) startOIDC( //nolint:funlen // Browser authorization keeps the signed state and cookie together.
+	ctx context.Context,
+	slug string,
+	params api.SignInOidcParams,
+	flow string,
+) (string, *string, *APIError) {
 	ctx = oidcRequestContext(ctx)
 	logger := oapimw.LoggerFromContext(ctx).With(slog.String("provider", slug))
-
-	p := ctrl.oidcProviders.Get(slug)
-	if p == nil {
-		return "", "", ErrDisabledEndpoint
-	}
-
-	if flow == providers.FlowSignup && ctrl.config.DisableSignup {
-		return "", "", ErrSignupDisabled
-	}
-
-	if params.CodeChallenge == "" {
-		return "", "", ErrInvalidRequest
-	}
 
 	redirect, apiErr := ctrl.validateProviderStart(
 		ctx,
 		params.RedirectTo,
-		&params.CodeChallenge,
+		params.CodeChallenge,
 		logger,
 	)
 	if apiErr != nil {
-		return "", "", apiErr
+		return "", nil, apiErr
+	}
+
+	p := ctrl.oidcProviders.Get(slug)
+	if p == nil {
+		location := ctrl.sendRedirectError(redirect, ErrDisabledEndpoint).Headers.Location
+
+		return location, nil, nil
+	}
+
+	if flow == providers.FlowSignup && ctrl.config.DisableSignup {
+		return "", nil, ErrSignupDisabled
+	}
+
+	if params.Connect == nil && deptr(params.CodeChallenge) == "" {
+		return "", nil, ErrInvalidRequest
+	}
+
+	connectUser, expiresAt, apiErr := ctrl.oidcConnectUser(
+		params.Connect,
+		time.Now().Add(In5Minutes),
+	)
+	if apiErr != nil {
+		return "", nil, apiErr
 	}
 
 	verifier, nonce := oauth2.GenerateVerifier(), oauth2.GenerateVerifier()
@@ -95,28 +120,70 @@ func (ctrl *Controller) startOIDC(
 		ClientID:          p.ClientID(),
 		Nonce:             nonce,
 		UpstreamChallenge: pkce.ComputeS256Challenge(verifier),
+		ConnectUserID:     connectUser,
 		Intent:            oidcBrowserIntent(params, redirect.String(), flow),
 	}
 
 	signedState, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
-		jwt.MapClaims{oidcStateClaim: state}, time.Now().Add(In5Minutes),
+		jwt.MapClaims{oidcStateClaim: state}, expiresAt,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to sign OIDC state")
-		return "", "", ErrInternalServerError
+		return "", nil, ErrInternalServerError
 	}
 
 	if len(signedState) > maxOIDCStateLength {
-		return "", "", ErrInvalidRequest
+		return "", nil, ErrInvalidRequest
 	}
 
 	location, err := p.AuthorizationURL(ctx, signedState, nonce, verifier)
 	if err != nil {
 		logger.WarnContext(ctx, "failed to start OIDC authorization")
-		return "", "", ErrOauthProviderError
+		return "", nil, ErrOauthProviderError
 	}
 
-	return location, oidcCookie(nonce, verifier, int(In5Minutes.Seconds())).String(), nil
+	return location, new(oidcCookie(nonce, verifier, int(In5Minutes.Seconds())).String()), nil
+}
+
+// Authorize the link before redirecting so the IdP never sees the access token.
+func (ctrl *Controller) oidcConnectUser(
+	connect *string, expiresAt time.Time,
+) (*uuid.UUID, time.Time, *APIError) {
+	if connect == nil {
+		return nil, expiresAt, nil
+	}
+
+	token, err := ctrl.wf.jwtGetter.Validate(*connect)
+	if err != nil {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	// OAuth2 tokens use the same signing key and issuer and carry a client audience.
+	if _, hasAudience := claims["aud"]; hasAudience {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	userID, err := ctrl.wf.jwtGetter.GetUserID(token)
+	if err != nil || userID == uuid.Nil ||
+		ctrl.wf.jwtGetter.GetCustomClaim(token, "x-hasura-user-id") != userID.String() {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	expiration, err := token.Claims.GetExpirationTime()
+	if err != nil || expiration == nil {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	if expiration.Before(expiresAt) {
+		expiresAt = expiration.Time
+	}
+
+	return &userID, expiresAt, nil
 }
 
 func oidcBrowserIntent(params api.SignInOidcParams, redirect, flow string) providers.State {
@@ -132,7 +199,7 @@ func oidcBrowserIntent(params api.SignInOidcParams, redirect, flow string) provi
 		},
 		State:         params.State,
 		Flow:          flow,
-		CodeChallenge: &params.CodeChallenge,
+		CodeChallenge: params.CodeChallenge,
 	}
 }
 
@@ -160,7 +227,7 @@ func oidcCookie(nonce, value string, maxAge int) *http.Cookie {
 }
 
 func (ctrl *Controller) decodeOIDCState(raw string) (*oidcBrowserState, *APIError) {
-	if raw == "" || len(raw) > maxOIDCStateLength {
+	if len(raw) > maxOIDCStateLength {
 		return nil, ErrInvalidState
 	}
 
@@ -170,7 +237,7 @@ func (ctrl *Controller) decodeOIDCState(raw string) (*oidcBrowserState, *APIErro
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || claims[oidcStateClaim] == nil {
+	if !ok {
 		return nil, ErrInvalidState
 	}
 
@@ -181,12 +248,19 @@ func (ctrl *Controller) decodeOIDCState(raw string) (*oidcBrowserState, *APIErro
 
 	var state oidcBrowserState
 	if err := json.Unmarshal(encoded, &state); err != nil || state.Intent.Connect != nil ||
-		state.Intent.Options == nil || pkce.ValidateCodeChallengeFormat(state.Nonce) != nil ||
-		pkce.ValidateCodeChallengeFormat(deptr(state.Intent.CodeChallenge)) != nil {
+		state.Intent.Options == nil || pkce.ValidateCodeChallengeFormat(state.Nonce) != nil {
 		return nil, ErrInvalidState
 	}
 
 	if state.Intent.Flow != providers.FlowSignin && state.Intent.Flow != providers.FlowSignup {
+		return nil, ErrInvalidState
+	}
+
+	if state.ConnectUserID == nil {
+		if pkce.ValidateCodeChallengeFormat(deptr(state.Intent.CodeChallenge)) != nil {
+			return nil, ErrInvalidState
+		}
+	} else if state.Intent.Flow != providers.FlowSignin || *state.ConnectUserID == uuid.Nil {
 		return nil, ErrInvalidState
 	}
 

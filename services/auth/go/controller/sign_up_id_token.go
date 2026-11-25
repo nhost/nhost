@@ -42,8 +42,10 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 	}
 
 	// Check if user already exists
-	_, userFound, _, apiError := ctrl.postSigninIdtokenCheckUserExists(
-		ctx, profile.Email, string(req.Body.Provider), profile.ProviderUserID, logger,
+	provider := builtinIdentity(string(req.Body.Provider))
+
+	_, userFound, _, apiError := ctrl.lookupProviderUser(
+		ctx, profile.Email, provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
 		return ctrl.respondWithError(apiError), nil
@@ -56,7 +58,7 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 
 	// Call providerFlowSignUp directly since we've already verified user doesn't exist
 	session, apiErr := ctrl.providerFlowSignUp(
-		ctx, string(req.Body.Provider), profile, req.Body.Options, logger,
+		ctx, provider, profile, req.Body.Options, logger,
 	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
@@ -72,11 +74,11 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 func (ctrl *Controller) providerSignUpFlow(
 	ctx context.Context,
 	profile oidc.Profile,
-	provider string,
+	provider providerIdentity,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
-	_, userFound, _, apiError := ctrl.postSigninIdtokenCheckUserExists(
+	_, userFound, _, apiError := ctrl.lookupProviderUser(
 		ctx, profile.Email, provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
@@ -125,7 +127,7 @@ func (ctrl *Controller) providerFlowSignUpValidateOptions(
 
 func (ctrl *Controller) providerFlowSignUp(
 	ctx context.Context,
-	provider string,
+	provider providerIdentity,
 	profile oidc.Profile,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
@@ -162,7 +164,7 @@ func (ctrl *Controller) providerFlowSignUp(
 func (ctrl *Controller) providerFlowSignupWithSession(
 	ctx context.Context,
 	profile oidc.Profile,
-	providerID string,
+	provider providerIdentity,
 	options *api.SignUpOptions,
 ) databaseWithSessionFn {
 	return func(
@@ -197,8 +199,9 @@ func (ctrl *Controller) providerFlowSignupWithSession(
 				Roles:                 deptr(options.AllowedRoles),
 				RefreshTokenHash:      refreshTokenHash,
 				RefreshTokenExpiresAt: refreshTokenExpiresAt,
-				ProviderID:            providerID,
+				ProviderID:            provider.id,
 				ProviderUserID:        profile.ProviderUserID,
+				Issuer:                provider.issuer,
 			},
 		)
 		if err != nil {
@@ -213,7 +216,7 @@ func (ctrl *Controller) providerFlowSignupWithSession(
 func (ctrl *Controller) providerFlowSignupWithoutSession(
 	ctx context.Context,
 	profile oidc.Profile,
-	providerID string,
+	provider providerIdentity,
 	options *api.SignUpOptions,
 ) databaseWithoutSessionFn {
 	return func(
@@ -245,8 +248,9 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,
 			Roles:           deptr(options.AllowedRoles),
-			ProviderID:      providerID,
+			ProviderID:      provider.id,
 			ProviderUserID:  profile.ProviderUserID,
+			Issuer:          provider.issuer,
 		})
 		if err != nil {
 			return fmt.Errorf("error inserting user: %w", err)

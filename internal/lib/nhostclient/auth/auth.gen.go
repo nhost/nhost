@@ -1287,15 +1287,8 @@ type OAuth2UserinfoResponse struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
-// OIDCIdTokenRequest defines model for OIDCIdTokenRequest.
-type OIDCIdTokenRequest struct {
-	// IdToken Signed ID token issued by the configured OIDC provider
-	IdToken string `json:"idToken"`
-
-	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider
-	Nonce   string         `json:"nonce"`
-	Options *SignUpOptions `json:"options,omitempty"`
-}
+// OIDCCodeChallenge defines model for OIDCCodeChallenge.
+type OIDCCodeChallenge = string
 
 // OKResponse defines model for OKResponse.
 type OKResponse string
@@ -1467,6 +1460,16 @@ type SignInOTPEmailVerifyResponse struct {
 	Session *Session `json:"session,omitempty"`
 }
 
+// SignInOidcIdTokenRequest defines model for SignInOidcIdTokenRequest.
+type SignInOidcIdTokenRequest struct {
+	// IdToken Signed ID token issued by the configured OIDC provider
+	IdToken string `json:"idToken"`
+
+	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+	Nonce   *string        `json:"nonce,omitempty"`
+	Options *SignUpOptions `json:"options,omitempty"`
+}
+
 // SignInPATRequest defines model for SignInPATRequest.
 type SignInPATRequest struct {
 	// PersonalAccessToken PAT
@@ -1562,6 +1565,16 @@ type SignUpOTPEmailRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignUpOidcIdTokenRequest defines model for SignUpOidcIdTokenRequest.
+type SignUpOidcIdTokenRequest struct {
+	// IdToken Signed ID token issued by the configured OIDC provider
+	IdToken string `json:"idToken"`
+
+	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+	Nonce   *string        `json:"nonce,omitempty"`
+	Options *SignUpOptions `json:"options,omitempty"`
 }
 
 // SignUpOptions defines model for SignUpOptions.
@@ -1816,9 +1829,6 @@ type VerifyTokenRequest struct {
 	Token *string `json:"token,omitempty"`
 }
 
-// OIDCCodeChallenge defines model for OIDCCodeChallenge.
-type OIDCCodeChallenge = string
-
 // OIDCDefaultRole defines model for OIDCDefaultRole.
 type OIDCDefaultRole = string
 
@@ -1828,14 +1838,17 @@ type OIDCDisplayName = string
 // OIDCLocale defines model for OIDCLocale.
 type OIDCLocale = string
 
-// OIDCProvider defines model for OIDCProvider.
-type OIDCProvider = string
-
 // OIDCRedirectTo defines model for OIDCRedirectTo.
 type OIDCRedirectTo = string
 
+// OIDCSignInCodeChallenge defines model for OIDCSignInCodeChallenge.
+type OIDCSignInCodeChallenge = OIDCCodeChallenge
+
 // OIDCState defines model for OIDCState.
 type OIDCState = string
+
+// OidcProvider defines model for OidcProvider.
+type OidcProvider = string
 
 // RedirectToQuery Target URL for the redirect
 type RedirectToQuery = string
@@ -1915,8 +1928,11 @@ type Oauth2LoginGetParams struct {
 
 // SignInOidcParams defines parameters for SignInOidc.
 type SignInOidcParams struct {
-	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code
-	CodeChallenge OIDCCodeChallenge `form:"codeChallenge" json:"codeChallenge"`
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+	CodeChallenge *OIDCSignInCodeChallenge `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
+
+	// Connect Auth access token for the account to link to this provider
+	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
 
 	// RedirectTo Allowed application URL to receive the Auth authorization code
 	RedirectTo *OIDCRedirectTo `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
@@ -1948,11 +1964,14 @@ type SignInOidcCallbackParams struct {
 	// Code Authorization code returned by the identity provider
 	Code *string `form:"code,omitempty" json:"code,omitempty"`
 
-	// Iss Issuer in the authorization response
-	Iss *string `form:"iss,omitempty" json:"iss,omitempty"`
-
 	// Error Error returned by the identity provider
 	Error *string `form:"error,omitempty" json:"error,omitempty"`
+
+	// ErrorDescription Error detail returned by the identity provider
+	ErrorDescription *string `form:"error_description,omitempty" json:"error_description,omitempty"`
+
+	// ErrorUri Error information URL returned by the identity provider
+	ErrorUri *string `form:"error_uri,omitempty" json:"error_uri,omitempty"`
 }
 
 // SignInProviderParams defines parameters for SignInProvider.
@@ -2057,7 +2076,7 @@ type GetProviderTokensParamsProvider string
 
 // SignUpOidcParams defines parameters for SignUpOidc.
 type SignUpOidcParams struct {
-	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code.
 	CodeChallenge OIDCCodeChallenge `form:"codeChallenge" json:"codeChallenge"`
 
 	// RedirectTo Allowed application URL to receive the Auth authorization code
@@ -2185,7 +2204,7 @@ type SignInIdTokenJSONRequestBody = SignInIdTokenRequest
 type VerifySignInMfaTotpJSONRequestBody = SignInMfaTotpRequest
 
 // SignInOidcIdTokenJSONRequestBody defines body for SignInOidcIdToken for application/json ContentType.
-type SignInOidcIdTokenJSONRequestBody = OIDCIdTokenRequest
+type SignInOidcIdTokenJSONRequestBody = SignInOidcIdTokenRequest
 
 // SignInOTPEmailJSONRequestBody defines body for SignInOTPEmail for application/json ContentType.
 type SignInOTPEmailJSONRequestBody = SignInOTPEmailRequest
@@ -2224,7 +2243,7 @@ type SignUpEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 type SignUpIdTokenJSONRequestBody = SignUpIdTokenRequest
 
 // SignUpOidcIdTokenJSONRequestBody defines body for SignUpOidcIdToken for application/json ContentType.
-type SignUpOidcIdTokenJSONRequestBody = OIDCIdTokenRequest
+type SignUpOidcIdTokenJSONRequestBody = SignUpOidcIdTokenRequest
 
 // SignUpOTPEmailJSONRequestBody defines body for SignUpOTPEmail for application/json ContentType.
 type SignUpOTPEmailJSONRequestBody = SignUpOTPEmailRequest
@@ -2902,15 +2921,15 @@ type ClientInterface interface {
 	VerifySignInMfaTotp(ctx context.Context, body VerifySignInMfaTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignInOidc request
-	SignInOidc(ctx context.Context, provider OIDCProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignInOidc(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignInOidcCallback request
-	SignInOidcCallback(ctx context.Context, provider OIDCProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignInOidcCallback(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignInOidcIdTokenWithBody request with any body
-	SignInOidcIdTokenWithBody(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignInOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SignInOidcIdToken(ctx context.Context, provider OIDCProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignInOidcIdToken(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignInOTPEmailWithBody request with any body
 	SignInOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2982,12 +3001,12 @@ type ClientInterface interface {
 	SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignUpOidc request
-	SignUpOidc(ctx context.Context, provider OIDCProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignUpOidc(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignUpOidcIdTokenWithBody request with any body
-	SignUpOidcIdTokenWithBody(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignUpOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SignUpOidcIdToken(ctx context.Context, provider OIDCProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SignUpOidcIdToken(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignUpOTPEmailWithBody request with any body
 	SignUpOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3640,7 +3659,7 @@ func (c *Client) VerifySignInMfaTotp(ctx context.Context, body VerifySignInMfaTo
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignInOidc(ctx context.Context, provider OIDCProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignInOidc(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignInOidcRequest(c.Server, provider, params)
 	if err != nil {
 		return nil, err
@@ -3652,7 +3671,7 @@ func (c *Client) SignInOidc(ctx context.Context, provider OIDCProvider, params *
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignInOidcCallback(ctx context.Context, provider OIDCProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignInOidcCallback(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignInOidcCallbackRequest(c.Server, provider, params)
 	if err != nil {
 		return nil, err
@@ -3664,7 +3683,7 @@ func (c *Client) SignInOidcCallback(ctx context.Context, provider OIDCProvider, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignInOidcIdTokenWithBody(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignInOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignInOidcIdTokenRequestWithBody(c.Server, provider, contentType, body)
 	if err != nil {
 		return nil, err
@@ -3676,7 +3695,7 @@ func (c *Client) SignInOidcIdTokenWithBody(ctx context.Context, provider OIDCPro
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignInOidcIdToken(ctx context.Context, provider OIDCProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignInOidcIdToken(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignInOidcIdTokenRequest(c.Server, provider, body)
 	if err != nil {
 		return nil, err
@@ -4012,7 +4031,7 @@ func (c *Client) SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONReques
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignUpOidc(ctx context.Context, provider OIDCProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignUpOidc(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpOidcRequest(c.Server, provider, params)
 	if err != nil {
 		return nil, err
@@ -4024,7 +4043,7 @@ func (c *Client) SignUpOidc(ctx context.Context, provider OIDCProvider, params *
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignUpOidcIdTokenWithBody(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignUpOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpOidcIdTokenRequestWithBody(c.Server, provider, contentType, body)
 	if err != nil {
 		return nil, err
@@ -4036,7 +4055,7 @@ func (c *Client) SignUpOidcIdTokenWithBody(ctx context.Context, provider OIDCPro
 	return c.Client.Do(req)
 }
 
-func (c *Client) SignUpOidcIdToken(ctx context.Context, provider OIDCProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) SignUpOidcIdToken(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpOidcIdTokenRequest(c.Server, provider, body)
 	if err != nil {
 		return nil, err
@@ -5716,7 +5735,7 @@ func NewVerifySignInMfaTotpRequestWithBody(server string, contentType string, bo
 }
 
 // NewSignInOidcRequest generates requests for SignInOidc
-func NewSignInOidcRequest(server string, provider OIDCProvider, params *SignInOidcParams) (*http.Request, error) {
+func NewSignInOidcRequest(server string, provider OidcProvider, params *SignInOidcParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -5750,12 +5769,28 @@ func NewSignInOidcRequest(server string, provider OIDCProvider, params *SignInOi
 		// per the OpenAPI spec (e.g. "color=blue,black,brown").
 		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "codeChallenge", params.CodeChallenge, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-			return nil, err
-		} else {
-			for _, qp := range strings.Split(queryFrag, "&") {
-				rawQueryFragments = append(rawQueryFragments, qp)
+		if params.CodeChallenge != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "codeChallenge", *params.CodeChallenge, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
 			}
+
+		}
+
+		if params.Connect != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "connect", *params.Connect, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
 		}
 
 		if params.RedirectTo != nil {
@@ -5855,7 +5890,7 @@ func NewSignInOidcRequest(server string, provider OIDCProvider, params *SignInOi
 }
 
 // NewSignInOidcCallbackRequest generates requests for SignInOidcCallback
-func NewSignInOidcCallbackRequest(server string, provider OIDCProvider, params *SignInOidcCallbackParams) (*http.Request, error) {
+func NewSignInOidcCallbackRequest(server string, provider OidcProvider, params *SignInOidcCallbackParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -5909,9 +5944,9 @@ func NewSignInOidcCallbackRequest(server string, provider OIDCProvider, params *
 
 		}
 
-		if params.Iss != nil {
+		if params.Error != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "iss", *params.Iss, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error", *params.Error, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -5921,9 +5956,21 @@ func NewSignInOidcCallbackRequest(server string, provider OIDCProvider, params *
 
 		}
 
-		if params.Error != nil {
+		if params.ErrorDescription != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error", *params.Error, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error_description", *params.ErrorDescription, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ErrorUri != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error_uri", *params.ErrorUri, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -5948,7 +5995,7 @@ func NewSignInOidcCallbackRequest(server string, provider OIDCProvider, params *
 }
 
 // NewSignInOidcIdTokenRequest calls the generic SignInOidcIdToken builder with application/json body
-func NewSignInOidcIdTokenRequest(server string, provider OIDCProvider, body SignInOidcIdTokenJSONRequestBody) (*http.Request, error) {
+func NewSignInOidcIdTokenRequest(server string, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
@@ -5959,7 +6006,7 @@ func NewSignInOidcIdTokenRequest(server string, provider OIDCProvider, body Sign
 }
 
 // NewSignInOidcIdTokenRequestWithBody generates requests for SignInOidcIdToken with any type of body
-func NewSignInOidcIdTokenRequestWithBody(server string, provider OIDCProvider, contentType string, body io.Reader) (*http.Request, error) {
+func NewSignInOidcIdTokenRequestWithBody(server string, provider OidcProvider, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -6836,7 +6883,7 @@ func NewSignUpIdTokenRequestWithBody(server string, contentType string, body io.
 }
 
 // NewSignUpOidcRequest generates requests for SignUpOidc
-func NewSignUpOidcRequest(server string, provider OIDCProvider, params *SignUpOidcParams) (*http.Request, error) {
+func NewSignUpOidcRequest(server string, provider OidcProvider, params *SignUpOidcParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -6975,7 +7022,7 @@ func NewSignUpOidcRequest(server string, provider OIDCProvider, params *SignUpOi
 }
 
 // NewSignUpOidcIdTokenRequest calls the generic SignUpOidcIdToken builder with application/json body
-func NewSignUpOidcIdTokenRequest(server string, provider OIDCProvider, body SignUpOidcIdTokenJSONRequestBody) (*http.Request, error) {
+func NewSignUpOidcIdTokenRequest(server string, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
@@ -6986,7 +7033,7 @@ func NewSignUpOidcIdTokenRequest(server string, provider OIDCProvider, body Sign
 }
 
 // NewSignUpOidcIdTokenRequestWithBody generates requests for SignUpOidcIdToken with any type of body
-func NewSignUpOidcIdTokenRequestWithBody(server string, provider OIDCProvider, contentType string, body io.Reader) (*http.Request, error) {
+func NewSignUpOidcIdTokenRequestWithBody(server string, provider OidcProvider, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -8282,15 +8329,15 @@ type ClientWithResponsesInterface interface {
 	VerifySignInMfaTotpWithResponse(ctx context.Context, body VerifySignInMfaTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifySignInMfaTotpR, error)
 
 	// SignInOidcWithResponse request
-	SignInOidcWithResponse(ctx context.Context, provider OIDCProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error)
+	SignInOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error)
 
 	// SignInOidcCallbackWithResponse request
-	SignInOidcCallbackWithResponse(ctx context.Context, provider OIDCProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error)
+	SignInOidcCallbackWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error)
 
 	// SignInOidcIdTokenWithBodyWithResponse request with any body
-	SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
+	SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
 
-	SignInOidcIdTokenWithResponse(ctx context.Context, provider OIDCProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
+	SignInOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
 
 	// SignInOTPEmailWithBodyWithResponse request with any body
 	SignInOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOTPEmailR, error)
@@ -8362,12 +8409,12 @@ type ClientWithResponsesInterface interface {
 	SignUpIdTokenWithResponse(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error)
 
 	// SignUpOidcWithResponse request
-	SignUpOidcWithResponse(ctx context.Context, provider OIDCProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error)
+	SignUpOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error)
 
 	// SignUpOidcIdTokenWithBodyWithResponse request with any body
-	SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
+	SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
 
-	SignUpOidcIdTokenWithResponse(ctx context.Context, provider OIDCProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
+	SignUpOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
 
 	// SignUpOTPEmailWithBodyWithResponse request with any body
 	SignUpOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error)
@@ -11156,7 +11203,7 @@ func (c *ClientWithResponses) VerifySignInMfaTotpWithResponse(ctx context.Contex
 }
 
 // SignInOidcWithResponse request returning *SignInOidcR
-func (c *ClientWithResponses) SignInOidcWithResponse(ctx context.Context, provider OIDCProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error) {
+func (c *ClientWithResponses) SignInOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error) {
 	rsp, err := c.SignInOidc(ctx, provider, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11165,7 +11212,7 @@ func (c *ClientWithResponses) SignInOidcWithResponse(ctx context.Context, provid
 }
 
 // SignInOidcCallbackWithResponse request returning *SignInOidcCallbackR
-func (c *ClientWithResponses) SignInOidcCallbackWithResponse(ctx context.Context, provider OIDCProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error) {
+func (c *ClientWithResponses) SignInOidcCallbackWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error) {
 	rsp, err := c.SignInOidcCallback(ctx, provider, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11174,7 +11221,7 @@ func (c *ClientWithResponses) SignInOidcCallbackWithResponse(ctx context.Context
 }
 
 // SignInOidcIdTokenWithBodyWithResponse request with arbitrary body returning *SignInOidcIdTokenR
-func (c *ClientWithResponses) SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
+func (c *ClientWithResponses) SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
 	rsp, err := c.SignInOidcIdTokenWithBody(ctx, provider, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11182,7 +11229,7 @@ func (c *ClientWithResponses) SignInOidcIdTokenWithBodyWithResponse(ctx context.
 	return ParseSignInOidcIdTokenR(rsp)
 }
 
-func (c *ClientWithResponses) SignInOidcIdTokenWithResponse(ctx context.Context, provider OIDCProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
+func (c *ClientWithResponses) SignInOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
 	rsp, err := c.SignInOidcIdToken(ctx, provider, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11422,7 +11469,7 @@ func (c *ClientWithResponses) SignUpIdTokenWithResponse(ctx context.Context, bod
 }
 
 // SignUpOidcWithResponse request returning *SignUpOidcR
-func (c *ClientWithResponses) SignUpOidcWithResponse(ctx context.Context, provider OIDCProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error) {
+func (c *ClientWithResponses) SignUpOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error) {
 	rsp, err := c.SignUpOidc(ctx, provider, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11431,7 +11478,7 @@ func (c *ClientWithResponses) SignUpOidcWithResponse(ctx context.Context, provid
 }
 
 // SignUpOidcIdTokenWithBodyWithResponse request with arbitrary body returning *SignUpOidcIdTokenR
-func (c *ClientWithResponses) SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OIDCProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
+func (c *ClientWithResponses) SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
 	rsp, err := c.SignUpOidcIdTokenWithBody(ctx, provider, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -11439,7 +11486,7 @@ func (c *ClientWithResponses) SignUpOidcIdTokenWithBodyWithResponse(ctx context.
 	return ParseSignUpOidcIdTokenR(rsp)
 }
 
-func (c *ClientWithResponses) SignUpOidcIdTokenWithResponse(ctx context.Context, provider OIDCProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
+func (c *ClientWithResponses) SignUpOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
 	rsp, err := c.SignUpOidcIdToken(ctx, provider, body, reqEditors...)
 	if err != nil {
 		return nil, err

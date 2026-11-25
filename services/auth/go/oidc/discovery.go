@@ -70,7 +70,10 @@ func (p *CustomProvider) discover(ctx context.Context) (*discoveryDocument, erro
 }
 
 func (p *CustomProvider) fetchDiscovery(ctx context.Context) (*discoveryDocument, error) {
-	location := strings.TrimSuffix(p.config.Issuer, "/") + "/.well-known/openid-configuration"
+	location := p.config.DiscoveryURL
+	if location == "" {
+		location = strings.TrimSuffix(p.config.Issuer, "/") + "/.well-known/openid-configuration"
+	}
 
 	var doc discoveryDocument
 	if err := p.getMetadata(ctx, location, &doc); err != nil {
@@ -113,17 +116,9 @@ func (p *CustomProvider) fetchDiscovery(ctx context.Context) (*discoveryDocument
 		return nil, err
 	}
 
-	// Only accept asymmetric algorithms negotiated by discovery.
-	doc.SigningAlgorithms = slices.DeleteFunc(doc.SigningAlgorithms, func(alg string) bool {
-		switch alg {
-		case "RS256", "RS384", "RS512", "PS256", "PS384", "PS512",
-			"ES256", "ES384", "ES512", "EdDSA":
-			return false
-		default:
-			return true
-		}
-	})
-	if len(doc.SigningAlgorithms) == 0 {
+	if !slices.ContainsFunc(doc.SigningAlgorithms, func(alg string) bool {
+		return slices.Contains(supportedSigningAlgorithms, alg)
+	}) {
 		return nil, fmt.Errorf("%w: no supported ID token signing algorithm", errDiscovery)
 	}
 

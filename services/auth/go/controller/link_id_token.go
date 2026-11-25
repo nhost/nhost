@@ -45,10 +45,10 @@ func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive
 		return ctrl.respondWithError(apiError), nil
 	}
 
-	if _, apiErr := ctrl.wf.InsertUserProvider(
+	if apiErr := ctrl.wf.insertUserProvider(
 		ctx,
 		userID,
-		string(req.Body.Provider),
+		builtinIdentity(string(req.Body.Provider)),
 		profile.ProviderUserID,
 		logger,
 	); apiErr != nil {

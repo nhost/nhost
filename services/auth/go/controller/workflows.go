@@ -1508,23 +1508,24 @@ func (wf *Workflows) getIDTokenValidator(
 	return validator, nil
 }
 
-func (wf *Workflows) InsertUserProvider(
+func (wf *Workflows) insertUserProvider(
 	ctx context.Context,
 	userID uuid.UUID,
-	providerID string,
+	provider providerIdentity,
 	providerUserID string,
 	logger *slog.Logger,
-) (sql.AuthUserProvider, *APIError) {
-	userP, err := wf.db.InsertUserProvider(
+) *APIError {
+	_, err := wf.db.InsertUserProvider(
 		ctx,
 		sql.InsertUserProviderParams{
 			UserID:         userID,
-			ProviderID:     providerID,
+			ProviderID:     provider.id,
 			ProviderUserID: providerUserID,
+			Issuer:         provider.issuer,
 		},
 	)
 
-	return userP, providerInsertError(ctx, err, logger)
+	return providerInsertError(ctx, err, logger)
 }
 
 func (wf *Workflows) UpdateUserConfirmChangeEmail(

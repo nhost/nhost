@@ -119,6 +119,30 @@ func TestIsBlockedIP(t *testing.T) {
 	}
 }
 
+func TestPrivateIPPolicy(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		addr    string
+		blocked bool
+	}{
+		{addr: "10.0.0.1", blocked: false},
+		{addr: "::ffff:192.168.1.1", blocked: false},
+		{addr: "fd01::1", blocked: false},
+		{addr: "8.8.8.8", blocked: false},
+		{addr: "127.0.0.1", blocked: true},
+		{addr: "::1", blocked: true},
+		{addr: "169.254.169.254", blocked: true},
+		{addr: "fd00:ec2::254", blocked: true},
+		{addr: "fe80::1", blocked: true},
+		{addr: "64:ff9b::a00:1", blocked: true},
+	} {
+		if got := isOutsidePublicOrPrivateIP(net.ParseIP(test.addr)); got != test.blocked {
+			t.Errorf("block %s = %t, want %t", test.addr, got, test.blocked)
+		}
+	}
+}
+
 func TestPublicIPPolicy(t *testing.T) {
 	t.Parallel()
 

@@ -834,14 +834,19 @@ export interface SignInEmailPasswordResponse {
 
 /**
  *
+ */
+export type OIDCCodeChallenge = string;
+
+/**
+ * 
  @property idToken (`string`) - Signed ID token issued by the configured OIDC provider
     *    MinLength - 1
     *    MaxLength - 16384
- @property nonce (`string`) - Original random nonce whose SHA-256 hex digest was sent to the identity provider
+ @property nonce? (`string`) - Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
     *    MinLength - 1
     *    MaxLength - 256
  @property options? (`SignUpOptions`) - */
-export interface OIDCIdTokenRequest {
+export interface SignInOidcIdTokenRequest {
   /**
    * Signed ID token issued by the configured OIDC provider
    *    MinLength - 1
@@ -849,11 +854,39 @@ export interface OIDCIdTokenRequest {
    */
   idToken: string;
   /**
-   * Original random nonce whose SHA-256 hex digest was sent to the identity provider
+   * Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
    *    MinLength - 1
    *    MaxLength - 256
    */
-  nonce: string;
+  nonce?: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
+ @property idToken (`string`) - Signed ID token issued by the configured OIDC provider
+    *    MinLength - 1
+    *    MaxLength - 16384
+ @property nonce? (`string`) - Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+    *    MinLength - 1
+    *    MaxLength - 256
+ @property options? (`SignUpOptions`) - */
+export interface SignUpOidcIdTokenRequest {
+  /**
+   * Signed ID token issued by the configured OIDC provider
+   *    MinLength - 1
+   *    MaxLength - 16384
+   */
+  idToken: string;
+  /**
+   * Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+   *    MinLength - 1
+   *    MaxLength - 256
+   */
+  nonce?: string;
   /**
    *
    */
@@ -2278,12 +2311,12 @@ export type RedirectToQuery = string;
 /**
  *
  */
-export type OIDCProvider = string;
+export type OidcProvider = string;
 
 /**
  *
  */
-export type OIDCCodeChallenge = string;
+export type OIDCSignInCodeChallenge = string;
 
 /**
  *
@@ -2419,61 +2452,68 @@ export interface Oauth2AuthorizePostBody {
 
 /**
  * Parameters for the signInOidc method.
-    @property codeChallenge (OIDCCodeChallenge) - Base64url-encoded S256 challenge for the Auth authorization code
-
+    @property codeChallenge? (OIDCSignInCodeChallenge) - Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+  
+    @property connect? (string) - Auth access token for the account to link to this provider
+  
     @property redirectTo? (OIDCRedirectTo) - Allowed application URL to receive the Auth authorization code
-
+  
     @property state? (OIDCState) - Application state to include in the callback redirect
-
+  
     @property allowedRoles? (string[]) - Allowed roles for a new user
-
+  
     @property defaultRole? (OIDCDefaultRole) - Default role for a new user
-
+  
     @property displayName? (OIDCDisplayName) - Display name for a new user
-
+  
     @property locale? (OIDCLocale) - Locale for a new user
-
+  
     @property metadata? (Record<string, unknown>) - JSON-encoded metadata for a new user
   */
 export interface SignInOidcParams {
   /**
-   * Base64url-encoded S256 challenge for the Auth authorization code
-
+   * Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+  
    */
-  codeChallenge: OIDCCodeChallenge;
+  codeChallenge?: OIDCSignInCodeChallenge;
+  /**
+   * Auth access token for the account to link to this provider
+  
+   */
+  connect?: string;
   /**
    * Allowed application URL to receive the Auth authorization code
-
+  
    */
   redirectTo?: OIDCRedirectTo;
   /**
    * Application state to include in the callback redirect
-
+  
    */
   state?: OIDCState;
   /**
    * Allowed roles for a new user
-
+  
    */
   allowedRoles?: string[];
   /**
    * Default role for a new user
-
+  
    */
   defaultRole?: OIDCDefaultRole;
   /**
    * Display name for a new user
-
+  
    */
   displayName?: OIDCDisplayName;
   /**
    * Locale for a new user
-
+  
    */
   locale?: OIDCLocale;
   /**
    * JSON-encoded metadata for a new user
-
+  
    */
   metadata?: Record<string, unknown>;
 }
@@ -2564,61 +2604,61 @@ export interface SignInProviderParams {
 }
 /**
  * Parameters for the signUpOidc method.
-    @property codeChallenge (OIDCCodeChallenge) - Base64url-encoded S256 challenge for the Auth authorization code
-
+    @property codeChallenge (string) - Base64url-encoded S256 challenge for the Auth authorization code.
+  
     @property redirectTo? (OIDCRedirectTo) - Allowed application URL to receive the Auth authorization code
-
+  
     @property state? (OIDCState) - Application state to include in the callback redirect
-
+  
     @property allowedRoles? (string[]) - Allowed roles for a new user
-
+  
     @property defaultRole? (OIDCDefaultRole) - Default role for a new user
-
+  
     @property displayName? (OIDCDisplayName) - Display name for a new user
-
+  
     @property locale? (OIDCLocale) - Locale for a new user
-
+  
     @property metadata? (Record<string, unknown>) - JSON-encoded metadata for a new user
   */
 export interface SignUpOidcParams {
   /**
-   * Base64url-encoded S256 challenge for the Auth authorization code
-
+   * Base64url-encoded S256 challenge for the Auth authorization code.
+  
    */
-  codeChallenge: OIDCCodeChallenge;
+  codeChallenge: string;
   /**
    * Allowed application URL to receive the Auth authorization code
-
+  
    */
   redirectTo?: OIDCRedirectTo;
   /**
    * Application state to include in the callback redirect
-
+  
    */
   state?: OIDCState;
   /**
    * Allowed roles for a new user
-
+  
    */
   allowedRoles?: string[];
   /**
    * Default role for a new user
-
+  
    */
   defaultRole?: OIDCDefaultRole;
   /**
    * Display name for a new user
-
+  
    */
   displayName?: OIDCDisplayName;
   /**
    * Locale for a new user
-
+  
    */
   locale?: OIDCLocale;
   /**
    * JSON-encoded metadata for a new user
-
+  
    */
   metadata?: Record<string, unknown>;
 }
@@ -3029,7 +3069,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken`
      As this method is a redirect, it returns a URL string instead of a Promise
      */
   signInOidcURL(
-    provider: OIDCProvider,
+    provider: OidcProvider,
     params?: SignInOidcParams,
     options?: RequestInit,
   ): string;
@@ -3042,8 +3082,8 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken`
      - 200: SessionPayload
      */
   signInOidcIdToken(
-    provider: OIDCProvider,
-    body: OIDCIdTokenRequest,
+    provider: OidcProvider,
+    body: SignInOidcIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
@@ -3303,8 +3343,8 @@ If the user already exists, a `user-already-exists` error is returned.
      As this method is a redirect, it returns a URL string instead of a Promise
      */
   signUpOidcURL(
-    provider: OIDCProvider,
-    params?: SignUpOidcParams,
+    provider: OidcProvider,
+    params: SignUpOidcParams,
     options?: RequestInit,
   ): string;
 
@@ -3316,8 +3356,8 @@ If the user already exists, a `user-already-exists` error is returned.
      - 200: SessionPayload
      */
   signUpOidcIdToken(
-    provider: OIDCProvider,
-    body: OIDCIdTokenRequest,
+    provider: OidcProvider,
+    body: SignUpOidcIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
@@ -4260,7 +4300,7 @@ export const createAPIClient = (
   };
 
   const signInOidcURL = (
-    provider: OIDCProvider,
+    provider: OidcProvider,
     params?: SignInOidcParams,
   ): string => {
     const encodedParameters =
@@ -4287,8 +4327,8 @@ export const createAPIClient = (
   };
 
   const signInOidcIdToken = async (
-    provider: OIDCProvider,
-    body: OIDCIdTokenRequest,
+    provider: OidcProvider,
+    body: SignInOidcIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
     const url = `${baseURL}/signin/oidc/${provider}/idtoken`;
@@ -4991,8 +5031,8 @@ export const createAPIClient = (
   };
 
   const signUpOidcURL = (
-    provider: OIDCProvider,
-    params?: SignUpOidcParams,
+    provider: OidcProvider,
+    params: SignUpOidcParams,
   ): string => {
     const encodedParameters =
       params &&
@@ -5018,8 +5058,8 @@ export const createAPIClient = (
   };
 
   const signUpOidcIdToken = async (
-    provider: OIDCProvider,
-    body: OIDCIdTokenRequest,
+    provider: OidcProvider,
+    body: SignUpOidcIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
     const url = `${baseURL}/signup/oidc/${provider}/idtoken`;

@@ -20,7 +20,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
-	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
@@ -188,6 +187,7 @@ const (
 	flagTwitterConsumerSecret                    = "twitter-consumer-secret"
 	flagDisableAutoSignup                        = "disable-auto-signup"
 	flagOIDCProviders                            = "provider-oidc"
+	flagOIDCAllowPrivateIPs                      = "provider-oidc-allow-private-ips"
 	flagOAuth2ProviderEnabled                    = "oauth2-provider-enabled"
 	flagOAuth2ProviderLoginURL                   = "oauth2-provider-login-url"
 	flagOAuth2ProviderAccessTokenTTL             = "oauth2-provider-access-token-ttl"  //nolint:gosec
@@ -1327,9 +1327,15 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOIDCProviders,
-				Usage:    "JSON array of custom OpenID Connect providers",
+				Usage:    "JSON object of custom OpenID Connect providers keyed by slug",
 				Category: "providers",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_OIDC"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagOIDCAllowPrivateIPs,
+				Usage:    "Allow HTTPS requests to private IdP addresses (operator setting)",
+				Category: "providers",
+				Sources:  cli.EnvVars("AUTH_PROVIDER_OIDC_ALLOW_PRIVATE_IPS"),
 			},
 			// OAuth2 Identity Provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct
@@ -1472,14 +1478,14 @@ func getGoServer(
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
+	config controller.Config,
+	customProviders *providers.OIDCRegistry,
 	logger *slog.Logger,
 ) (*http.Server, error) {
-	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, logger)
+	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, config, customProviders, logger)
 	if err != nil {
 		return nil, err
 	}
-
-	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
 	swagger, err := api.GetSpec()
 	if err != nil {
@@ -1511,7 +1517,7 @@ func getGoServer(
 
 	api.RegisterHandlersWithOptions(
 		router,
-		handler,
+		api.NewStrictHandler(ctrl, nil),
 		api.GinServerOptions{
 			BaseURL:      cmd.String(flagAPIPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
@@ -1576,13 +1582,10 @@ func getController(
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
+	config controller.Config,
+	customProviders *providers.OIDCRegistry,
 	logger *slog.Logger,
 ) (*controller.Controller, *controller.JWTGetter, error) {
-	config, err := getConfig(cmd)
-	if err != nil {
-		return nil, nil, fmt.Errorf("problem creating config: %w", err)
-	}
-
 	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, cmd, db, logger)
 	if err != nil {
 		return nil, nil, err
@@ -1595,18 +1598,6 @@ func getController(
 
 	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
 		return nil, nil, err
-	}
-
-	customProviders, err := oidc.NewOIDCRegistry(
-		cmd.String(flagOIDCProviders), config.ServerURL, safehttp.New(safehttp.Config{
-			Timeout:              0,
-			MaxRedirects:         0,
-			MaxResponseBodyBytes: oidcResponseBodyLimit,
-			PublicIPsOnly:        true,
-		}),
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("configuring custom providers: %w", err)
 	}
 
 	ctrl, err := controller.New(
@@ -1639,6 +1630,16 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
+	config, err := getConfig(cmd)
+	if err != nil {
+		return fmt.Errorf("problem creating config: %w", err)
+	}
+
+	customProviders, err := getOIDCRegistry(cmd, config.ServerURL)
+	if err != nil {
+		return err
+	}
+
 	servCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -1658,7 +1659,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	server, err := getGoServer(ctx, cmd, db, encrypter, logger)
+	server, err := getGoServer(ctx, cmd, db, encrypter, config, customProviders, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

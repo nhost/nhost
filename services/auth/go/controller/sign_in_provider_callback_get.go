@@ -220,7 +220,7 @@ func encryptProviderSession(
 
 func (ctrl *Controller) signinProviderProviderCallbackSession(
 	ctx context.Context,
-	providerID string,
+	provider providerIdentity,
 	profile oidc.Profile,
 	state *providers.State,
 	redirectTo *url.URL,
@@ -228,13 +228,13 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 ) (*url.URL, *APIError) {
 	if state.Connect != nil {
 		return redirectTo, ctrl.signinProviderProviderCallbackConnect(
-			ctx, *state.Connect, providerID, profile, logger,
+			ctx, *state.Connect, provider, profile, logger,
 		)
 	}
 
 	if codeChallenge := deptr(state.CodeChallenge); codeChallenge != "" {
 		userID, apiErr := ctrl.providerResolveUser(
-			ctx, profile, providerID, state, logger,
+			ctx, profile, provider, state, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr
@@ -255,9 +255,9 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 	)
 
 	if state.Flow == providers.FlowSignup {
-		session, apiErr = ctrl.providerSignUpFlow(ctx, profile, providerID, state.Options, logger)
+		session, apiErr = ctrl.providerSignUpFlow(ctx, profile, provider, state.Options, logger)
 	} else {
-		session, apiErr = ctrl.providerSignInFlow(ctx, profile, providerID, state.Options, logger)
+		session, apiErr = ctrl.providerSignInFlow(ctx, profile, provider, state.Options, logger)
 	}
 
 	if apiErr != nil {
@@ -300,7 +300,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 	}
 
 	redirectTo, apiErr = ctrl.signinProviderProviderCallbackSession(
-		ctx, req.Provider, profile, state, redirectTo, logger,
+		ctx, builtinIdentity(req.Provider), profile, state, redirectTo, logger,
 	)
 	if apiErr != nil {
 		return redirectTo, apiErr
@@ -360,7 +360,7 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	ctx context.Context,
 	connnect string,
-	provider string,
+	provider providerIdentity,
 	profile oidc.Profile,
 	logger *slog.Logger,
 ) *APIError {
@@ -378,24 +378,7 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 		return ErrInvalidRequest
 	}
 
-	// Verify user exists
-	if _, apiError := ctrl.wf.GetUser(ctx, userID, logger); apiError != nil {
-		logger.ErrorContext(ctx, "error getting user", logError(apiError))
-		return apiError
-	}
-
-	// Insert user provider
-	if _, apiErr := ctrl.wf.InsertUserProvider(
-		ctx,
-		userID,
-		provider,
-		profile.ProviderUserID,
-		logger,
-	); apiErr != nil {
-		return apiErr
-	}
-
-	return nil
+	return ctrl.wf.connectProvider(ctx, userID, provider, profile.ProviderUserID, logger)
 }
 
 func (ctrl *Controller) createPKCEAuthorizationCode(

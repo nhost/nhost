@@ -34,6 +34,7 @@ type oidcFixture struct {
 	client               *http.Client
 	key                  *rsa.PrivateKey
 	keyID                atomic.Pointer[string]
+	browserAudience      atomic.Pointer[string]
 	discoveryCalls       atomic.Int32
 	keyCalls             atomic.Int32
 	tokenCalls           atomic.Int32
@@ -56,6 +57,7 @@ func newOIDCFixture(t *testing.T, wrongUserInfoSubject bool) *oidcFixture {
 		wrongUserInfoSubject: wrongUserInfoSubject,
 	}
 	f.keyID.Store(new("key-1"))
+	f.browserAudience.Store(new("web"))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /application/o/test/.well-known/openid-configuration", func(
@@ -112,7 +114,7 @@ func newOIDCFixture(t *testing.T, wrongUserInfoSubject bool) *oidcFixture {
 			return
 		}
 
-		claims := f.claims("web", fixtureNonce)
+		claims := f.claims(*f.browserAudience.Load(), hashNonce(fixtureNonce))
 		delete(claims, "email")
 
 		idToken, err := f.sign(claims, *f.keyID.Load())
@@ -183,7 +185,7 @@ func (f *oidcFixture) sign(claims jwt.MapClaims, kid string) (string, error) {
 	return token.SignedString(f.key) //nolint:wrapcheck
 }
 
-func (f *oidcFixture) registry(t *testing.T) *OIDCRegistry {
+func (f *oidcFixture) provider(t *testing.T) *CustomProvider {
 	t.Helper()
 
 	serverURL, err := url.Parse("https://auth.example.com/v1")
@@ -191,30 +193,22 @@ func (f *oidcFixture) registry(t *testing.T) *OIDCRegistry {
 		t.Fatal(err)
 	}
 
-	raw := `[
-		{"slug":"first","issuer":"` + f.issuer + `","clientId":"web","clientSecret":"secret","audiences":["mobile","desktop"]},
-		{"slug":"second","issuer":"` + f.issuer + `","clientId":"another","clientSecret":"other"}
-	]`
-
-	registry, err := NewOIDCRegistry(raw, serverURL, f.client)
+	provider, err := NewCustomProvider("first", CustomProviderConfig{
+		Issuer: f.issuer, DiscoveryURL: "", ClientID: "web", ClientSecret: "secret",
+		Scopes: nil, Audiences: []string{"mobile", "desktop"}, DisableNonce: false,
+	}, serverURL, f.client)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return registry
+	return provider
 }
 
 func TestOIDCBrowserProtocol(t *testing.T) {
 	t.Parallel()
 
 	f := newOIDCFixture(t, false)
-	registry := f.registry(t)
-
-	p := registry.Get("first")
-	if registry.Get("unknown") != nil || len(registry.All()) != 2 ||
-		p.ID() != "oidc:first" || registry.Get("second").ClientID() != "another" {
-		t.Fatal("expected two isolated provider configurations")
-	}
+	p := f.provider(t)
 
 	location, err := p.AuthorizationURL(t.Context(), "signed-state", fixtureNonce, f.verifier)
 	if err != nil {
@@ -250,6 +244,25 @@ func TestOIDCBrowserProtocol(t *testing.T) {
 	}
 }
 
+func TestOIDCBrowserRejectsNativeAudience(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCFixture(t, false)
+	fixture.browserAudience.Store(new("mobile"))
+	provider := fixture.provider(t)
+
+	_, err := provider.Exchange(
+		t.Context(),
+		fixtureCode,
+		fixture.verifier,
+		fixtureNonce,
+		&fixture.issuer,
+	)
+	if !errors.Is(err, errIDToken) {
+		t.Fatalf("the browser exchange accepted a native-only audience: %v", err)
+	}
+}
+
 func assertAuthorizationURL(t *testing.T, location, verifier string) {
 	t.Helper()
 
@@ -259,7 +272,7 @@ func assertAuthorizationURL(t *testing.T, location, verifier string) {
 	}
 
 	for key, want := range map[string]string{
-		"client_id": "web", "state": "signed-state", "nonce": fixtureNonce,
+		"client_id": "web", "state": "signed-state", "nonce": hashNonce(fixtureNonce),
 		"response_type": "code", "scope": "openid email profile", "code_challenge_method": "S256",
 		"code_challenge": oauth2.S256ChallengeFromVerifier(verifier),
 	} {
@@ -273,7 +286,7 @@ func TestOIDCRejectsDifferentUserInfoSubject(t *testing.T) {
 	t.Parallel()
 
 	f := newOIDCFixture(t, true)
-	if _, err := f.registry(t).Get("first").Exchange(
+	if _, err := f.provider(t).Exchange(
 		t.Context(), fixtureCode, f.verifier, fixtureNonce, &f.issuer,
 	); !errors.Is(err, errIDToken) {
 		t.Fatalf("expected UserInfo subject rejection, got %v", err)
@@ -284,7 +297,7 @@ func TestOIDCNativeClaims(t *testing.T) {
 	t.Parallel()
 
 	f := newOIDCFixture(t, false)
-	p := f.registry(t).Get("first")
+	p := f.provider(t)
 	nonce := "native-nonce"
 	nonceHash := sha256.Sum256([]byte(nonce))
 	digest := hex.EncodeToString(nonceHash[:])
@@ -294,7 +307,7 @@ func TestOIDCNativeClaims(t *testing.T) {
 		mutate func(jwt.MapClaims)
 	}{
 		{name: "wrong issuer", mutate: func(c jwt.MapClaims) { c["iss"] = strings.TrimSuffix(f.issuer, "/") }},
-		{name: "wrong audience", mutate: func(c jwt.MapClaims) { c["aud"] = "web" }},
+		{name: "wrong audience", mutate: func(c jwt.MapClaims) { c["aud"] = "unconfigured" }},
 		{name: "extra untrusted audience", mutate: func(c jwt.MapClaims) { c["aud"] = []string{"mobile", "other"}; c["azp"] = "mobile" }},
 		{name: "missing authorized party", mutate: func(c jwt.MapClaims) { c["aud"] = []string{"mobile", "desktop"} }},
 		{name: "wrong authorized party", mutate: func(c jwt.MapClaims) { c["azp"] = "desktop" }},
@@ -362,11 +375,96 @@ func TestOIDCNativeClaims(t *testing.T) {
 	}
 }
 
+func TestOIDCNativeDefaultAndAdditionalAudiences(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCFixture(t, false)
+
+	provider := fixture.provider(t)
+	for _, audience := range []string{"web", "mobile", "desktop"} {
+		token, err := fixture.sign(fixture.claims(audience, hashNonce(fixtureNonce)), "key-1")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := provider.VerifyNative(t.Context(), token, fixtureNonce); err != nil {
+			t.Errorf("valid audience %q rejected: %v", audience, err)
+		}
+	}
+}
+
+func TestOIDCNonceDisabled(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCFixture(t, false)
+	provider := fixture.provider(t)
+	provider.config.DisableNonce = true
+
+	rawURL, err := provider.AuthorizationURL(t.Context(), "state", fixtureNonce, fixture.verifier)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	authURL, err := url.Parse(rawURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if authURL.Query().Has("nonce") {
+		t.Fatal("authorization URL sent a nonce with nonce checks disabled")
+	}
+
+	claims := fixture.claims("web", "")
+	delete(claims, "nonce")
+
+	token, err := fixture.sign(claims, "key-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := provider.VerifyNative(t.Context(), token, ""); err != nil {
+		t.Fatalf("verified token without a nonce was rejected: %v", err)
+	}
+}
+
+func TestOIDCDiscoveryOverride(t *testing.T) {
+	t.Parallel()
+
+	const overridePath = "/metadata"
+
+	metadata := httptest.NewTLSServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != overridePath {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			issuer := "https://" + r.Host + "/issuer"
+			writeFixtureJSON(t, w, map[string]any{
+				"issuer": issuer, "authorization_endpoint": issuer + "/authorize",
+				"token_endpoint": issuer + "/token", "jwks_uri": issuer + "/jwks",
+				"id_token_signing_alg_values_supported": []string{"RS256"},
+			})
+		}),
+	)
+	t.Cleanup(metadata.Close)
+
+	fixture := &oidcFixture{issuer: metadata.URL + "/issuer", client: metadata.Client()}
+	provider := fixture.provider(t)
+
+	provider.config.DiscoveryURL = metadata.URL + overridePath
+	if _, err := provider.AuthorizationURL(
+		t.Context(), "state", fixtureNonce, oauth2.GenerateVerifier(),
+	); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestOIDCCachesAndRefreshesKeys(t *testing.T) {
 	t.Parallel()
 
 	f := newOIDCFixture(t, false)
-	p := f.registry(t).Get("first")
+	p := f.provider(t)
 	hash := sha256.Sum256([]byte(fixtureNonce))
 	claims := f.claims("mobile", hex.EncodeToString(hash[:]))
 
@@ -490,7 +588,7 @@ func TestOIDCMetadataCooldownSurvivesCancellation(t *testing.T) {
 				client: &http.Client{Transport: oidcMetadataTransport(transport)},
 			}
 
-			p := f.registry(t).Get("first")
+			p := f.provider(t)
 			if err := tc.load(ctx, p); err == nil {
 				t.Fatal("metadata provider was unavailable")
 			}
@@ -502,32 +600,6 @@ func TestOIDCMetadataCooldownSurvivesCancellation(t *testing.T) {
 	}
 }
 
-func TestOIDCRegistryRejectsInvalidConfiguration(t *testing.T) {
-	t.Parallel()
-
-	valid := `{"slug":"provider","issuer":"https://idp.example","clientId":"web","clientSecret":"sensitive-value"}`
-	for _, raw := range []string{
-		"null", "{}", "[" + valid + "," + valid + "]",
-		"[" + strings.Replace(valid, "https://", "http://", 1) + "]",
-		"[" + strings.Replace(valid, "idp.example", "idp.example?q=1", 1) + "]",
-		"[" + strings.Replace(valid, "idp.example", "user@idp.example", 1) + "]",
-		"[" + strings.Replace(valid, `"slug":"provider"`, `"slug":"OIDC:provider"`, 1) + "]",
-		"[" + strings.Replace(valid, `"slug":"provider"`, `"slug":"provider","slug":"other"`, 1) + "]",
-		"[" + strings.TrimSuffix(valid, "}") + `,"unknown":true}]`,
-		"[" + strings.TrimSuffix(valid, "}") + `,"scopes":["email"]}]`,
-	} {
-		serverURL, err := url.Parse("https://auth.example.com/v1")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := NewOIDCRegistry(raw, serverURL, &http.Client{}); err == nil ||
-			strings.Contains(err.Error(), "sensitive-value") {
-			t.Errorf("expected sanitized configuration error, got %v", err)
-		}
-	}
-}
-
 func TestOIDCDiscoveryUsesHardenedClient(t *testing.T) {
 	t.Parallel()
 
@@ -536,7 +608,7 @@ func TestOIDCDiscoveryUsesHardenedClient(t *testing.T) {
 		PublicIPsOnly: true,
 	})
 
-	p := f.registry(t).Get("first")
+	p := f.provider(t)
 	if _, err := p.AuthorizationURL(t.Context(), "state", fixtureNonce, f.verifier); err == nil {
 		t.Fatal("hardened client allowed a request to a loopback issuer")
 	}
@@ -583,7 +655,7 @@ func TestOIDCDiscoveryRejectsInvalidMetadata(t *testing.T) {
 
 			f := &oidcFixture{issuer: server.URL, client: server.Client()}
 
-			p := f.registry(t).Get("first")
+			p := f.provider(t)
 			if _, err := p.AuthorizationURL(
 				t.Context(), "signed-state", fixtureNonce, oauth2.GenerateVerifier(),
 			); !errors.Is(err, errDiscovery) {

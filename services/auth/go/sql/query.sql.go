@@ -238,7 +238,7 @@ func (q *Queries) DeleteUserRoles(ctx context.Context, userID uuid.UUID) error {
 }
 
 const findUserProviderByProviderId = `-- name: FindUserProviderByProviderId :one
-SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
+SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id, issuer FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2
 `
 
@@ -259,6 +259,7 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 		&i.RefreshToken,
 		&i.ProviderID,
 		&i.ProviderUserID,
+		&i.Issuer,
 	)
 	return i, err
 }
@@ -602,8 +603,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 const getUserByOIDCIdentity = `-- name: GetUserByOIDCIdentity :one
 SELECT u.id, u.created_at, u.updated_at, u.last_seen, u.disabled, u.display_name, u.avatar_url, u.locale, u.email, u.phone_number, u.password_hash, u.email_verified, u.phone_number_verified, u.new_email, u.otp_method_last_used, u.otp_hash, u.otp_hash_expires_at, u.default_role, u.is_anonymous, u.totp_secret, u.active_mfa_type, u.ticket, u.ticket_expires_at, u.metadata, u.webauthn_current_challenge, u.otp_attempts, u.new_phone_number, u.pending_sms_deanonymize_options FROM auth.users u
 JOIN auth.user_providers up ON up.user_id = u.id
-JOIN auth.providers p ON p.id = up.provider_id
-WHERE p.id = $1 AND p.oidc_issuer = $2 AND up.provider_user_id = $3
+WHERE up.provider_id = $1 AND up.issuer = $2 AND up.provider_user_id = $3
 `
 
 type GetUserByOIDCIdentityParams struct {
@@ -749,7 +749,7 @@ func (q *Queries) GetUserByPhoneNumberOtherThanSelf(ctx context.Context, arg Get
 
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
-    SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
+    SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id, issuer FROM auth.user_providers
     WHERE provider_user_id = $1
     AND provider_id = $2
     LIMIT 1
@@ -1225,19 +1225,25 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 }
 
 const insertUserProvider = `-- name: InsertUserProvider :one
-INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
-VALUES ($1, $2, $3, 'unset')
-RETURNING id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, issuer, access_token)
+VALUES ($1, $2, $3, $4, 'unset')
+RETURNING id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id, issuer
 `
 
 type InsertUserProviderParams struct {
 	UserID         uuid.UUID
 	ProviderID     string
 	ProviderUserID string
+	Issuer         pgtype.Text
 }
 
 func (q *Queries) InsertUserProvider(ctx context.Context, arg InsertUserProviderParams) (AuthUserProvider, error) {
-	row := q.db.QueryRow(ctx, insertUserProvider, arg.UserID, arg.ProviderID, arg.ProviderUserID)
+	row := q.db.QueryRow(ctx, insertUserProvider,
+		arg.UserID,
+		arg.ProviderID,
+		arg.ProviderUserID,
+		arg.Issuer,
+	)
 	var i AuthUserProvider
 	err := row.Scan(
 		&i.ID,
@@ -1248,6 +1254,7 @@ func (q *Queries) InsertUserProvider(ctx context.Context, arg InsertUserProvider
 		&i.RefreshToken,
 		&i.ProviderID,
 		&i.ProviderUserID,
+		&i.Issuer,
 	)
 	return i, err
 }
@@ -1539,9 +1546,9 @@ WITH inserted_user AS (
     RETURNING id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', $13, $14)
+        ($1, 'unset', $13, $14, $15)
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -1564,6 +1571,7 @@ type InsertUserWithUserProviderParams struct {
 	Roles           []string
 	ProviderID      string
 	ProviderUserID  string
+	Issuer          pgtype.Text
 }
 
 func (q *Queries) InsertUserWithUserProvider(ctx context.Context, arg InsertUserWithUserProviderParams) (uuid.UUID, error) {
@@ -1582,6 +1590,7 @@ func (q *Queries) InsertUserWithUserProvider(ctx context.Context, arg InsertUser
 		arg.Roles,
 		arg.ProviderID,
 		arg.ProviderUserID,
+		arg.Issuer,
 	)
 	var user_id uuid.UUID
 	err := row.Scan(&user_id)
@@ -1615,13 +1624,13 @@ WITH inserted_user AS (
     RETURNING id , user_id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', $14, $15)
+        ($1, 'unset', $14, $15, $16)
 ), inserted_user_role AS (
     INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
-    FROM inserted_user, unnest($16::TEXT[]) AS roles(role)
+    FROM inserted_user, unnest($17::TEXT[]) AS roles(role)
 )
 SELECT
     (SELECT id FROM inserted_user),
@@ -1644,6 +1653,7 @@ type InsertUserWithUserProviderAndRefreshTokenParams struct {
 	RefreshTokenExpiresAt pgtype.Timestamptz
 	ProviderID            string
 	ProviderUserID        string
+	Issuer                pgtype.Text
 	Roles                 []string
 }
 
@@ -1669,6 +1679,7 @@ func (q *Queries) InsertUserWithUserProviderAndRefreshToken(ctx context.Context,
 		arg.RefreshTokenExpiresAt,
 		arg.ProviderID,
 		arg.ProviderUserID,
+		arg.Issuer,
 		arg.Roles,
 	)
 	var i InsertUserWithUserProviderAndRefreshTokenRow
@@ -1730,11 +1741,8 @@ const registerOIDCProviders = `-- name: RegisterOIDCProviders :exec
 INSERT INTO auth.providers (id, oidc_issuer)
 SELECT id, issuer FROM unnest($1::text[], $2::text[]) AS config(id, issuer)
 ON CONFLICT (id) DO UPDATE
-SET oidc_issuer = CASE WHEN providers.oidc_issuer IS NULL
-                           OR providers.oidc_issuer = EXCLUDED.oidc_issuer
-                      THEN EXCLUDED.oidc_issuer
-                      -- Fail the entire statement via providers_oidc_issuer_check.
-                      ELSE '' END
+SET oidc_issuer = EXCLUDED.oidc_issuer
+WHERE providers.oidc_issuer IS DISTINCT FROM EXCLUDED.oidc_issuer
 `
 
 type RegisterOIDCProvidersParams struct {

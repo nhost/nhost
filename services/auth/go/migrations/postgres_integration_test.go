@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/lib/pq"
 	"github.com/nhost/nhost/internal/lib/pgmigrate"
 	authsql "github.com/nhost/nhost/services/auth/go/sql"
@@ -83,11 +84,14 @@ func TestPostgresOIDCIssuerBinding(t *testing.T) {
 		)
 	}
 
-	previous := authMigrationBundleThrough(t, 27)
+	previous := authMigrationBundleThrough(t, 28)
 	if err := run(previous); err != nil {
 		t.Fatal(err)
 	}
 
+	const issuer = "https://idp.example/application/o/test/"
+
+	userID, identity := seedV28Identity(t, database, issuer)
 	if err := run(postgresMigrations); err != nil {
 		t.Fatal(err)
 	}
@@ -117,17 +121,16 @@ func TestPostgresOIDCIssuerBinding(t *testing.T) {
 
 	queries := authsql.New(conn)
 
-	const issuer = "https://idp.example/application/o/test/"
-
+	assertAuthMigrationState(t, database, 29)
 	params := assertOIDCRegistration(t, database, queries, issuer)
-
-	userID, identity := assertOIDCIdentityLookup(t, database, queries, issuer)
+	assertOIDCIdentityLookup(t, queries, userID, identity)
+	assertOIDCIdentityWrites(t, queries, userID, identity)
 
 	if err := run(previous); err != nil {
 		t.Fatal(err)
 	}
 
-	assertAuthMigrationState(t, database, 27)
+	assertAuthMigrationState(t, database, 28)
 
 	if err := run(postgresMigrations); err != nil {
 		t.Fatal(err)
@@ -137,14 +140,7 @@ func TestPostgresOIDCIssuerBinding(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	identity.Issuer = authsql.Text(issuer)
-	if user, err := queries.GetUserByOIDCIdentity(
-		t.Context(),
-		identity,
-	); err != nil ||
-		user.ID != userID {
-		t.Fatalf("identity lookup failed after downgrade and re-upgrade: %v", err)
-	}
+	assertOIDCIdentityLookup(t, queries, userID, identity)
 }
 
 func assertOIDCRegistration(
@@ -166,7 +162,7 @@ func assertOIDCRegistration(
 	if err := queries.RegisterOIDCProviders(t.Context(), authsql.RegisterOIDCProvidersParams{
 		ProviderIds: []string{"oidc:new", "oidc:test"},
 		Issuers:     []string{issuer, "https://another.example"},
-	}); !errors.As(err, &pgErr) || pgErr.ConstraintName != "providers_oidc_issuer_check" {
+	}); !errors.As(err, &pgErr) || pgErr.ConstraintName != "user_providers_oidc_issuer_fkey" {
 		t.Fatalf("expected issuer change rejection, got %v", err)
 	}
 
@@ -177,11 +173,18 @@ func assertOIDCRegistration(
 		t.Fatalf("registration must be atomic, got exists=%v err=%v", exists, err)
 	}
 
+	if err := queries.RegisterOIDCProviders(t.Context(), authsql.RegisterOIDCProvidersParams{
+		ProviderIds: []string{"oidc:second"},
+		Issuers:     []string{"https://replacement.example"},
+	}); err != nil {
+		t.Fatalf("an unused slug should accept an issuer change: %v", err)
+	}
+
 	return params
 }
 
-func assertOIDCIdentityLookup(
-	t *testing.T, database *sql.DB, queries *authsql.Queries, issuer string,
+func seedV28Identity(
+	t *testing.T, database *sql.DB, issuer string,
 ) (uuid.UUID, authsql.GetUserByOIDCIdentityParams) {
 	t.Helper()
 
@@ -193,17 +196,37 @@ func assertOIDCIdentityLookup(
 	}
 
 	oldSubject := sha256.Sum256([]byte(issuer + "\x00shared-subject"))
-	if _, err := queries.InsertUserProvider(t.Context(), authsql.InsertUserProviderParams{
-		UserID: userID, ProviderID: "oidc:test", ProviderUserID: hex.EncodeToString(oldSubject[:]),
-	}); err != nil {
-		t.Fatal(err)
-	}
 
 	identity := authsql.GetUserByOIDCIdentityParams{
 		ProviderID: "oidc:test",
 		Issuer:     authsql.Text(issuer),
 		Subject:    hex.EncodeToString(oldSubject[:]),
 	}
+	if _, err := database.ExecContext(t.Context(),
+		"INSERT INTO auth.providers (id, oidc_issuer) VALUES ($1, $2)", identity.ProviderID, issuer,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := database.ExecContext(t.Context(),
+		`INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
+		 VALUES ($1, $2, $3, 'unset')`,
+		userID, identity.ProviderID, identity.Subject,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	return userID, identity
+}
+
+func assertOIDCIdentityLookup(
+	t *testing.T,
+	queries *authsql.Queries,
+	userID uuid.UUID,
+	identity authsql.GetUserByOIDCIdentityParams,
+) {
+	t.Helper()
+
 	if user, err := queries.GetUserByOIDCIdentity(
 		t.Context(),
 		identity,
@@ -234,8 +257,55 @@ func assertOIDCIdentityLookup(
 	) {
 		t.Fatalf("implicit provider linking was allowed: %v", err)
 	}
+}
 
-	return userID, identity
+func assertOIDCIdentityWrites(
+	t *testing.T,
+	queries *authsql.Queries,
+	userID uuid.UUID,
+	identity authsql.GetUserByOIDCIdentityParams,
+) {
+	t.Helper()
+
+	for _, tt := range []struct {
+		issuer     pgtype.Text
+		constraint string
+	}{
+		{issuer: pgtype.Text{}, constraint: "user_providers_oidc_issuer_check"},
+		{issuer: authsql.Text("https://another.example"), constraint: "user_providers_oidc_issuer_fkey"},
+	} {
+		_, err := queries.InsertUserProvider(t.Context(), authsql.InsertUserProviderParams{
+			UserID:         userID,
+			ProviderID:     identity.ProviderID,
+			ProviderUserID: "invalid",
+			Issuer:         tt.issuer,
+		})
+
+		var pgErr *pgconn.PgError
+		if !errors.As(err, &pgErr) || pgErr.ConstraintName != tt.constraint {
+			t.Fatalf("expected issuer constraint %q, got %v", tt.constraint, err)
+		}
+	}
+
+	provider, err := queries.InsertUserProvider(t.Context(), authsql.InsertUserProviderParams{
+		UserID:         userID,
+		ProviderID:     identity.ProviderID,
+		ProviderUserID: "explicit",
+		Issuer:         identity.Issuer,
+	})
+	if err != nil || provider.Issuer != identity.Issuer {
+		t.Fatalf("explicit link did not persist the issuer: %v", err)
+	}
+
+	builtin, err := queries.InsertUserProvider(t.Context(), authsql.InsertUserProviderParams{
+		UserID:         userID,
+		ProviderID:     "google",
+		ProviderUserID: "builtin-subject",
+		Issuer:         pgtype.Text{},
+	})
+	if err != nil || builtin.Issuer.Valid {
+		t.Fatalf("built-in identity did not retain a NULL issuer: %v", err)
+	}
 }
 
 func openAuthMigrationTestDatabase(t *testing.T) *sql.DB {

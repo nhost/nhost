@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -32,6 +33,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/pkce"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
@@ -203,9 +205,9 @@ func (f *oidcRouteFixture) idToken(issuer, audience, nonce string) (string, erro
 }
 
 func (f *oidcRouteFixture) router(
-	t *testing.T, registry *oidc.OIDCRegistry, db *mock.MockDBClient,
+	t *testing.T, registry *providers.OIDCRegistry, db *mock.MockDBClient,
 	opts ...getControllerOptsFunc,
-) http.Handler {
+) (http.Handler, *controller.JWTGetter) {
 	t.Helper()
 
 	opts = append(opts, func(opts *getControllerOpts) {
@@ -216,6 +218,7 @@ func (f *oidcRouteFixture) router(
 		config := getConfig()
 		config.DisableAutoSignup = true
 		config.RequireEmailVerification = true
+		config.AccessTokenExpiresIn = int((2 * time.Minute).Seconds())
 		config.ServerURL = config.ServerURL.JoinPath("v1")
 
 		return config
@@ -244,19 +247,20 @@ func (f *oidcRouteFixture) router(
 		ErrorHandler: oapi.RecordError,
 	})
 
-	return router
+	return router, signer
 }
 
-func (f *oidcRouteFixture) registry(t *testing.T) *oidc.OIDCRegistry {
+func (f *oidcRouteFixture) registry(t *testing.T, disableSecondNonce bool) *providers.OIDCRegistry {
 	t.Helper()
 
 	serverURL := getConfig().ServerURL.JoinPath("v1")
-	raw := `[
-		{"slug":"authentik","issuer":"` + f.issuer(oidcPrimary) + `","clientId":"web-authentik","clientSecret":"fixture-secret","audiences":["native-authentik"]},
-		{"slug":"second","issuer":"` + f.issuer(oidcSecondary) + `","clientId":"web-second","clientSecret":"fixture-secret","audiences":["native-second"]}
-	]`
+	raw := `{
+		"authentik":{"issuer":"` + f.issuer(oidcPrimary) + `","clientId":"web-authentik","clientSecret":"fixture-secret","audiences":["native-authentik"]},
+		"second":{"issuer":"` + f.issuer(oidcSecondary) + `","clientId":"web-second","clientSecret":"fixture-secret","audiences":["native-second"],
+			"disableNonce":` + strconv.FormatBool(disableSecondNonce) + `}
+	}`
 
-	registry, err := oidc.NewOIDCRegistry(raw, serverURL, f.server.Client())
+	registry, err := providers.NewOIDCRegistry(raw, serverURL, f.server.Client())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -323,9 +327,9 @@ func TestOIDCBrowserRoutes(t *testing.T) {
 			t.Parallel()
 
 			fixture := newOIDCRouteFixture(t, true)
-			registry := fixture.registry(t)
+			registry := fixture.registry(t, false)
 			db := mock.NewMockDBClient(gomock.NewController(t))
-			handler := fixture.router(t, registry, db)
+			handler, _ := fixture.router(t, registry, db)
 
 			slug := oidcPrimary
 			if flow == "signup" {
@@ -356,7 +360,14 @@ func TestOIDCBrowserRoutes(t *testing.T) {
 
 			assertOIDCCallbackBindings(t, handler, slug, callback, cookie)
 
-			response := oidcRouteRequest(t, handler, http.MethodGet, callback, nil, cookie)
+			response := oidcRouteRequest(
+				t,
+				handler,
+				http.MethodGet,
+				callback+"&id_token=ignored",
+				nil,
+				cookie,
+			)
 			if response.Code != http.StatusFound ||
 				response.Header().Get("Referrer-Policy") != "no-referrer" ||
 				!strings.Contains(response.Header().Get("Set-Cookie"), "Max-Age=0") {
@@ -444,6 +455,7 @@ func expectOIDCBrowserIdentity(
 		db.EXPECT().InsertUserWithUserProvider(gomock.Any(), gomock.Cond(
 			func(params sql.InsertUserWithUserProviderParams) bool {
 				return params.ProviderID == provider.ID() && params.ProviderUserID == subject &&
+					params.Issuer == sql.Text(provider.Issuer()) &&
 					params.Email == sql.Text(oidcFixtureEmail) && params.EmailVerified
 			},
 		)).DoAndReturn(func(_ context.Context, params sql.InsertUserWithUserProviderParams) (uuid.UUID, error) {
@@ -470,8 +482,8 @@ func assertOIDCCallbackBindings(
 		wrongProvider,
 		nil,
 		cookie,
-	); resp.Code < 400 {
-		t.Fatal("unknown provider was accepted")
+	); resp.Code != http.StatusFound || !strings.Contains(resp.Header().Get("Location"), "error=disabled-endpoint") {
+		t.Fatal("expected the disabled-endpoint redirect for an unknown provider")
 	}
 
 	other := oidcPrimary
@@ -545,13 +557,223 @@ func startOIDCBrowser(
 	return auth.Header.Get("Location"), cookies[0]
 }
 
+func TestOIDCBrowserConnect(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	registry := fixture.registry(t, false)
+	db := mock.NewMockDBClient(gomock.NewController(t))
+	handler, signer := fixture.router(t, registry, db)
+
+	connectURL := "/v1/signin/oidc/authentik?connect="
+
+	userID := uuid.New()
+
+	accessToken, _, err := signer.GetToken(
+		t.Context(), userID, false, []string{"user"}, "user", nil, slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	authToken, err := signer.Validate(accessToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expiry, err := authToken.Claims.GetExpirationTime()
+	if err != nil || expiry == nil {
+		t.Fatalf("Auth session expiry missing: %v", err)
+	}
+
+	start := oidcRouteRequest(
+		t,
+		handler,
+		http.MethodGet,
+		connectURL+url.QueryEscape(accessToken),
+		nil,
+	)
+
+	authorizeURL, err := url.Parse(start.Header().Get("Location"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if authorizeURL.Query().Has("connect") {
+		t.Fatal("connect was forwarded to the identity provider")
+	}
+
+	state, err := signer.Validate(authorizeURL.Query().Get("state"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	claims, err := json.Marshal(state.Claims)
+	if err != nil || strings.Contains(string(claims), accessToken) {
+		t.Fatal("the authorize state must not expose the Auth access token")
+	}
+
+	stateExpiry, err := state.Claims.GetExpirationTime()
+	if err != nil || stateExpiry == nil || !stateExpiry.Equal(expiry.Time) {
+		t.Fatal("the link state must expire with the connect token")
+	}
+
+	callback, cookie := startOIDCBrowser(t, fixture, start)
+	provider := registry.Get(oidcPrimary)
+
+	db.EXPECT().GetUser(gomock.Any(), userID).Return(getSigninUser(userID), nil)
+	db.EXPECT().InsertUserProvider(gomock.Any(), sql.InsertUserProviderParams{
+		UserID: userID, ProviderID: provider.ID(), Issuer: sql.Text(provider.Issuer()),
+		ProviderUserID: provider.IdentityKey(oidcFixtureSubject),
+	}).Return(sql.AuthUserProvider{}, nil)
+
+	result := oidcRouteRequest(t, handler, http.MethodGet, callback, nil, cookie)
+	if result.Code != http.StatusFound ||
+		result.Header().Get("Location") != getConfig().ClientURL.String() {
+		t.Fatalf(
+			"expected link redirect without a session, got %d %s",
+			result.Code,
+			result.Body.String(),
+		)
+	}
+}
+
+func TestOIDCBrowserConnectRejectsNonSessionTokens(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	db := mock.NewMockDBClient(gomock.NewController(t))
+	handler, signer := fixture.router(t, fixture.registry(t, false), db)
+
+	connectURL := "/v1/signin/oidc/authentik?connect="
+
+	bad := oidcRouteRequest(t, handler, http.MethodGet, connectURL+"invalid", nil)
+	if bad.Code != http.StatusBadRequest {
+		t.Fatal("an invalid connect token started the authorization flow")
+	}
+
+	userID := uuid.New()
+
+	namespace, sessionClaims, err := signer.GraphQLClaims(
+		t.Context(), userID, false, []string{"user"}, "user", nil, slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tt := range []struct {
+		name   string
+		claims jwt.MapClaims
+	}{
+		{
+			name:   "OAuth2 ID token",
+			claims: jwt.MapClaims{"sub": userID.String(), "aud": "oauth-client"},
+		},
+		{
+			name: "OAuth2 access token with GraphQL claims",
+			claims: jwt.MapClaims{
+				"sub": userID.String(), "aud": "oauth-client", "scope": "graphql",
+				namespace: sessionClaims,
+			},
+		},
+		{
+			name:   "missing session claims",
+			claims: jwt.MapClaims{"sub": userID.String()},
+		},
+		{
+			name:   "session subject mismatch",
+			claims: jwt.MapClaims{"sub": uuid.NewString(), namespace: sessionClaims},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			token, err := signer.SignTokenWithClaims(tt.claims, time.Now().Add(time.Minute))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			res := oidcRouteRequest(
+				t, handler, http.MethodGet,
+				connectURL+url.QueryEscape(token), nil,
+			)
+			if res.Code != http.StatusBadRequest || res.Header().Get("Location") != "" ||
+				res.Header().Get("Set-Cookie") != "" {
+				t.Fatalf("expected rejection before starting a browser flow, got HTTP %d", res.Code)
+			}
+		})
+	}
+}
+
+func TestOIDCBrowserUnknownAndMalformedSlug(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	db := mock.NewMockDBClient(gomock.NewController(t))
+
+	handler, _ := fixture.router(t, fixture.registry(t, false), db)
+	query := "?codeChallenge=" + pkce.ComputeS256Challenge(oauth2.GenerateVerifier())
+
+	for _, flow := range []string{"signin", "signup"} {
+		prefix := "/v1/" + flow + "/oidc/"
+
+		unknown := oidcRouteRequest(t, handler, http.MethodGet, prefix+"unknown"+query, nil)
+		if unknown.Code != http.StatusFound || !strings.Contains(
+			unknown.Header().Get("Location"), "error=disabled-endpoint",
+		) {
+			t.Fatalf("expected disabled-endpoint redirect for unknown provider on %s", flow)
+		}
+
+		malformed := oidcRouteRequest(t, handler, http.MethodGet, prefix+"a-"+query, nil)
+		if malformed.Code != http.StatusBadRequest ||
+			!strings.HasPrefix(malformed.Header().Get("Content-Type"), "application/json") {
+			t.Fatalf("expected a JSON 400 for a malformed slug on %s", flow)
+		}
+	}
+}
+
+func TestOIDCBrowserSignupRequiresPKCE(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	db := mock.NewMockDBClient(gomock.NewController(t))
+
+	handler, _ := fixture.router(t, fixture.registry(t, false), db)
+	for _, tt := range []struct {
+		name      string
+		query     string
+		errorText string
+	}{
+		{name: "missing challenge", query: "", errorText: "codeChallenge"},
+		{name: "malformed challenge", query: "?codeChallenge=invalid", errorText: "schema-validation-error"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			res := oidcRouteRequest(
+				t,
+				handler,
+				http.MethodGet,
+				"/v1/signup/oidc/authentik"+tt.query,
+				nil,
+			)
+			if res.Code != http.StatusBadRequest ||
+				!strings.Contains(res.Body.String(), tt.errorText) ||
+				res.Header().Get("Location") != "" ||
+				res.Header().Get("Set-Cookie") != "" {
+				t.Fatalf("expected a PKCE validation error, got HTTP %d: %s", res.Code, res.Body)
+			}
+		})
+	}
+}
+
 func TestOIDCNativeRoutes(t *testing.T) {
 	t.Parallel()
 
 	fixture := newOIDCRouteFixture(t, true)
-	registry := fixture.registry(t)
+	registry := fixture.registry(t, true)
 	db := mock.NewMockDBClient(gomock.NewController(t))
-	handler := fixture.router(t, registry, db)
+	handler, _ := fixture.router(t, registry, db)
 	nonce := oauth2.GenerateVerifier()
 	hash := sha256.Sum256([]byte(nonce))
 	token := func(slug string) string {
@@ -569,9 +791,9 @@ func TestOIDCNativeRoutes(t *testing.T) {
 		return signed
 	}
 
-	body := api.OIDCIdTokenRequest{IdToken: token(oidcPrimary), Nonce: nonce, Options: nil}
+	body := api.SignInOidcIdTokenRequest{IdToken: token(oidcPrimary), Nonce: &nonce, Options: nil}
 
-	post := func(path string, request api.OIDCIdTokenRequest) *httptest.ResponseRecorder {
+	post := func(path string, request api.SignInOidcIdTokenRequest) *httptest.ResponseRecorder {
 		return oidcRouteRequest(t, handler, http.MethodPost, path, request)
 	}
 	if response := post(
@@ -583,12 +805,22 @@ func TestOIDCNativeRoutes(t *testing.T) {
 
 	wrongNonce := body
 
-	wrongNonce.Nonce = oauth2.GenerateVerifier()
+	wrongNonce.Nonce = new(oauth2.GenerateVerifier())
 	if response := post(
 		"/v1/signin/oidc/authentik/idtoken",
 		wrongNonce,
 	); response.Code != http.StatusBadRequest {
 		t.Fatalf("incorrect nonce accepted: %d", response.Code)
+	}
+
+	missingNonce := body
+
+	missingNonce.Nonce = nil
+	if response := post(
+		"/v1/signin/oidc/authentik/idtoken",
+		missingNonce,
+	); response.Code != http.StatusBadRequest {
+		t.Fatalf("required nonce was omitted: %d", response.Code)
 	}
 
 	userID := uuid.New()
@@ -606,12 +838,14 @@ func TestOIDCNativeRoutes(t *testing.T) {
 		Subject:    subject,
 	}
 	body.IdToken = token(oidcSecondary)
+	body.Nonce = nil
 
 	db.EXPECT().GetUserByOIDCIdentity(gomock.Any(), identity).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 	matchSignup := gomock.Cond(
 		func(params sql.InsertUserWithUserProviderAndRefreshTokenParams) bool {
 			return params.ProviderID == "oidc:second" && params.ProviderUserID == subject &&
+				params.Issuer == identity.Issuer &&
 				params.Email == sql.Text(oidcFixtureEmail) && params.EmailVerified
 		},
 	)
@@ -646,10 +880,10 @@ func TestOIDCBrowserSignupRequiresEmailVerification(t *testing.T) {
 	t.Parallel()
 
 	fixture := newOIDCRouteFixture(t, false)
-	registry := fixture.registry(t)
+	registry := fixture.registry(t, false)
 	db := mock.NewMockDBClient(gomock.NewController(t))
 	emailer := mock.NewMockEmailer(gomock.NewController(t))
-	handler := fixture.router(
+	handler, _ := fixture.router(
 		t,
 		registry,
 		db,
@@ -667,7 +901,7 @@ func TestOIDCBrowserSignupRequiresEmailVerification(t *testing.T) {
 	db.EXPECT().InsertUserWithUserProvider(gomock.Any(), gomock.Cond(
 		func(params sql.InsertUserWithUserProviderParams) bool {
 			return params.Email == sql.Text(oidcFixtureEmail) && !params.EmailVerified &&
-				params.Ticket.Valid
+				params.Ticket.Valid && params.Issuer == sql.Text(fixture.issuer(oidcPrimary))
 		},
 	)).Return(uuid.New(), nil)
 

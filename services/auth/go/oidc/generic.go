@@ -24,11 +24,17 @@ const (
 var (
 	errTokenExchange = errors.New("OIDC token exchange failed")
 	errIDToken       = errors.New("invalid OIDC ID token")
+
+	//nolint:gochecknoglobals // Fixed, asymmetric ID-token signing policy.
+	supportedSigningAlgorithms = []string{
+		"RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512", "EdDSA",
+	}
 )
 
 // CustomProvider handles the protocol for a single statically configured issuer.
 type CustomProvider struct {
-	config    providerConfig
+	slug      string
+	config    CustomProviderConfig
 	callback  *url.URL
 	client    *http.Client
 	discovery discoveryCache
@@ -57,9 +63,12 @@ func (p *CustomProvider) AuthorizationURL(
 		return "", err
 	}
 
-	return config.AuthCodeURL(
-		state, oauth2.S256ChallengeOption(verifier), oauth2.SetAuthURLParam("nonce", nonce),
-	), nil
+	options := []oauth2.AuthCodeOption{oauth2.S256ChallengeOption(verifier)}
+	if !p.config.DisableNonce {
+		options = append(options, oauth2.SetAuthURLParam("nonce", hashNonce(nonce)))
+	}
+
+	return config.AuthCodeURL(state, options...), nil
 }
 
 func (p *CustomProvider) oauthConfig(doc *discoveryDocument) (*oauth2.Config, error) {
@@ -163,7 +172,7 @@ func (p *CustomProvider) userInfoProfile(
 // audience. The application supplies the original nonce, whose SHA-256 hex
 // digest must be present in the token.
 func (p *CustomProvider) VerifyNative(ctx context.Context, raw, nonce string) (Profile, error) {
-	if nonce == "" || len(nonce) > maxNonceLength || len(raw) == 0 || len(raw) > maxIDTokenLength {
+	if !p.validTokenInput(raw, nonce) {
 		return Profile{}, errIDToken
 	}
 
@@ -172,9 +181,18 @@ func (p *CustomProvider) VerifyNative(ctx context.Context, raw, nonce string) (P
 		return Profile{}, err
 	}
 
+	return p.verify(ctx, doc, raw, nonce, p.config.Audiences)
+}
+
+func hashNonce(nonce string) string {
 	hash := sha256.Sum256([]byte(nonce))
 
-	return p.verify(ctx, doc, raw, hex.EncodeToString(hash[:]), p.config.Audiences)
+	return hex.EncodeToString(hash[:])
+}
+
+func (p *CustomProvider) validTokenInput(raw, nonce string) bool {
+	return len(raw) > 0 && len(raw) <= maxIDTokenLength &&
+		(p.config.DisableNonce || (nonce != "" && len(nonce) <= maxNonceLength))
 }
 
 type profileClaims struct {
@@ -203,15 +221,25 @@ type idTokenClaims struct {
 func (p *CustomProvider) verify(
 	ctx context.Context, doc *discoveryDocument, raw, nonce string, audiences []string,
 ) (Profile, error) {
-	if nonce == "" || len(raw) == 0 || len(raw) > maxIDTokenLength {
+	if !p.validTokenInput(raw, nonce) {
 		return Profile{}, errIDToken
+	}
+
+	var expectedNonce string
+	if !p.config.DisableNonce {
+		expectedNonce = hashNonce(nonce)
 	}
 
 	var claims idTokenClaims
 
 	keyFunc := func(token *jwt.Token) (any, error) {
 		// Avoid refreshing keys for another issuer or nonce.
-		if err := validateIDTokenClaims(&claims, p.config.Issuer, nonce, audiences); err != nil {
+		if expectedNonce != "" &&
+			subtle.ConstantTimeCompare([]byte(claims.Nonce), []byte(expectedNonce)) != 1 {
+			return nil, ErrNonceMismatch
+		}
+
+		if err := validateIDTokenClaims(&claims, p.config.Issuer, audiences); err != nil {
 			return nil, err
 		}
 
@@ -220,7 +248,7 @@ func (p *CustomProvider) verify(
 
 	_, err := jwt.ParseWithClaims(
 		raw, &claims, keyFunc,
-		jwt.WithValidMethods(doc.SigningAlgorithms),
+		jwt.WithValidMethods(supportedSigningAlgorithms),
 		jwt.WithIssuer(p.config.Issuer),
 		jwt.WithAudience(audiences...),
 		jwt.WithIssuedAt(),
@@ -240,16 +268,12 @@ func (p *CustomProvider) verify(
 	}, nil
 }
 
-func validateIDTokenClaims(claims *idTokenClaims, issuer, nonce string, audiences []string) error {
+func validateIDTokenClaims(claims *idTokenClaims, issuer string, audiences []string) error {
 	if claims.Issuer != issuer || claims.Subject == "" || len(claims.Subject) > maxSubjectLength ||
 		len(claims.Audience) == 0 ||
 		claims.IssuedAt == nil || claims.ExpiresAt == nil ||
 		!claims.ExpiresAt.After(claims.IssuedAt.Time) {
 		return errIDToken
-	}
-
-	if subtle.ConstantTimeCompare([]byte(claims.Nonce), []byte(nonce)) != 1 {
-		return ErrNonceMismatch
 	}
 
 	for _, audience := range claims.Audience {

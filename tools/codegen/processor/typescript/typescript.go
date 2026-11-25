@@ -14,6 +14,8 @@ import (
 // nullable function types therefore need parentheses in the extension value.
 const extCustomType = "x-ts-type"
 
+const extRequiredURLParams = "x-ts-required-url-params"
+
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
 
@@ -31,9 +33,21 @@ func quotePropertyIfNeeded(name string) string {
 	return name
 }
 
+func requiresURLParams(method *processor.Method) bool {
+	if method.Operation.Extensions == nil {
+		return false
+	}
+
+	value, ok := method.Operation.Extensions.Get(extRequiredURLParams)
+
+	return ok && value != nil && value.Tag == "!!bool" && value.Value == "true" &&
+		method.IsRedirect()
+}
+
 func (t *Typescript) GetFuncMap() map[string]any {
 	return map[string]any{
 		"quotePropertyIfNeeded": quotePropertyIfNeeded,
+		"requiresURLParams":     requiresURLParams,
 	}
 }
 

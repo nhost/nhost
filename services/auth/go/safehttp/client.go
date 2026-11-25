@@ -36,6 +36,7 @@ type Config struct {
 	MaxRedirects         int
 	MaxResponseBodyBytes int64
 	PublicIPsOnly        bool
+	AllowPrivateIPs      bool // Accept RFC 1918 and IPv6 unique-local addresses.
 }
 
 // New returns an HTTPS client that checks all resolved addresses and dials a
@@ -54,7 +55,10 @@ func New(cfg Config) *http.Client {
 	dialer := &net.Dialer{Timeout: timeout} //nolint:exhaustruct
 
 	blocked := isBlockedIP
-	if cfg.PublicIPsOnly {
+	switch {
+	case cfg.AllowPrivateIPs:
+		blocked = isOutsidePublicOrPrivateIP
+	case cfg.PublicIPsOnly:
 		blocked = isNonPublicIP
 	}
 
@@ -162,6 +166,18 @@ var nonPublicPrefixes = []netip.Prefix{ //nolint:gochecknoglobals // Fixed addre
 
 //nolint:gochecknoglobals // Fixed address policy.
 var ipv6GlobalUnicast = netip.MustParsePrefix("2000::/3")
+
+//nolint:gochecknoglobals // Fixed address policy.
+var ipv6InstanceMetadata = netip.MustParseAddr("fd00:ec2::254")
+
+func isOutsidePublicOrPrivateIP(ip net.IP) bool {
+	addr, ok := netip.AddrFromSlice(ip)
+	if ok && addr.Unmap().IsPrivate() && addr != ipv6InstanceMetadata {
+		return false
+	}
+
+	return isNonPublicIP(ip)
+}
 
 func isNonPublicIP(ip net.IP) bool {
 	addr, ok := netip.AddrFromSlice(ip)

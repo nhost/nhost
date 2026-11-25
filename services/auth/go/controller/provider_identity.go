@@ -7,16 +7,46 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
+type providerIdentity struct {
+	id     string
+	issuer pgtype.Text
+}
+
+func builtinIdentity(id string) providerIdentity {
+	return providerIdentity{id: id, issuer: pgtype.Text{String: "", Valid: false}}
+}
+
+func customIdentity(provider *oidc.CustomProvider) providerIdentity {
+	return providerIdentity{id: provider.ID(), issuer: sql.Text(provider.Issuer())}
+}
+
+func (wf *Workflows) connectProvider(
+	ctx context.Context,
+	userID uuid.UUID,
+	provider providerIdentity,
+	subject string,
+	logger *slog.Logger,
+) *APIError {
+	if _, apiErr := wf.GetUser(ctx, userID, logger); apiErr != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(apiErr))
+
+		return apiErr
+	}
+
+	return wf.insertUserProvider(ctx, userID, provider, subject, logger)
+}
+
 func (wf *Workflows) resolveOIDCIdentity(
-	ctx context.Context, provider *oidc.CustomProvider, subject, email string, logger *slog.Logger,
+	ctx context.Context, provider providerIdentity, subject, email string, logger *slog.Logger,
 ) (sql.AuthUser, bool, bool, *APIError) {
 	user, err := wf.db.GetUserByOIDCIdentity(ctx, sql.GetUserByOIDCIdentityParams{
-		ProviderID: provider.ID(),
-		Issuer:     sql.Text(provider.Issuer()),
+		ProviderID: provider.id,
+		Issuer:     provider.issuer,
 		Subject:    subject,
 	})
 	switch {

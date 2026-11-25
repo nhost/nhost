@@ -28,7 +28,7 @@ func (*migrationDatabaseStub) Conn(context.Context) (*sql.Conn, error) {
 func TestPostgresMigrationBundle(t *testing.T) {
 	t.Parallel()
 
-	const wantTarget = 28
+	const wantTarget = 29
 
 	tests := []struct {
 		name string

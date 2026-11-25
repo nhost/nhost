@@ -17,19 +17,22 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-func (ctrl *Controller) postSigninIdtokenCheckUserExists(
-	ctx context.Context, email, providerID, providerUserID string, logger *slog.Logger,
+func (ctrl *Controller) lookupProviderUser(
+	ctx context.Context,
+	email string,
+	provider providerIdentity,
+	providerUserID string,
+	logger *slog.Logger,
 ) (sql.AuthUser, bool, bool, *APIError) {
-	if slug, custom := strings.CutPrefix(providerID, oidc.ProviderIDPrefix); custom {
-		provider := ctrl.oidcProviders.Get(slug)
-		if provider == nil {
+	if strings.HasPrefix(provider.id, oidc.ProviderIDPrefix) {
+		if !provider.issuer.Valid {
 			return sql.AuthUser{}, false, false, ErrDisabledEndpoint
 		}
 
 		return ctrl.wf.resolveOIDCIdentity(ctx, provider, providerUserID, email, logger)
 	}
 
-	user, apiError := ctrl.wf.GetUserByProviderUserID(ctx, providerID, providerUserID, logger)
+	user, apiError := ctrl.wf.GetUserByProviderUserID(ctx, provider.id, providerUserID, logger)
 	switch {
 	case errors.Is(apiError, ErrUserProviderNotFound):
 	case apiError != nil:
@@ -74,7 +77,7 @@ func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive
 	}
 
 	session, apiErr := ctrl.providerSignInFlow(
-		ctx, profile, string(req.Body.Provider), req.Body.Options, logger,
+		ctx, profile, builtinIdentity(string(req.Body.Provider)), req.Body.Options, logger,
 	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
@@ -88,11 +91,11 @@ func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive
 func (ctrl *Controller) providerSignInFlow(
 	ctx context.Context,
 	profile oidc.Profile,
-	provider string,
+	provider providerIdentity,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
-	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
+	user, userFound, providerFound, apiError := ctrl.lookupProviderUser(
 		ctx, profile.Email, provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
@@ -101,7 +104,7 @@ func (ctrl *Controller) providerSignInFlow(
 
 	if userFound {
 		return ctrl.providerFlowSignIn(
-			ctx, user, providerFound, provider, profile, logger,
+			ctx, user, providerFound, provider.id, profile, logger,
 		)
 	}
 
@@ -150,11 +153,11 @@ func (ctrl *Controller) providerFlowSignIn(
 func (ctrl *Controller) providerResolveUser(
 	ctx context.Context,
 	profile oidc.Profile,
-	provider string,
+	provider providerIdentity,
 	state *providers.State,
 	logger *slog.Logger,
 ) (uuid.UUID, *APIError) {
-	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
+	user, userFound, providerFound, apiError := ctrl.lookupProviderUser(
 		ctx, profile.Email, provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
@@ -172,7 +175,7 @@ func (ctrl *Controller) providerResolveUser(
 
 		if !providerFound {
 			if apiErr := ctrl.wf.linkProviderByEmail(
-				ctx, user.ID, provider, profile, logger,
+				ctx, user.ID, provider.id, profile, logger,
 			); apiErr != nil {
 				return uuid.Nil, apiErr
 			}
@@ -187,7 +190,7 @@ func (ctrl *Controller) providerResolveUser(
 	}
 
 	var confirmationChallenge string
-	if strings.HasPrefix(provider, oidc.ProviderIDPrefix) {
+	if provider.issuer.Valid {
 		confirmationChallenge = deptr(state.CodeChallenge)
 	}
 
@@ -201,7 +204,7 @@ func (ctrl *Controller) providerResolveUser(
 // verification before they can sign in.
 func (ctrl *Controller) providerSignUpResolveOnly( //nolint:funlen
 	ctx context.Context,
-	provider string,
+	provider providerIdentity,
 	profile oidc.Profile,
 	options *api.SignUpOptions,
 	confirmationChallenge string,
@@ -268,8 +271,9 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:funlen
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,
 			Roles:           deptr(options.AllowedRoles),
-			ProviderID:      provider,
+			ProviderID:      provider.id,
 			ProviderUserID:  profile.ProviderUserID,
+			Issuer:          provider.issuer,
 		},
 	); err != nil {
 		return uuid.Nil, sqlErrIsDuplicatedEmail(ctx, err, logger)

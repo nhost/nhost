@@ -404,7 +404,9 @@ CREATE TABLE auth.user_providers (
     access_token text NOT NULL,
     refresh_token text,
     provider_id text NOT NULL,
-    provider_user_id text NOT NULL
+    provider_user_id text NOT NULL,
+    issuer text,
+    CONSTRAINT user_providers_oidc_issuer_check CHECK (((provider_id ~~ 'oidc:%'::text) = (issuer IS NOT NULL)))
 );
 
 
@@ -578,6 +580,14 @@ ALTER TABLE ONLY auth.pkce_authorization_codes
 
 ALTER TABLE ONLY auth.provider_requests
     ADD CONSTRAINT provider_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: providers providers_id_oidc_issuer_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.providers
+    ADD CONSTRAINT providers_id_oidc_issuer_key UNIQUE (id, oidc_issuer);
 
 
 --
@@ -988,6 +998,14 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 ALTER TABLE ONLY auth.schema_migration_catalog
     ADD CONSTRAINT schema_migration_catalog_previous_id_fkey FOREIGN KEY (previous_id) REFERENCES auth.schema_migration_catalog(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: user_providers user_providers_oidc_issuer_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.user_providers
+    ADD CONSTRAINT user_providers_oidc_issuer_fkey FOREIGN KEY (provider_id, issuer) REFERENCES auth.providers(id, oidc_issuer);
 
 
 --

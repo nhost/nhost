@@ -208,6 +208,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"refresh_token":    "refreshToken",
 						"provider_id":      "providerId",
 						"provider_user_id": "providerUserId",
+						"issuer":           "issuer",
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{

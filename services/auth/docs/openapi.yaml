@@ -494,8 +494,15 @@ paths:
       tags:
         - authentication
       parameters:
-        - $ref: "#/components/parameters/OIDCProvider"
-        - $ref: "#/components/parameters/OIDCCodeChallenge"
+        - $ref: "#/components/parameters/OidcProvider"
+        - $ref: "#/components/parameters/OIDCSignInCodeChallenge"
+        - name: connect
+          in: query
+          description: Auth access token for the account to link to this provider
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 8192
         - $ref: "#/components/parameters/OIDCRedirectTo"
         - $ref: "#/components/parameters/OIDCState"
         - name: allowedRoles
@@ -547,7 +554,7 @@ paths:
         - authentication
         - excludeme
       parameters:
-        - $ref: "#/components/parameters/OIDCProvider"
+        - $ref: "#/components/parameters/OidcProvider"
         - name: state
           in: query
           required: true
@@ -562,18 +569,24 @@ paths:
           schema:
             type: string
             maxLength: 4096
-        - name: iss
-          in: query
-          description: Issuer in the authorization response
-          schema:
-            type: string
-            maxLength: 2048
         - name: error
           in: query
           description: Error returned by the identity provider
           schema:
             type: string
             maxLength: 256
+        - name: error_description
+          in: query
+          description: Error detail returned by the identity provider
+          schema:
+            type: string
+            maxLength: 1024
+        - name: error_uri
+          in: query
+          description: Error information URL returned by the identity provider
+          schema:
+            type: string
+            maxLength: 2048
       responses:
         "302":
           description: Redirect to the application with an authorization code or an authentication error
@@ -600,14 +613,14 @@ paths:
       tags:
         - authentication
       parameters:
-        - $ref: "#/components/parameters/OIDCProvider"
+        - $ref: "#/components/parameters/OidcProvider"
       requestBody:
         required: true
         description: The signed ID token and original nonce
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OIDCIdTokenRequest"
+              $ref: "#/components/schemas/SignInOidcIdTokenRequest"
       responses:
         "200":
           description: Authentication processed
@@ -1432,11 +1445,17 @@ paths:
       summary: Sign Up with a custom OIDC provider
       description: Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
       operationId: signUpOidc
+      x-ts-required-url-params: true
       tags:
         - authentication
       parameters:
-        - $ref: "#/components/parameters/OIDCProvider"
-        - $ref: "#/components/parameters/OIDCCodeChallenge"
+        - $ref: "#/components/parameters/OidcProvider"
+        - name: codeChallenge
+          in: query
+          required: true
+          description: Base64url-encoded S256 challenge for the Auth authorization code.
+          schema:
+            $ref: "#/components/schemas/OIDCCodeChallenge"
         - $ref: "#/components/parameters/OIDCRedirectTo"
         - $ref: "#/components/parameters/OIDCState"
         - name: allowedRoles
@@ -1487,14 +1506,14 @@ paths:
       tags:
         - authentication
       parameters:
-        - $ref: "#/components/parameters/OIDCProvider"
+        - $ref: "#/components/parameters/OidcProvider"
       requestBody:
         required: true
         description: The signed ID token and original nonce
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OIDCIdTokenRequest"
+              $ref: "#/components/schemas/SignUpOidcIdTokenRequest"
       responses:
         "200":
           description: Authentication processed
@@ -3285,7 +3304,12 @@ components:
         mfa:
           $ref: "#/components/schemas/MFAChallengePayload"
 
-    OIDCIdTokenRequest:
+    OIDCCodeChallenge:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{43}$'
+      example: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+
+    SignInOidcIdTokenRequest:
       type: object
       additionalProperties: false
       properties:
@@ -3296,14 +3320,32 @@ components:
           maxLength: 16384
         nonce:
           type: string
-          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider
+          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
           minLength: 1
           maxLength: 256
         options:
           $ref: "#/components/schemas/SignUpOptions"
       required:
         - idToken
-        - nonce
+
+    SignUpOidcIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        idToken:
+          type: string
+          description: Signed ID token issued by the configured OIDC provider
+          minLength: 1
+          maxLength: 16384
+        nonce:
+          type: string
+          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+          minLength: 1
+          maxLength: 256
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - idToken
 
     SignInIdTokenRequest:
       type: object
@@ -4351,25 +4393,23 @@ components:
         format: uri
         example: https://my-app.com/catch-redirection
 
-    OIDCProvider:
+    OidcProvider:
       in: path
       name: provider
       required: true
       description: Name of a custom OIDC provider configured in Auth
       schema:
         type: string
-        pattern: '^[a-z0-9][a-z0-9-]{0,62}$'
+        pattern: '^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$'
         example: authentik
 
-    OIDCCodeChallenge:
+    OIDCSignInCodeChallenge:
       in: query
       name: codeChallenge
-      required: true
-      description: Base64url-encoded S256 challenge for the Auth authorization code
+      required: false
+      description: Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
       schema:
-        type: string
-        pattern: '^[A-Za-z0-9_-]{43}$'
-        example: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+        $ref: "#/components/schemas/OIDCCodeChallenge"
 
     OIDCRedirectTo:
       in: query

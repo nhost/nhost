@@ -169,6 +169,7 @@ type AuthUserProvider struct {
 	RefreshToken   pgtype.Text
 	ProviderID     string
 	ProviderUserID string
+	Issuer         pgtype.Text
 }
 
 // Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly.

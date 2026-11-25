@@ -177,7 +177,7 @@ type Controller struct {
 	config           Config
 	Webauthn         *Webauthn
 	Providers        providers.Map
-	oidcProviders    *oidc.OIDCRegistry
+	oidcProviders    *providers.OIDCRegistry
 	version          string
 	jwtGetter        *JWTGetter
 	oauth2           *oauth2provider.Provider
@@ -191,7 +191,7 @@ func New(
 	sms SMSer,
 	hibp HIBPClient,
 	providers providers.Map,
-	oidcProviders *oidc.OIDCRegistry,
+	oidcProviders *providers.OIDCRegistry,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
 	totp *Totp,
 	encrypter Encrypter,

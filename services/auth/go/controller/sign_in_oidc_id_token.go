@@ -22,7 +22,9 @@ func (ctrl *Controller) SignInOidcIdToken( //nolint:ireturn,revive
 func (ctrl *Controller) SignUpOidcIdToken( //nolint:ireturn,revive
 	ctx context.Context, req api.SignUpOidcIdTokenRequestObject,
 ) (api.SignUpOidcIdTokenResponseObject, error) {
-	session, apiErr := ctrl.oidcIDTokenSession(ctx, req.Provider, req.Body, true)
+	session, apiErr := ctrl.oidcIDTokenSession(
+		ctx, req.Provider, (*api.SignInOidcIdTokenRequest)(req.Body), true,
+	)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -31,7 +33,7 @@ func (ctrl *Controller) SignUpOidcIdToken( //nolint:ireturn,revive
 }
 
 func (ctrl *Controller) oidcIDTokenSession(
-	ctx context.Context, slug string, body *api.OIDCIdTokenRequest, signup bool,
+	ctx context.Context, slug string, body *api.SignInOidcIdTokenRequest, signup bool,
 ) (*api.Session, *APIError) {
 	ctx = oidcRequestContext(ctx)
 	logger := oapimw.LoggerFromContext(ctx).With(slog.String("provider", slug))
@@ -49,7 +51,7 @@ func (ctrl *Controller) oidcIDTokenSession(
 		return nil, ErrInvalidRequest
 	}
 
-	profile, err := p.VerifyNative(ctx, body.IdToken, body.Nonce)
+	profile, err := p.VerifyNative(ctx, body.IdToken, deptr(body.Nonce))
 	if err != nil {
 		logger.WarnContext(ctx, "failed to verify native OIDC ID token")
 		return nil, ErrInvalidRequest
@@ -58,8 +60,8 @@ func (ctrl *Controller) oidcIDTokenSession(
 	profile.ProviderUserID = p.IdentityKey(profile.ProviderUserID)
 
 	if signup {
-		return ctrl.providerSignUpFlow(ctx, profile, p.ID(), body.Options, logger)
+		return ctrl.providerSignUpFlow(ctx, profile, customIdentity(p), body.Options, logger)
 	}
 
-	return ctrl.providerSignInFlow(ctx, profile, p.ID(), body.Options, logger)
+	return ctrl.providerSignInFlow(ctx, profile, customIdentity(p), body.Options, logger)
 }

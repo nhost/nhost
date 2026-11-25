@@ -6,13 +6,16 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
+	"github.com/pb33f/libopenapi/orderedmap"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 //nolint:gochecknoglobals
@@ -112,4 +115,38 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 				"rendered output does not match expected output for %s", tc.name)
 		})
 	}
+}
+
+func TestRequiredURLParams(t *testing.T) {
+	t.Parallel()
+
+	doc, err := getModel("testdata/methods_ref.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	path, ok := doc.Model.Paths.PathItems.Get("/verify")
+	if !ok || path.Get == nil {
+		t.Fatal("missing redirect operation")
+	}
+
+	var required yaml.Node
+	if err := required.Encode(true); err != nil {
+		t.Fatal(err)
+	}
+
+	path.Get.Extensions = orderedmap.New[string, *yaml.Node]()
+	path.Get.Extensions.Set("x-ts-required-url-params", &required)
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &typescript.Typescript{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err := ir.Render(&buf); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, 2, strings.Count(buf.String(), "params: VerifyTicketParams,"))
 }
