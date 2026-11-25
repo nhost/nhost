@@ -4442,6 +4442,7 @@ components:
       description: Display name for a new user
       schema:
         type: string
+        pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
         maxLength: 32
 
     OIDCLocale:

@@ -92,6 +92,7 @@ components:
 - Add proper descriptions and examples
 - Define all possible response codes
 - Use existing error response schemas
+- The display-name pattern includes Unicode symbols (`\p{S}`), including `<` and `>`. Use forbidden punctuation such as `/`, `&`, or `:` in rejection tests; `<img>` alone satisfies the existing pattern. This character policy is not HTML sanitization.
 
 ### 2. SQL Queries
 

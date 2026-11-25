@@ -732,6 +732,49 @@ func TestOIDCBrowserUnknownAndMalformedSlug(t *testing.T) {
 	}
 }
 
+func TestOIDCBrowserDisplayNameValidation(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	db := mock.NewMockDBClient(gomock.NewController(t))
+	handler, _ := fixture.router(t, fixture.registry(t, false), db)
+	challenge := pkce.ComputeS256Challenge(oauth2.GenerateVerifier())
+
+	for _, flow := range []string{"signin", "signup"} {
+		for _, tt := range []struct {
+			name        string
+			displayName string
+			wantStatus  int
+		}{
+			{name: "HTML with forbidden punctuation", displayName: "<img src=x/>", wantStatus: http.StatusBadRequest},
+			{name: "forbidden punctuation", displayName: "a:b/c&d", wantStatus: http.StatusBadRequest},
+			{name: "too long", displayName: strings.Repeat("a", 33), wantStatus: http.StatusBadRequest},
+			{name: "Unicode and allowed punctuation", displayName: "Élodie \u674e 2 ☀,.'-", wantStatus: http.StatusFound},
+			{name: "maximum length", displayName: strings.Repeat("a", 32), wantStatus: http.StatusFound},
+		} {
+			t.Run(flow+"/"+tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				query := url.Values{"codeChallenge": {challenge}, "displayName": {tt.displayName}}
+
+				res := oidcRouteRequest(
+					t, handler, http.MethodGet,
+					"/v1/"+flow+"/oidc/authentik?"+query.Encode(), nil,
+				)
+				if res.Code != tt.wantStatus {
+					t.Fatalf("expected HTTP %d, got HTTP %d: %s", tt.wantStatus, res.Code, res.Body)
+				}
+
+				if tt.wantStatus == http.StatusBadRequest &&
+					(!strings.Contains(res.Body.String(), "schema-validation-error") ||
+						res.Header().Get("Location") != "" || res.Header().Get("Set-Cookie") != "") {
+					t.Fatalf("expected rejection before starting a browser flow: %s", res.Body)
+				}
+			})
+		}
+	}
+}
+
 func TestOIDCBrowserSignupRequiresPKCE(t *testing.T) {
 	t.Parallel()
 
