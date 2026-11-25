@@ -555,8 +555,8 @@ describe('new ticket attachment drafts', () => {
     expect(zone).toHaveTextContent('Drop to attach');
     expect(zone).toHaveClass('ring-2', 'border-primary');
     fireEvent.drop(zone, { dataTransfer: transfer });
-    await screen.findByRole('button', { name: 'Remove first.txt' });
     await uploaded();
+    await screen.findByRole('button', { name: 'Remove first.txt' });
     expect(
       fireEvent.drop(zone, {
         dataTransfer: {
@@ -565,8 +565,8 @@ describe('new ticket attachment drafts', () => {
         },
       }),
     ).toBe(false);
-    await screen.findByRole('button', { name: 'Remove second.txt' });
     await uploaded();
+    await screen.findByRole('button', { name: 'Remove second.txt' });
     expect(storageRequests.map((request) => request.name)).toEqual([
       'first.txt',
       'second.txt',

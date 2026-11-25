@@ -11,10 +11,10 @@ import {
 } from '@/generated/graphql';
 
 export default function SupportHub() {
-  const { user, queryKey, request } = useSupportSession();
+  const { user, isAgent, queryKey, request } = useSupportSession();
   const summary = useQuery({
     queryKey: [...queryKey, 'hub-summary'],
-    enabled: !!user,
+    enabled: !!user && !isAgent,
     cacheTime: 0,
     retry: false,
     refetchInterval: 30000,
@@ -55,7 +55,11 @@ export default function SupportHub() {
     },
   });
   let ticketFooter = <Skeleton className="h-4 w-28" />;
-  if (summary.isError) {
+  if (isAgent) {
+    ticketFooter = (
+      <span className="text-muted-foreground text-xs">Open ticket queue</span>
+    );
+  } else if (summary.isError) {
     ticketFooter = (
       <span className="text-muted-foreground text-xs">Open your tickets</span>
     );
@@ -108,7 +112,7 @@ export default function SupportHub() {
         <SupportHelpCard
           icon={<MessageSquare aria-hidden="true" className="size-6" />}
           href={
-            summary.isSuccess && !summary.data.hasTickets
+            !isAgent && summary.isSuccess && !summary.data.hasTickets
               ? '/support/ticket'
               : '/support/tickets'
           }

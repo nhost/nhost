@@ -10,9 +10,9 @@ import CodeMirror, {
 } from '@uiw/react-codemirror';
 import { Paperclip } from 'lucide-react';
 import {
-  forwardRef,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
   useCallback,
   useImperativeHandle,
   useLayoutEffect,
@@ -54,6 +54,7 @@ interface SupportAttachmentEditorProps
     HTMLAttributes<HTMLDivElement>,
     'id' | 'aria-describedby' | 'aria-invalid'
   > {
+  ref?: Ref<SupportEditorHandle>;
   value: string;
   onChange: (value: string) => void;
   onBlur: VoidFunction;
@@ -95,32 +96,27 @@ const basicSetup = {
   drawSelection: false,
 };
 
-const SupportAttachmentEditor = forwardRef<
-  SupportEditorHandle,
-  SupportAttachmentEditorProps
->(function AttachmentEditorInput(
-  {
-    value,
-    onChange,
-    onBlur,
-    label,
-    disabled = false,
-    dragging,
-    scope,
-    uploadPrefix,
-    onFormat,
-    onFilesDrop,
-    filesDisabled,
-    organizationRequired,
-    footer,
-    onDiscardAttachment,
-    onDraggingChange,
-    id,
-    'aria-describedby': describedBy,
-    'aria-invalid': invalid,
-  },
+function SupportAttachmentEditor({
   ref,
-) {
+  value,
+  onChange,
+  onBlur,
+  label,
+  disabled = false,
+  dragging,
+  scope,
+  uploadPrefix,
+  onFormat,
+  onFilesDrop,
+  filesDisabled,
+  organizationRequired,
+  footer,
+  onDiscardAttachment,
+  onDraggingChange,
+  id,
+  'aria-describedby': describedBy,
+  'aria-invalid': invalid,
+}: SupportAttachmentEditorProps) {
   const editor = useRef<ReactCodeMirrorRef>(null);
   const hosts = useRef(new Map<HTMLElement, WidgetHost>());
   const dropCaret = useRef<HTMLSpanElement>(null);
@@ -552,6 +548,6 @@ const SupportAttachmentEditor = forwardRef<
       )}
     </fieldset>
   );
-});
+}
 
 export default SupportAttachmentEditor;
