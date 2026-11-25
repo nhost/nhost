@@ -56,7 +56,8 @@
             "allow": ["error", "warn", "info"]
           }
         },
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noReactForwardRef": "error"
       },
       "correctness": {
         "noInnerDeclarations": "error",

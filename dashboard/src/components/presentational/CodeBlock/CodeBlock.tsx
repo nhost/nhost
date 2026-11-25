@@ -1,8 +1,4 @@
-import {
-  type ComponentPropsWithoutRef,
-  forwardRef,
-  type ReactElement,
-} from 'react';
+import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react';
 import { getNodeText } from '@/components/presentational/CodeBlock/getNodeText';
 import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { cn } from '@/lib/utils';
@@ -42,38 +38,40 @@ function CodeTabBar({
   );
 }
 
-export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
-  (
-    { filename, children, className, copyToClipboardToastTitle, ...props },
-    ref,
-  ) => (
-    <div
-      className={cn(
-        'not-prose relative mt-5 w-full min-w-0 max-w-full rounded-md bg-muted px-2 pb-2',
-        filename && 'pt-2',
-        className,
-      )}
-      ref={ref}
-      {...props}
-    >
-      {filename ? (
-        <CodeTabBar filename={filename}>
-          <CopyToClipboardButton
-            textToCopy={getNodeText(children)}
-            title={copyToClipboardToastTitle}
-            className="relative"
-          />
-        </CodeTabBar>
-      ) : (
+export const CodeBlock = ({
+  filename,
+  children,
+  className,
+  copyToClipboardToastTitle,
+  ref,
+  ...props
+}: CodeBlockProps & { ref?: Ref<HTMLDivElement> }) => (
+  <div
+    className={cn(
+      'not-prose relative mt-5 w-full min-w-0 max-w-full rounded-md bg-muted px-2 pb-2',
+      filename && 'pt-2',
+      className,
+    )}
+    ref={ref}
+    {...props}
+  >
+    {filename ? (
+      <CodeTabBar filename={filename}>
         <CopyToClipboardButton
           textToCopy={getNodeText(children)}
           title={copyToClipboardToastTitle}
-          className="absolute top-3 right-3"
+          className="relative"
         />
-      )}
-      <pre className="w-full max-w-full whitespace-pre-wrap break-words pr-10">
-        <code className="break-all font-mono">{children}</code>
-      </pre>
-    </div>
-  ),
+      </CodeTabBar>
+    ) : (
+      <CopyToClipboardButton
+        textToCopy={getNodeText(children)}
+        title={copyToClipboardToastTitle}
+        className="absolute top-3 right-3"
+      />
+    )}
+    <pre className="w-full max-w-full whitespace-pre-wrap break-words pr-10">
+      <code className="break-all font-mono">{children}</code>
+    </pre>
+  </div>
 );
