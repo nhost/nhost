@@ -58,7 +58,7 @@ func registerOIDCProviders(
 	if err := db.RegisterOIDCProviders(ctx, params); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "user_providers_oidc_issuer_fkey" {
-			return errOIDCIssuerChanged
+			return fmt.Errorf("%w: %s", errOIDCIssuerChanged, pgErr.Detail)
 		}
 
 		return fmt.Errorf("registering OIDC providers: %w", err)
