@@ -13,7 +13,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 The Backend MCP Server is a container image (`nhost/mcp`) that you deploy alongside your project using [Nhost Run](/products/run). Running it next to your GraphQL API keeps latency low and lets it reach the API over the internal network.
 
 :::note
-Check the [releases page](https://github.com/nhost/nhost/releases) and use the most recent version of Backend MCP. The examples below pin `nhost/mcp:0.1.0` for GraphQL only. That image does not support `storage-download`.
+The examples use `nhost/mcp:0.4.0` and enable `storage-download`. Check the [releases page](https://github.com/nhost/nhost/releases) before deploying; the image tag must be published for the installer to work.
 :::
 
 ## Before you deploy
@@ -27,13 +27,14 @@ Backend MCP relies on your Nhost Auth project being set up as an OAuth2 provider
 
 Use the one-click install link to create the Run service with sensible defaults:
 
-[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9)
+[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV0sImhlYWx0aENoZWNrIjpudWxsfQ==)
 
 After clicking the link, edit the environment variables to match your project:
 
 - **`MCP_AUTH_URL`** — your project's auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1` (or your custom domain).
 - **`MCP_REALM`** — the public URL where Backend MCP will be reachable.
 - **`MCP_GRAPHQL_ENDPOINT`** — the GraphQL endpoint Backend MCP forwards requests to.
+- **`MCP_STORAGE_URL`** — defaults to `http://hasura-storage-service:5000/v1`, the project's internal Storage endpoint on Nhost Run. Remove it if you do not want to enable file downloads.
 - **`MCP_INSTRUCTIONS`** — instructions that help the assistant understand your application.
 - **`MCP_ENFORCE_ROLE`** — the role to enforce (for example `user_mcp`), or remove it to accept any role.
 
@@ -47,7 +48,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.1.0'
+image = 'nhost/mcp:0.4.0'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
@@ -60,6 +61,14 @@ value = 'https://mcp.acme.com'
 [[environment]]
 name = 'MCP_GRAPHQL_ENDPOINT'
 value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_STORAGE_URL'
+value = 'http://hasura-storage-service:5000/v1'
+
+[[environment]]
+name = 'MCP_STORAGE_MAX_TRANSFER_BYTES'
+value = '10000000'
 
 [[environment]]
 name = 'MCP_INSTRUCTIONS'
@@ -97,14 +106,7 @@ Once deployed, Backend MCP is reachable at its published port and any MCP-compat
 
 ## Enable storage downloads (optional)
 
-For either deployment method, replace `nhost/mcp:0.1.0` with a release image that supports `--storage-url` and `--storage-max-transfer-bytes` (check `mcp --help` for that image). Older images ignore these environment variables.
-
-Set the following environment variables for the 256 MiB service shown above. For `run-mcp.toml`, add one `[[environment]]` block per variable. Point the URL at the storage service for the **same backend**, including its API prefix:
-
-```dotenv
-MCP_STORAGE_URL=https://SUBDOMAIN.storage.REGION.nhost.run/v1
-MCP_STORAGE_MAX_TRANSFER_BYTES=10000000
-```
+Both Nhost Run examples set `MCP_STORAGE_URL` to `http://hasura-storage-service:5000/v1` and `MCP_STORAGE_MAX_TRANSFER_BYTES` to `10000000`. For deployments outside [Nhost Run's internal network](/products/run/networking), use the Storage URL for the **same backend**, including its API prefix (normally `/v1`).
 
 Start with a 10 MB response limit for one download at a time. This does not limit concurrency. The server default of 50 MB can exhaust 256 MiB on a single call. See [Transfer limits](/products/ai/mcp/configuration#transfer-limits) before increasing the limit or allowing concurrent downloads. Leave `MCP_STORAGE_URL` unset to keep `storage-download` disabled.
 
@@ -118,7 +120,7 @@ To try Backend MCP against a local project, run it as part of your local stack:
 nhost up --run-service run-mcp.toml
 ```
 
-Point `MCP_AUTH_URL` and `MCP_GRAPHQL_ENDPOINT` at your local endpoints (for example `https://local.auth.local.nhost.run/v1`). If you [enable storage downloads](#enable-storage-downloads-optional), set `MCP_STORAGE_URL` to `https://local.storage.local.nhost.run/v1`.
+Point `MCP_AUTH_URL` and `MCP_GRAPHQL_ENDPOINT` at your local endpoints (for example `https://local.auth.local.nhost.run/v1`). For [storage downloads](#enable-storage-downloads-optional), use `https://local.storage.local.nhost.run/v1` if the service can't reach the internal Storage hostname.
 
 ## Configuration reference
 

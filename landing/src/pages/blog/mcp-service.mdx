@@ -33,7 +33,7 @@ Deploy it alongside your Nhost project and any MCP-compatible AI assistant can a
 
 ### How it works
 
-The MCP server sits between the AI assistant and your project's GraphQL API and exposes three tools:
+The MCP server sits between the AI assistant and your project's GraphQL API and exposes three GraphQL tools:
 
 - **`get-schema`** — Returns a summary of your GraphQL schema or the full SDL for specific queries/mutations, giving the AI assistant context about your data model.
 - **`graphql-query`** — Executes read-only GraphQL queries against your project.
@@ -96,9 +96,9 @@ OAuth2 requires a consent page where users authorize the MCP client to access th
 
 ### 3. Deploy the MCP service
 
-The fastest way is through the one-click install link:
+The one-click installer uses `nhost/mcp:0.4.0`. Use it after that image tag is published:
 
-<a href="https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4wLjgiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWUsImluZ3Jlc3NlcyI6W3siZnFkbiI6WyJtY3Auc3RhZ2luZy5uaG9zdC5pbyJdfV0sInJhdGVMaW1pdCI6bnVsbH1dLCJoZWFsdGhDaGVjayI6bnVsbH0=" target="_blank" rel="noopener noreferrer">Deploy MCP to Nhost Run</a>
+<a href="https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlLCJpbmdyZXNzZXMiOlt7ImZxZG4iOlsibWNwLnN0YWdpbmcubmhvc3QuaW8iXX1dLCJyYXRlTGltaXQiOm51bGx9XSwiaGVhbHRoQ2hlY2siOm51bGx9" target="_blank" rel="noopener noreferrer">Deploy MCP to Nhost Run</a>
 
 After clicking the link, edit the environment variables to match your project:
 
@@ -106,6 +106,9 @@ After clicking the link, edit the environment variables to match your project:
 - **`MCP_REALM`** — The public URL where your MCP service will be accessible
 - **`MCP_INSTRUCTIONS`** — Custom instructions to help the AI assistant understand your application
 - **`MCP_ENFORCE_ROLE`** — The role to enforce (e.g. `user_mcp`), or remove it to allow any role
+- **`MCP_STORAGE_URL`** — Defaults to `http://hasura-storage-service:5000/v1` on Nhost Run and enables the read-only `storage-download` tool. Remove it if you don't need file downloads.
+
+Grant the caller's role [Download permission](https://docs.nhost.io/products/ai/mcp/permissions#storage-permissions) on the files it should be able to read.
 
 Alternatively, add a `run-mcp.toml` file to your project:
 
@@ -114,7 +117,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.0.8'
+image = 'nhost/mcp:0.4.0'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
@@ -127,6 +130,14 @@ value = 'https://mcp.acme.com'
 [[environment]]
 name = 'MCP_GRAPHQL_ENDPOINT'
 value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_STORAGE_URL'
+value = 'http://hasura-storage-service:5000/v1'
+
+[[environment]]
+name = 'MCP_STORAGE_MAX_TRANSFER_BYTES'
+value = '10000000'
 
 [[environment]]
 name = 'MCP_INSTRUCTIONS'

@@ -96,11 +96,11 @@ Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the up
 
 To deploy to Nhost Run you can use the one-click install link below:
 
-https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9
+https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV0sImhlYWx0aENoZWNrIjpudWxsfQ==
 
 Set `MCP_AUTH_URL` to your project's Auth URL and `MCP_REALM` to your public MCP URL. Adjust `MCP_INSTRUCTIONS` and `MCP_ENFORCE_ROLE` as needed.
 
-Check the [releases](https://github.com/nhost/nhost/releases) page for the most recent version. Both examples pin `nhost/mcp:0.1.0` for GraphQL only; that image does not support `storage-download`.
+Both examples use `nhost/mcp:0.4.0` and enable `storage-download`. Check the [releases](https://github.com/nhost/nhost/releases) page before deploying; the image tag must be published.
 
 Alternatively, add a `run-mcp.toml` to your project directory:
 
@@ -109,7 +109,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.1.0'
+image = 'nhost/mcp:0.4.0'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
@@ -122,6 +122,14 @@ value = 'https://myapp.example.com'
 [[environment]]
 name = 'MCP_GRAPHQL_ENDPOINT'
 value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_STORAGE_URL'
+value = 'http://hasura-storage-service:5000/v1'
+
+[[environment]]
+name = 'MCP_STORAGE_MAX_TRANSFER_BYTES'
+value = '10000000'
 
 [[environment]]
 name = 'MCP_INSTRUCTIONS'
@@ -152,18 +160,13 @@ You can also try locally with:
 nhost up --run-service run-mcp.toml
 ```
 
-### Enable storage on the example deployment
+### Storage downloads on Nhost Run
 
-For either method, replace `nhost/mcp:0.1.0` with a release image that supports `--storage-url` and `--storage-max-transfer-bytes` (check `mcp --help` for that image). Older images ignore these environment variables.
+Both examples use the internal Storage endpoint, `http://hasura-storage-service:5000/v1`. If the service can't reach that hostname, use the Storage URL for the same backend, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`).
 
-On the 256 MiB example service, start with a 10 MB response limit for one download at a time. The 50 MB default can exhaust that much memory on a single call. Add one `[[environment]]` block per variable in `run-mcp.toml`, or set them in the one-click service configuration:
+The examples set a 10 MB download response limit for the 256 MiB service. This is a starting point for one download at a time, not a concurrency limit. The 50 MB server default can exhaust that much memory on a single call. Increase memory as needed before raising the limit or allowing concurrent downloads.
 
-```dotenv
-MCP_STORAGE_URL=https://SUBDOMAIN.storage.REGION.nhost.run/v1
-MCP_STORAGE_MAX_TRANSFER_BYTES=10000000
-```
-
-Use your backend's storage URL, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`). Increase memory as needed before raising the limit or allowing concurrent downloads. Grant only Download (`select`) on the files the caller’s role should be able to read. Leave `MCP_STORAGE_URL` unset to keep `storage-download` disabled.
+Grant only Download (`select`) on the files the caller's role should be able to read. Remove `MCP_STORAGE_URL` to disable `storage-download`.
 
 ## Connecting an MCP Client
 
