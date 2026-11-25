@@ -1,7 +1,7 @@
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
-import * as React from 'react';
+import type * as React from 'react';
 import { controlHeight } from '@/components/ui/v3/control';
 import { cn } from '@/lib/utils';
 
@@ -88,38 +88,38 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant,
-      size,
-      asChild = false,
-      type = asChild ? undefined : 'button',
-      ...props
-    },
-    ref,
-  ) => {
-    const Comp = asChild ? Slot : 'button';
+const Button = ({
+  className,
+  variant,
+  size,
+  asChild = false,
+  type = asChild ? undefined : 'button',
+  ref,
+  ...props
+}: ButtonProps) => {
+  const Comp = asChild ? Slot : 'button';
 
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        type={type}
-        {...props}
-      />
-    );
-  },
-);
-Button.displayName = 'Button';
+  return (
+    <Comp
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      type={type}
+      {...props}
+    />
+  );
+};
 
-const ButtonWithLoading = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps & { loading?: boolean; loaderClassName?: string }
->(({ loading, disabled, children, loaderClassName, ...props }, ref) => {
+const ButtonWithLoading = ({
+  loading,
+  disabled,
+  children,
+  loaderClassName,
+  ref,
+  ...props
+}: ButtonProps & { loading?: boolean; loaderClassName?: string }) => {
   return (
     <Button
       disabled={loading || disabled}
@@ -133,6 +133,6 @@ const ButtonWithLoading = React.forwardRef<
       {children}
     </Button>
   );
-});
+};
 
 export { Button, ButtonWithLoading, buttonVariants };

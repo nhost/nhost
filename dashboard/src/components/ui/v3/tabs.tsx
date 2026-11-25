@@ -1,17 +1,19 @@
 import * as TabsPrimitive from '@radix-ui/react-tabs';
-import * as React from 'react';
+import type * as React from 'react';
 
 import { UNDERLINE_TAB_CLASS } from '@/components/ui/v3/tab-styles';
 import { cn } from '@/lib/utils';
 
 const Tabs = TabsPrimitive.Root;
 
-const TabsList = React.forwardRef<
-  React.ComponentRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
-    variant?: 'underline';
-  }
->(({ className, variant, ...props }, ref) => (
+const TabsList = ({
+  className,
+  ref,
+  variant,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List> & {
+  variant?: 'underline';
+}) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
@@ -22,15 +24,16 @@ const TabsList = React.forwardRef<
     )}
     {...props}
   />
-));
-TabsList.displayName = TabsPrimitive.List.displayName;
+);
 
-const TabsTrigger = React.forwardRef<
-  React.ComponentRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & {
-    variant?: 'underline';
-  }
->(({ className, variant, ...props }, ref) => (
+const TabsTrigger = ({
+  className,
+  ref,
+  variant,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & {
+  variant?: 'underline';
+}) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
@@ -41,13 +44,13 @@ const TabsTrigger = React.forwardRef<
     )}
     {...props}
   />
-));
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+);
 
-const TabsContent = React.forwardRef<
-  React.ComponentRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
+const TabsContent = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) => (
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
@@ -56,7 +59,6 @@ const TabsContent = React.forwardRef<
     )}
     {...props}
   />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
+);
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };
