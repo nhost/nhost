@@ -19,7 +19,9 @@ func (k *Kind) UnmarshalJSON(data []byte) error {
 		string(KindList),
 		string(KindScalar),
 		string(KindEnum),
-		string(KindInputObject):
+		string(KindInputObject),
+		string(KindInterface),
+		string(KindUnion):
 		*k = Kind(kind)
 	default:
 		return fmt.Errorf("invalid kind: %s", kind) //nolint:err113
@@ -35,6 +37,8 @@ const (
 	KindScalar      Kind = "SCALAR"
 	KindEnum        Kind = "ENUM"
 	KindInputObject Kind = "INPUT_OBJECT"
+	KindInterface   Kind = "INTERFACE"
+	KindUnion       Kind = "UNION"
 )
 
 type ResponseIntrospection = Response[IntrospectionResponse]

@@ -38,7 +38,7 @@ func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer) {
 			mcp.Description("graphql query to perform"),
 			mcp.Required(),
 		),
-		mcp.WithString(
+		mcp.WithObject(
 			"variables",
 			mcp.Description("variables to use in the query"),
 		),
