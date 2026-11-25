@@ -30,6 +30,7 @@ services/mcp/
 │   ├── query_internal_test.go       # GraphQL tool handler tests
 │   ├── storage.go                   # Storage registration, authenticated HTTP transport and responses
 │   ├── storage_download.go          # Download transformations, conditions and ranges
+│   ├── storage_preview.{go,html}    # Embedded MCP Apps image viewer
 │   ├── storage_test.go              # In-process MCP and HTTP storage contract tests
 │   ├── storage_limits*_test.go      # Transfer-budget and bounded-read tests
 │   └── storage_streaming_test.go    # Large download behavior
@@ -126,6 +127,7 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 - `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` limits upstream response bodies (default 50,000,000 bytes). It must be positive and less than MaxInt64. Keep flags, registry metadata, docs and tool descriptions in sync; descriptions and errors must show the configured budget.
 - Check Content-Length before reading and use `io.LimitReader` for unknown or incorrect lengths. Successful downloads encode directly into a base64 builder, but MCP responses are still buffered. Oversize errors retain upstream status and headers without truncated data; advise callers to retry with ranges and omit transformations.
 - Preserve status and headers for successful, conditional, partial, and error responses. Only complete, successful, nonempty images carry bytes in MCP image content; omit `data` from their structured response and JSON text summary. Other downloads retain base64 `data`.
+- `storage-download` links to a static MCP Apps resource in `storage_preview.html`. Serve it through `resources/read` on the existing authenticated endpoint. The view accepts tool results from the parent frame, renders supported image blocks as data URLs, and makes no network requests. It must not receive credentials or duplicate image bytes in the tool result. Keep the embedded HTML in the Nix source fileset.
 - The private `httpClient` interface supports inline stubs for byte-read accounting in `storage_limits_internal_test.go`. `storage_test.go` exercises the real transport with `httptest`. `RegisterStorage` owns the timeout and no-redirect policy.
 
 ## GraphQL Query Validation

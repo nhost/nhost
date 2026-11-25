@@ -37,7 +37,8 @@ const (
 	FlagEnforceRole             = "enforce-role"
 	FlagBrowserHTML             = "browser-html"
 
-	shutdownTimeout = 5 * time.Second
+	mcpAppsExtension = "io.modelcontextprotocol/ui"
+	shutdownTimeout  = 5 * time.Second
 
 	defaultStorageMaxTransferBytes = 50_000_000
 )
@@ -161,6 +162,13 @@ func BuildServer(
 		opts = append(opts, mcpserver.WithInstructions(instructions))
 	}
 
+	storageURL := cmd.String(FlagStorageURL)
+	if storageURL != "" {
+		opts = append(opts, mcpserver.WithExtensions(map[string]any{
+			mcpAppsExtension: struct{}{},
+		}))
+	}
+
 	mcpServer := mcpserver.NewMCPServer("mcp", version, opts...)
 
 	t := tools.NewTool(
@@ -173,7 +181,7 @@ func BuildServer(
 	t.RegisterMutation(mcpServer)
 	t.RegisterSchema(mcpServer)
 
-	if storageURL := cmd.String(FlagStorageURL); storageURL != "" {
+	if storageURL != "" {
 		if err := tools.RegisterStorage(
 			mcpServer,
 			storageURL,

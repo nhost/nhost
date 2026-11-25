@@ -79,6 +79,8 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBy
 			},
 		},
 	}
+
+	registerStoragePreview(server)
 	t.registerDownload(server, downloadSchema)
 
 	return nil

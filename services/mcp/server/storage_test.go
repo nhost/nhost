@@ -80,8 +80,17 @@ func checkServerStorageTools(ctx context.Context, t *testing.T, s *mcpserver.MCP
 	init.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
 	init.Params.ClientInfo = mcp.Implementation{Name: "test", Version: "test"}
 
-	if _, err := c.Initialize(ctx, init); err != nil {
+	result, err := c.Initialize(ctx, init)
+	if err != nil {
 		return fmt.Errorf("initializing client: %w", err)
+	}
+
+	if _, ok := result.Capabilities.Extensions["io.modelcontextprotocol/ui"]; !ok {
+		t.Error("storage-enabled server must advertise MCP Apps")
+	}
+
+	if result.Capabilities.Resources == nil {
+		t.Error("storage-enabled server must advertise resources")
 	}
 
 	list, err := c.ListTools(ctx, mcp.ListToolsRequest{})

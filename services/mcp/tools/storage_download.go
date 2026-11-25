@@ -65,7 +65,7 @@ func storageDownloadInputSchema() (mcp.ToolOption, error) {
 
 func (t *storageTool) registerDownload(server *mcpserver.MCPServer, schema mcp.ToolOption) {
 	limit := fmt.Sprintf("Responses are limited to %d bytes; ", t.maxTransferBytes)
-	server.AddTool(mcp.NewTool(
+	tool := mcp.NewTool(
 		"storage-download",
 		mcp.WithDescription(
 			"Download a file or image from the connected storage service (GET /files/{id}). "+
@@ -85,7 +85,11 @@ func (t *storageTool) registerDownload(server *mcpserver.MCPServer, schema mcp.T
 			OpenWorldHint:   new(true),
 		}),
 		schema,
-	), mcp.NewTypedToolHandler(t.handleDownload))
+	)
+	tool.Meta = mcp.NewMetaFromMap(map[string]any{
+		"ui": map[string]any{"resourceUri": storagePreviewURI},
+	})
+	server.AddTool(tool, mcp.NewTypedToolHandler(t.handleDownload))
 }
 
 func (t *storageTool) handleDownload(
