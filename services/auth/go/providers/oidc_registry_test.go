@@ -45,9 +45,10 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 	valid := `{"issuer":"https://idp.example","clientId":"web","clientSecret":"sensitive-value"}`
 
 	tests := []struct {
-		name   string
-		config string
-		valid  bool
+		name          string
+		config        string
+		valid         bool
+		errorContains string
 	}{
 		{name: "unset", config: "", valid: true},
 		{name: "empty object", config: "{}", valid: true},
@@ -55,6 +56,29 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 		{name: "array", config: "[" + valid + "]", valid: false},
 		{name: "duplicate slug", config: `{"one":` + valid + `,"one":` + valid + "}", valid: false},
 		{name: "uppercase slug", config: `{"OIDC":` + valid + "}", valid: false},
+		{
+			name:          "secret in malformed slug",
+			config:        `{"sensitive-value/":` + valid + "}",
+			valid:         false,
+			errorContains: "invalid slug",
+		},
+		{
+			name: "identify invalid provider",
+			config: `{"valid":` + valid + `,"broken":` + strings.Replace(
+				valid,
+				"https://",
+				"http://",
+				1,
+			) + "}",
+			valid:         false,
+			errorContains: `provider "broken"`,
+		},
+		{
+			name:          "first invalid provider in slug order",
+			config:        `{"zulu":{},"alpha":{"clientSecret":"sensitive-value"}}`,
+			valid:         false,
+			errorContains: `provider "alpha"`,
+		},
 		{name: "one-letter slug", config: `{"a":` + valid + "}", valid: false},
 		{name: "trailing hyphen", config: `{"a-":` + valid + "}", valid: false},
 		{
@@ -105,6 +129,11 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 			_, err := providers.NewOIDCRegistry(tt.config, serverURL, http.DefaultClient)
 			if (err == nil) != tt.valid {
 				t.Fatalf("validation error = %v, want valid = %t", err, tt.valid)
+			}
+
+			if tt.errorContains != "" &&
+				(err == nil || !strings.Contains(err.Error(), tt.errorContains)) {
+				t.Errorf("validation error = %v, want substring %q", err, tt.errorContains)
 			}
 
 			if err != nil && strings.Contains(err.Error(), "sensitive-value") {

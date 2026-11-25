@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -33,8 +34,8 @@ func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client) (*OIDC
 		return nil, errOIDCConfig
 	}
 
-	for slug, config := range configs {
-		provider, err := oidc.NewCustomProvider(slug, config, serverURL, client)
+	for _, slug := range slices.Sorted(maps.Keys(configs)) {
+		provider, err := oidc.NewCustomProvider(slug, configs[slug], serverURL, client)
 		if err != nil {
 			return nil, fmt.Errorf("configuring custom OIDC provider: %w", err)
 		}

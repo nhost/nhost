@@ -42,13 +42,13 @@ func NewCustomProvider(
 
 	if client == nil || !validCallbackBase(serverURL) {
 		return nil, fmt.Errorf(
-			"%w: providers require an HTTPS AUTH_SERVER_URL and an HTTP client",
-			errInvalidConfig,
+			"%w: provider %q requires an HTTPS AUTH_SERVER_URL and an HTTP client",
+			errInvalidConfig, slug,
 		)
 	}
 
 	if err := config.validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("provider %q: %w", slug, err)
 	}
 
 	return &CustomProvider{
