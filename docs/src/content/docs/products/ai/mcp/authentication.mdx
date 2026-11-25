@@ -92,7 +92,7 @@ sequenceDiagram
 3. The user logs in and approves the request on your consent page.
 4. The client exchanges the authorization code for a JWT access token.
 5. Every subsequent MCP request carries the JWT as a `Bearer` token.
-6. Backend MCP validates the JWT and forwards it to GraphQL for GraphQL tools or to the configured Storage service for storage tools. Each service enforces permissions based on the token's claims.
+6. Backend MCP validates the JWT and forwards it to GraphQL for GraphQL tools or to the configured Storage service for `storage-download`. Each service enforces permissions based on the token's claims.
 
 </Steps>
 

@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -41,16 +42,25 @@ type storageDownloadRequest struct {
 func storageDownloadInputSchema() (mcp.ToolOption, error) {
 	const maxImageQuality = 100.0
 
-	return constrainedStorageInputSchema[storageDownloadRequest](
-		func(props map[string]*jsonschema.Schema) {
-			props["q"].Minimum = new(1.0)
-			props["q"].Maximum = new(maxImageQuality)
-			props["h"].Minimum = new(1.0)
-			props["w"].Minimum = new(1.0)
-			props["b"].Minimum = new(0.0)
-			props["f"].Enum = []any{"auto", "same", "jpeg", "webp", "png", "avif", "heic"}
-		},
-	)
+	schema, err := jsonschema.For[storageDownloadRequest](nil)
+	if err != nil {
+		return nil, fmt.Errorf("deriving schema from request type: %w", err)
+	}
+
+	props := schema.Properties
+	props["q"].Minimum = new(1.0)
+	props["q"].Maximum = new(maxImageQuality)
+	props["h"].Minimum = new(1.0)
+	props["w"].Minimum = new(1.0)
+	props["b"].Minimum = new(0.0)
+	props["f"].Enum = []any{"auto", "same", "jpeg", "webp", "png", "avif", "heic"}
+
+	raw, err := json.Marshal(schema)
+	if err != nil {
+		return nil, fmt.Errorf("encoding input schema: %w", err)
+	}
+
+	return mcp.WithRawInputSchema(raw), nil
 }
 
 func (t *storageTool) registerDownload(server *mcpserver.MCPServer, schema mcp.ToolOption) {
@@ -67,7 +77,13 @@ func (t *storageTool) registerDownload(server *mcpserver.MCPServer, schema mcp.T
 				"use range to download larger files in chunks, without transformations. A 304 is a successful bodyless result; "+
 				"a 412 is a precondition failure with headers preserved.",
 		),
-		storageAnnotation("Download Storage File", true, false, true),
+		mcp.WithToolAnnotation(mcp.ToolAnnotation{
+			Title:           "Download Storage File",
+			ReadOnlyHint:    new(true),
+			DestructiveHint: new(false),
+			IdempotentHint:  new(true),
+			OpenWorldHint:   new(true),
+		}),
 		schema,
 	), mcp.NewTypedToolHandler(t.handleDownload))
 }
@@ -109,5 +125,5 @@ func (t *storageTool) handleDownload(
 		}
 	}
 
-	return t.call(ctx, http.MethodGet, path, query, headers, nil, true)
+	return t.fetchDownload(ctx, path, query, headers)
 }

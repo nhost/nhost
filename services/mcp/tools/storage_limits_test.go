@@ -48,7 +48,7 @@ func TestStorageResponseSizeLimit(t *testing.T) {
 
 			srv := storageSizeServer(t, tt, length, status)
 
-			result := callStorageTool(t, storageClient(t, srv.URL), "storage-download", args)
+			result := callStorageTool(t, storageClient(t, srv.URL), args)
 			if result.IsError == tt.ranged {
 				t.Fatalf("IsError=%v, want %v", result.IsError, !tt.ranged)
 			}
@@ -151,94 +151,5 @@ func checkStorageSizeResponse(
 		if !strings.Contains(response.Body, hint) {
 			t.Errorf("size error lacks %q guidance: %s", hint, data)
 		}
-	}
-}
-
-func TestStorageUploadSizeLimit(t *testing.T) {
-	t.Parallel()
-
-	const limit = 4 << 20
-
-	encoded := strings.Repeat("A", base64.StdEncoding.EncodedLen(limit))
-	atLimit := encoded[:len(encoded)-2] + "=="
-	tests := []struct {
-		name    string
-		tool    string
-		args    map[string]any
-		isError bool
-	}{
-		{
-			"oversized upload", "storage-upload",
-			map[string]any{"files": []any{map[string]any{"name": "large", "data": encoded}}},
-			true,
-		},
-		{
-			"oversized batch", "storage-upload",
-			map[string]any{"files": []any{
-				map[string]any{"name": "large", "data": atLimit},
-				map[string]any{"name": "extra", "data": "AA=="},
-			}},
-			true,
-		},
-		{
-			"oversized replacement",
-			"storage-update",
-			map[string]any{
-				"id":   "existing",
-				"file": map[string]any{"name": "large", "data": encoded},
-			},
-			true,
-		},
-		{
-			"exact limit replacement",
-			"storage-update",
-			map[string]any{
-				"id":   "existing",
-				"file": map[string]any{"name": "large", "data": atLimit},
-			},
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			srv := httptest.NewServer(
-				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if tt.isError {
-						t.Error("oversized file or batch must not reach storage")
-						return
-					}
-
-					if err := r.ParseMultipartForm(limit * 2); err != nil {
-						t.Error(err)
-						return
-					}
-					defer func() {
-						if err := r.MultipartForm.RemoveAll(); err != nil {
-							t.Error(err)
-						}
-					}()
-
-					files := r.MultipartForm.File["file"]
-					if len(files) != 1 || files[0].Size != limit {
-						t.Errorf("exact-limit replacement not forwarded correctly: %+v", files)
-					}
-
-					w.WriteHeader(http.StatusNoContent)
-				}),
-			)
-			t.Cleanup(srv.Close)
-
-			result := callStorageTool(t, storageClient(t, srv.URL), tt.tool, tt.args)
-			if result.IsError != tt.isError {
-				t.Fatalf("IsError=%v, want %v", result.IsError, tt.isError)
-			}
-
-			if tt.isError && !strings.Contains(fmt.Sprint(result.Content), "4194304 bytes") {
-				t.Error("missing upload size guidance")
-			}
-		})
 	}
 }

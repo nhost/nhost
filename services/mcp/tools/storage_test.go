@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -58,7 +59,7 @@ func storageClientWithLimit(t *testing.T, endpoint string, limit int64) *client.
 }
 
 func callStorageTool(
-	t *testing.T, c *client.Client, name string, args map[string]any,
+	t *testing.T, c *client.Client, args map[string]any,
 ) *mcp.CallToolResult {
 	t.Helper()
 
@@ -66,7 +67,7 @@ func callStorageTool(
 	req.Header.Set("Authorization", "Bearer storage-user")
 	ctx := tools.AuthorizationToContext(t.Context(), req)
 	call := mcp.CallToolRequest{}
-	call.Params.Name = name
+	call.Params.Name = "storage-download"
 	call.Params.Arguments = args
 
 	result, err := c.CallTool(ctx, call)
@@ -77,65 +78,9 @@ func callStorageTool(
 	return result
 }
 
-func storageFileArgs() map[string]any {
-	return map[string]any{
-		"name":        "photo.png",
-		"data":        base64.StdEncoding.EncodeToString([]byte("image bytes")),
-		"contentType": "image/png",
-	}
-}
-
-func checkMultipart(t *testing.T, r *http.Request, field string, count int) {
-	t.Helper()
-
-	if err := r.ParseMultipartForm(1 << 20); err != nil {
-		t.Error(err)
-		return
-	}
-
-	defer func() {
-		if err := r.MultipartForm.RemoveAll(); err != nil {
-			t.Error(err)
-		}
-	}()
-
-	files := r.MultipartForm.File[field]
-	if len(files) != count {
-		t.Errorf("got %d files under %q, want %d", len(files), field, count)
-		return
-	}
-
-	for _, f := range files {
-		if f.Filename != "photo.png" || f.Header.Get("Content-Type") != "image/png" {
-			t.Errorf("unexpected file headers: %+v", f)
-		}
-
-		file, err := f.Open()
-		if err != nil {
-			t.Error(err)
-			continue
-		}
-
-		data, err := io.ReadAll(file)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if err := file.Close(); err != nil {
-			t.Error(err)
-		}
-
-		if string(data) != "image bytes" {
-			t.Errorf("unexpected file bytes: %q", data)
-		}
-	}
-}
-
 type storageTestCase struct {
 	name    string
-	tool    string
 	args    map[string]any
-	method  string
 	path    string
 	check   func(*testing.T, *http.Request)
 	status  int
@@ -145,120 +90,12 @@ type storageTestCase struct {
 	image   bool
 }
 
-func storageMetadataArgs() map[string]any {
-	return map[string]any{
-		"id": "custom-id", "name": "renamed.png",
-		"metadata": map[string]any{"alt": "Photo", "nested": map[string]any{"value": true}},
-	}
-}
-
-func TestStorageTools(t *testing.T) {
+func TestStorageDownload(t *testing.T) {
 	t.Parallel()
 
-	metadata := storageMetadataArgs()
 	tests := []storageTestCase{
 		{
-			name: "batch upload with bucket and all metadata",
-			tool: "storage-upload",
-			args: map[string]any{
-				"files":    []any{storageFileArgs(), storageFileArgs()},
-				"bucketId": "images",
-				"metadata": []any{metadata, map[string]any{}},
-			},
-			method: http.MethodPost,
-			path:   "/v1/files",
-			check:  checkBatchUpload,
-			status: http.StatusCreated,
-			body:   `{"processedFiles":[{"id":"custom-id","name":"renamed.png"}]}`,
-			mime:   "application/json",
-		},
-		{
-			name: "default upload without bucket or metadata",
-			tool: "storage-upload",
-			args: map[string]any{
-				"files": []any{storageFileArgs()},
-			},
-			method: http.MethodPost,
-			path:   "/v1/files",
-			check:  checkDefaultUpload,
-			status: http.StatusCreated,
-			body:   `{"processedFiles":[{"id":"generated"}]}`,
-			mime:   "application/json",
-		},
-		{
-			name:   "empty upload without explicit MIME type",
-			tool:   "storage-upload",
-			args:   map[string]any{"files": []any{map[string]any{"name": "empty.bin", "data": ""}}},
-			method: http.MethodPost,
-			path:   "/v1/files",
-			check:  checkEmptyUpload,
-			status: http.StatusCreated,
-			body:   `{"processedFiles":[{"id":"empty"}]}`,
-			mime:   "application/json",
-		},
-		{
-			name: "partial upload failure preserves processed files",
-			tool: "storage-upload",
-			args: map[string]any{
-				"files": []any{storageFileArgs(), storageFileArgs()},
-			},
-			method:  http.MethodPost,
-			path:    "/v1/files",
-			status:  http.StatusForbidden,
-			body:    `{"processedFiles":[{"id":"first"}],"error":{"message":"denied","data":{"file":"second"}}}`,
-			mime:    "application/json",
-			isError: true,
-		},
-		{
-			name: "replacement with name and metadata",
-			tool: "storage-update",
-			args: map[string]any{
-				"id":   "existing",
-				"file": storageFileArgs(),
-				"metadata": map[string]any{
-					"name":     "replacement.png",
-					"metadata": map[string]any{"alt": "New"},
-				},
-			},
-			method: http.MethodPut,
-			path:   "/v1/files/existing",
-			check:  checkReplacement,
-			status: http.StatusOK,
-			body:   `{"id":"existing","name":"replacement.png"}`,
-			mime:   "application/json",
-		},
-		{
-			name: "replacement preserves explicit empty custom metadata",
-			tool: "storage-update",
-			args: map[string]any{
-				"id":       "existing",
-				"file":     storageFileArgs(),
-				"metadata": map[string]any{"metadata": map[string]any{}},
-			},
-			method: http.MethodPut,
-			path:   "/v1/files/existing",
-			check:  checkEmptyReplacement,
-			status: http.StatusOK,
-			body:   `{"id":"existing","metadata":{}}`,
-			mime:   "application/json",
-		},
-		{
-			name: "replacement without metadata",
-			tool: "storage-update",
-			args: map[string]any{
-				"id":   "existing",
-				"file": storageFileArgs(),
-			},
-			method: http.MethodPut,
-			path:   "/v1/files/existing",
-			check:  checkReplacementWithoutMetadata,
-			status: http.StatusOK,
-			body:   `{"id":"existing"}`,
-			mime:   "application/json",
-		},
-		{
 			name: "download all transformation and conditional options",
-			tool: "storage-download",
 			args: map[string]any{
 				"id":                "image",
 				"q":                 90,
@@ -273,7 +110,6 @@ func TestStorageTools(t *testing.T) {
 				"ifModifiedSince":   "Tue, 12 Aug 2025 12:03:50 GMT",
 				"ifUnmodifiedSince": "Wed, 13 Aug 2025 12:03:50 GMT",
 			},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			check:  checkDownloadOptions,
 			status: http.StatusOK,
@@ -283,12 +119,10 @@ func TestStorageTools(t *testing.T) {
 		},
 		{
 			name: "byte range preserves partial data and headers without image content",
-			tool: "storage-download",
 			args: map[string]any{
 				"id":    "image",
 				"range": "bytes=0-2",
 			},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			status: http.StatusPartialContent,
 			body:   "img",
@@ -296,34 +130,28 @@ func TestStorageTools(t *testing.T) {
 		},
 		{
 			name: "conditional not modified",
-			tool: "storage-download",
 			args: map[string]any{
 				"id":          "image",
 				"ifNoneMatch": `"etag"`,
 			},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			status: http.StatusNotModified,
 		},
 		{
 			name: "conditional precondition failure",
-			tool: "storage-download",
 			args: map[string]any{
 				"id":      "image",
 				"ifMatch": `"wrong"`,
 			},
-			method:  http.MethodGet,
 			path:    "/v1/files/image",
 			status:  http.StatusPreconditionFailed,
 			isError: true,
 		},
 		{
 			name: "binary non-image download",
-			tool: "storage-download",
 			args: map[string]any{
 				"id": "document",
 			},
-			method: http.MethodGet,
 			path:   "/v1/files/document",
 			status: http.StatusOK,
 			body:   "\x00\xffbinary",
@@ -331,11 +159,9 @@ func TestStorageTools(t *testing.T) {
 		},
 		{
 			name: "download error preserves X-Error and JSON body",
-			tool: "storage-download",
 			args: map[string]any{
 				"id": "missing",
 			},
-			method:  http.MethodGet,
 			path:    "/v1/files/missing",
 			status:  http.StatusNotFound,
 			body:    `{"error":{"message":"not found"}}`,
@@ -343,18 +169,8 @@ func TestStorageTools(t *testing.T) {
 			isError: true,
 		},
 		{
-			name:   "delete",
-			tool:   "storage-delete",
-			args:   map[string]any{"id": "image"},
-			method: http.MethodDelete,
-			path:   "/v1/files/image",
-			status: http.StatusNoContent,
-		},
-		{
-			name:    "delete forbidden",
-			tool:    "storage-delete",
+			name:    "download forbidden",
 			args:    map[string]any{"id": "image"},
-			method:  http.MethodDelete,
 			path:    "/v1/files/image",
 			status:  http.StatusForbidden,
 			body:    `{"error":{"message":"denied"}}`,
@@ -363,9 +179,7 @@ func TestStorageTools(t *testing.T) {
 		},
 		{
 			name:    "non-JSON upstream failure is retained",
-			tool:    "storage-delete",
 			args:    map[string]any{"id": "image"},
-			method:  http.MethodDelete,
 			path:    "/v1/files/image",
 			status:  http.StatusBadGateway,
 			body:    "upstream unavailable",
@@ -374,11 +188,9 @@ func TestStorageTools(t *testing.T) {
 		},
 		{
 			name:   "escaped file ID cannot inject query or fragment",
-			tool:   "storage-delete",
 			args:   map[string]any{"id": "file?x=y#fragment"},
-			method: http.MethodDelete,
 			path:   "/v1/files/file?x=y#fragment",
-			status: http.StatusNoContent,
+			status: http.StatusOK,
 		},
 	}
 
@@ -396,9 +208,7 @@ func TestStorageDownloadImages(t *testing.T) {
 	tests := []storageTestCase{
 		{
 			name:   "complete image keeps ordinary-size payload out of text and structured content",
-			tool:   "storage-download",
 			args:   map[string]any{"id": "image"},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			status: http.StatusOK,
 			body:   strings.Repeat("x", 300<<10),
@@ -407,9 +217,7 @@ func TestStorageDownloadImages(t *testing.T) {
 		},
 		{
 			name:   "complete image with MIME parameters",
-			tool:   "storage-download",
 			args:   map[string]any{"id": "image"},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			status: http.StatusOK,
 			body:   "image bytes",
@@ -418,18 +226,14 @@ func TestStorageDownloadImages(t *testing.T) {
 		},
 		{
 			name:   "empty image retains base64 data without image content",
-			tool:   "storage-download",
 			args:   map[string]any{"id": "image"},
-			method: http.MethodGet,
 			path:   "/v1/files/image",
 			status: http.StatusOK,
 			mime:   "image/png",
 		},
 		{
 			name:    "image error retains base64 data without image content",
-			tool:    "storage-download",
 			args:    map[string]any{"id": "image"},
-			method:  http.MethodGet,
 			path:    "/v1/files/image",
 			status:  http.StatusPreconditionFailed,
 			body:    "image bytes",
@@ -443,100 +247,6 @@ func TestStorageDownloadImages(t *testing.T) {
 			t.Parallel()
 			runStorageCase(t, tt)
 		})
-	}
-}
-
-func checkBatchUpload(t *testing.T, r *http.Request) {
-	t.Helper()
-
-	metadata := storageMetadataArgs()
-
-	checkMultipart(t, r, "file[]", 2)
-
-	if r.FormValue("bucket-id") != "images" {
-		t.Error("bucket not forwarded")
-	}
-
-	values := r.MultipartForm.Value["metadata[]"]
-	if len(values) != 2 {
-		t.Errorf("missing metadata entries: %v", values)
-		return
-	}
-
-	var got map[string]any
-	if err := json.Unmarshal([]byte(values[0]), &got); err != nil {
-		t.Error(err)
-	}
-
-	if diff := cmp.Diff(metadata, got); diff != "" {
-		t.Error(diff)
-	}
-
-	if values[1] != "{}" {
-		t.Errorf("empty metadata not preserved: %q", values[1])
-	}
-}
-
-func checkDefaultUpload(t *testing.T, r *http.Request) {
-	t.Helper()
-	checkMultipart(t, r, "file[]", 1)
-
-	if _, ok := r.MultipartForm.Value["bucket-id"]; ok {
-		t.Error("default bucket must be left to storage")
-	}
-
-	if _, ok := r.MultipartForm.Value["metadata[]"]; ok {
-		t.Error("metadata should be omitted")
-	}
-}
-
-func checkEmptyUpload(t *testing.T, r *http.Request) {
-	t.Helper()
-
-	if err := r.ParseMultipartForm(1 << 20); err != nil {
-		t.Error(err)
-		return
-	}
-
-	defer func() {
-		if err := r.MultipartForm.RemoveAll(); err != nil {
-			t.Error(err)
-		}
-	}()
-
-	files := r.MultipartForm.File["file[]"]
-	if len(files) != 1 || files[0].Size != 0 ||
-		files[0].Header.Get("Content-Type") != "application/octet-stream" {
-		t.Errorf("incorrect empty-file upload: %+v", files)
-	}
-}
-
-func checkReplacement(t *testing.T, r *http.Request) {
-	t.Helper()
-	checkMultipart(t, r, "file", 1)
-
-	if got := r.FormValue(
-		"metadata",
-	); got != `{"name":"replacement.png","metadata":{"alt":"New"}}` {
-		t.Errorf("replacement metadata mismatch: %s", got)
-	}
-}
-
-func checkEmptyReplacement(t *testing.T, r *http.Request) {
-	t.Helper()
-	checkMultipart(t, r, "file", 1)
-
-	if got := r.FormValue("metadata"); got != `{"metadata":{}}` {
-		t.Errorf("explicit empty metadata lost: %s", got)
-	}
-}
-
-func checkReplacementWithoutMetadata(t *testing.T, r *http.Request) {
-	t.Helper()
-	checkMultipart(t, r, "file", 1)
-
-	if _, ok := r.MultipartForm.Value["metadata"]; ok {
-		t.Error("metadata should be omitted")
 	}
 }
 
@@ -562,7 +272,7 @@ func runStorageCase(t *testing.T, tt storageTestCase) {
 
 	srv := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != tt.method || r.URL.Path != tt.path ||
+			if r.Method != http.MethodGet || r.URL.Path != tt.path ||
 				r.Header.Get("Authorization") != "Bearer storage-user" {
 				t.Errorf(
 					"unexpected request: %s %s auth=%q",
@@ -594,7 +304,7 @@ func runStorageCase(t *testing.T, tt storageTestCase) {
 	)
 	t.Cleanup(srv.Close)
 
-	result := callStorageTool(t, storageClient(t, srv.URL+"/v1/"), tt.tool, tt.args)
+	result := callStorageTool(t, storageClient(t, srv.URL+"/v1/"), tt.args)
 	if result.IsError != tt.isError {
 		t.Fatalf("IsError=%v, want %v: %+v", result.IsError, tt.isError, result)
 	}
@@ -625,30 +335,37 @@ func checkStorageResult(t *testing.T, result *mcp.CallToolResult, tt storageTest
 		t.Errorf("missing response details: %s", data)
 	}
 
-	if tt.tool == "storage-download" {
-		checkStorageDownload(t, response.Data, response.Headers, tt)
-	}
+	checkStorageDownload(t, response.Data, response.Headers, tt)
 
 	if tt.image && len(response.Body) != 0 {
 		t.Error("complete image must omit body from structured content")
 	}
 
-	if json.Valid([]byte(tt.body)) {
-		var wantBody, gotBody any
-		if err := json.Unmarshal([]byte(tt.body), &wantBody); err != nil {
-			t.Fatal(err)
-		}
-
-		if err := json.Unmarshal(response.Body, &gotBody); err != nil {
-			t.Fatal(err)
-		}
-
-		if diff := cmp.Diff(wantBody, gotBody); diff != "" {
-			t.Error(diff)
-		}
+	if tt.isError && tt.body != "" {
+		checkStorageErrorBody(t, tt.body, response.Body)
 	}
 
 	checkStorageImage(t, result, tt)
+}
+
+func checkStorageErrorBody(t *testing.T, want string, body json.RawMessage) {
+	t.Helper()
+
+	var wantBody any = want
+	if json.Valid([]byte(want)) {
+		if err := json.Unmarshal([]byte(want), &wantBody); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	var gotBody any
+	if err := json.Unmarshal(body, &gotBody); err != nil {
+		t.Fatal(err)
+	}
+
+	if diff := cmp.Diff(wantBody, gotBody); diff != "" {
+		t.Error(diff)
+	}
 }
 
 func checkStorageDownload(t *testing.T, data *string, headers http.Header, tt storageTestCase) {
@@ -792,97 +509,38 @@ func TestStorageToolSchemas(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := []struct {
-		name        string
-		properties  []string
-		required    []string
-		readOnly    bool
-		destructive bool
-		idempotent  bool
-	}{
-		{
-			"storage-upload",
-			[]string{"files", "bucketId", "metadata"},
-			[]string{"files"},
-			false,
-			false,
-			false,
-		},
-		{
-			"storage-update",
-			[]string{"id", "file", "metadata"},
-			[]string{"id", "file"},
-			false,
-			true,
-			false,
-		},
-		{
-			"storage-download",
-			[]string{
-				"id",
-				"q",
-				"h",
-				"w",
-				"b",
-				"f",
-				"accept",
-				"range",
-				"ifMatch",
-				"ifNoneMatch",
-				"ifModifiedSince",
-				"ifUnmodifiedSince",
-			},
-			[]string{"id"},
-			true,
-			false,
-			true,
-		},
-		{"storage-delete", []string{"id"}, []string{"id"}, false, true, true},
+	if len(result.Tools) != 1 || result.Tools[0].Name != "storage-download" {
+		t.Fatalf("expected only storage-download, got %+v", result.Tools)
 	}
 
-	if len(result.Tools) != len(tests) {
-		t.Fatalf("got %d tools, want %d", len(result.Tools), len(tests))
+	tool := result.Tools[0]
+	if tool.Description == "" || tool.Annotations.Title == "" {
+		t.Error("missing description or title")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	wantAnnotations := mcp.ToolAnnotation{
+		Title:           tool.Annotations.Title,
+		ReadOnlyHint:    new(true),
+		DestructiveHint: new(false),
+		IdempotentHint:  new(true),
+		OpenWorldHint:   new(true),
+	}
+	if diff := cmp.Diff(wantAnnotations, tool.Annotations); diff != "" {
+		t.Error(diff)
+	}
 
-			index := slices.IndexFunc(
-				result.Tools,
-				func(tool mcp.Tool) bool { return tool.Name == tt.name },
-			)
-			if index == -1 {
-				t.Fatal("tool not registered")
-			}
+	properties := []string{
+		"accept", "b", "f", "h", "id", "ifMatch", "ifModifiedSince", "ifNoneMatch",
+		"ifUnmodifiedSince", "q", "range", "w",
+	}
 
-			tool := result.Tools[index]
-			if tool.Description == "" || tool.Annotations.Title == "" {
-				t.Error("missing description or title")
-			}
+	got := slices.Sorted(maps.Keys(tool.InputSchema.Properties))
+	if diff := cmp.Diff(properties, got); diff != "" {
+		t.Errorf("schema properties mismatch (-want +got):\n%s", diff)
+	}
 
-			wantAnnotations := mcp.ToolAnnotation{
-				Title:           tool.Annotations.Title,
-				ReadOnlyHint:    new(tt.readOnly),
-				DestructiveHint: new(tt.destructive),
-				IdempotentHint:  new(tt.idempotent),
-				OpenWorldHint:   new(true),
-			}
-			if diff := cmp.Diff(wantAnnotations, tool.Annotations); diff != "" {
-				t.Error(diff)
-			}
-
-			if len(tool.InputSchema.Properties) != len(tt.properties) ||
-				!reflect.DeepEqual(tool.InputSchema.Required, tt.required) {
-				t.Errorf("unexpected schema: %+v", tool.InputSchema)
-			}
-
-			for _, property := range tt.properties {
-				if _, ok := tool.InputSchema.Properties[property]; !ok {
-					t.Errorf("missing parameter %q", property)
-				}
-			}
-		})
+	if !slices.Equal(tool.InputSchema.Required, []string{"id"}) {
+		t.Errorf("unexpected required input fields: %v", tool.InputSchema.Required)
 	}
 }
 
@@ -896,37 +554,34 @@ func TestStorageInputSchemaKeywords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	schemas := make(map[string]mcp.ToolInputSchema, len(result.Tools))
-	for _, tool := range result.Tools {
-		schemas[tool.Name] = tool.InputSchema
+	if len(result.Tools) != 1 || result.Tools[0].Name != "storage-download" {
+		t.Fatalf("expected only storage-download, got %+v", result.Tools)
 	}
 
+	schema := result.Tools[0].InputSchema
+
 	tests := []struct {
-		tool     string
 		property string
 		keyword  string
 		want     any
 	}{
-		{"storage-upload", "files", "minItems", float64(1)},
-		{"storage-download", "q", "minimum", float64(1)},
-		{"storage-download", "q", "maximum", float64(100)},
-		{"storage-download", "h", "minimum", float64(1)},
-		{"storage-download", "w", "minimum", float64(1)},
-		{"storage-download", "b", "minimum", float64(0)},
+		{"q", "minimum", float64(1)},
+		{"q", "maximum", float64(100)},
+		{"h", "minimum", float64(1)},
+		{"w", "minimum", float64(1)},
+		{"b", "minimum", float64(0)},
 		{
-			"storage-download",
 			"f",
 			"enum",
 			[]any{"auto", "same", "jpeg", "webp", "png", "avif", "heic"},
 		},
-		{"storage-update", "file", "description", "Replacement file; its name is used by default"},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.tool+"/"+tt.property+"/"+tt.keyword, func(t *testing.T) {
+		t.Run(tt.property+"/"+tt.keyword, func(t *testing.T) {
 			t.Parallel()
 
-			prop, ok := schemas[tt.tool].Properties[tt.property].(map[string]any)
+			prop, ok := schema.Properties[tt.property].(map[string]any)
 			if !ok {
 				t.Fatal("missing property schema")
 			}
@@ -943,45 +598,13 @@ func TestStorageInvalidInputs(t *testing.T) {
 
 	tests := []struct {
 		name string
-		tool string
-		args map[string]any
+		id   string
 	}{
-		{"no files", "storage-upload", map[string]any{"files": []any{}}},
-		{
-			"metadata count",
-			"storage-upload",
-			map[string]any{
-				"files":    []any{storageFileArgs(), storageFileArgs()},
-				"metadata": []any{map[string]any{}},
-			},
-		},
-		{
-			"bad base64",
-			"storage-upload",
-			map[string]any{"files": []any{map[string]any{"name": "a.png", "data": "%%%"}}},
-		},
-		{
-			"missing name",
-			"storage-update",
-			map[string]any{"id": "id", "file": map[string]any{"data": ""}},
-		},
-		{
-			"bad MIME type",
-			"storage-update",
-			map[string]any{
-				"id": "id",
-				"file": map[string]any{
-					"name":        "a.png",
-					"data":        "",
-					"contentType": "image/png\r\nInjected: true",
-				},
-			},
-		},
-		{"empty id", "storage-download", map[string]any{"id": ""}},
-		{"path traversal", "storage-delete", map[string]any{"id": "../other"}},
-		{"dot path", "storage-delete", map[string]any{"id": ".."}},
-		{"slash", "storage-update", map[string]any{"id": "a/b", "file": storageFileArgs()}},
-		{"backslash", "storage-download", map[string]any{"id": `a\b`}},
+		{"empty id", ""},
+		{"path traversal", "../other"},
+		{"dot path", ".."},
+		{"slash", "a/b"},
+		{"backslash", `a\b`},
 	}
 
 	for _, tt := range tests {
@@ -995,7 +618,7 @@ func TestStorageInvalidInputs(t *testing.T) {
 			)
 			t.Cleanup(srv.Close)
 
-			result := callStorageTool(t, storageClient(t, srv.URL), tt.tool, tt.args)
+			result := callStorageTool(t, storageClient(t, srv.URL), map[string]any{"id": tt.id})
 			if !result.IsError {
 				t.Errorf("expected error for invalid input: %+v", result)
 			}
@@ -1019,7 +642,6 @@ func TestStorageDoesNotFollowRedirects(t *testing.T) {
 	result := callStorageTool(
 		t,
 		storageClient(t, origin.URL),
-		"storage-delete",
 		map[string]any{"id": "id"},
 	)
 	if !result.IsError {
@@ -1041,7 +663,7 @@ func TestStorageWithoutAuthorization(t *testing.T) {
 
 	c := storageClient(t, srv.URL)
 	req := mcp.CallToolRequest{}
-	req.Params.Name = "storage-delete"
+	req.Params.Name = "storage-download"
 	req.Params.Arguments = map[string]any{"id": "id"}
 
 	if result, err := c.CallTool(t.Context(), req); err != nil || result.IsError {
@@ -1125,7 +747,6 @@ func TestStorageTruncatedResponse(t *testing.T) {
 	result := callStorageTool(
 		t,
 		storageClient(t, srv.URL),
-		"storage-download",
 		map[string]any{"id": "id"},
 	)
 	if !result.IsError ||
@@ -1143,7 +764,6 @@ func TestStorageTransportFailure(t *testing.T) {
 	result := callStorageTool(
 		t,
 		storageClient(t, srv.URL),
-		"storage-download",
 		map[string]any{"id": "id"},
 	)
 	if !result.IsError || !strings.Contains(fmt.Sprint(result.Content), "calling storage service") {

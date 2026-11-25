@@ -47,17 +47,12 @@
         },
         {
           "name": "MCP_STORAGE_URL",
-          "description": "Storage URL for the same Nhost project, including /v1; enables file/image upload, download, replacement and deletion tools",
+          "description": "Storage URL for the same Nhost project, including /v1; enables the read-only storage-download tool",
           "isRequired": false
         },
         {
           "name": "MCP_STORAGE_MAX_TRANSFER_BYTES",
-          "description": "Maximum decoded storage upload batch or storage response size in bytes; default 50000000 (50 MB)",
-          "isRequired": false
-        },
-        {
-          "name": "MCP_STORAGE_MAX_REQUEST_BYTES",
-          "description": "Maximum MCP POST body in bytes when storage is enabled, including base64 and metadata; default 70000000 (70 MB)",
+          "description": "Maximum storage download response size in bytes; default 50000000 (50 MB)",
           "isRequired": false
         },
         {

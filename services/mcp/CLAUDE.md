@@ -2,9 +2,9 @@
 
 **Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
 
-**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only MCP-specific patterns (tool annotations, OAuth2/PKCE auth flow, JWT forwarding to upstream services, storage tools, query allowlists) are documented below.
+**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only MCP-specific patterns (tool annotations, OAuth2/PKCE auth flow, JWT forwarding to upstream services, storage downloads, query allowlists) are documented below.
 
-This document contains patterns, conventions, and workflows for implementing new tools and features in the Nhost MCP service. The service exposes a Hasura GraphQL endpoint and optional Nhost storage service as an MCP (Model Context Protocol) server, allowing AI assistants to query/mutate data and manage files.
+This document contains patterns, conventions, and workflows for implementing new tools and features in the Nhost MCP service. The service exposes a Hasura GraphQL endpoint and optional Nhost storage service as an MCP (Model Context Protocol) server, allowing AI assistants to query/mutate data and download files.
 
 ## Core Principles
 
@@ -29,13 +29,10 @@ services/mcp/
 │   ├── schema.go                    # Schema introspection and summarization tool
 │   ├── query_internal_test.go       # GraphQL tool handler tests
 │   ├── storage.go                   # Storage registration, authenticated HTTP transport and responses
-│   ├── storage_upload.go            # Upload/replacement schemas, limits and handlers
-│   ├── storage_multipart.go         # Validated lazy multipart/base64 streams
 │   ├── storage_download.go          # Download transformations, conditions and ranges
 │   ├── storage_test.go              # In-process MCP and HTTP storage contract tests
 │   ├── storage_limits*_test.go      # Transfer-budget and bounded-read tests
-│   ├── storage_streaming_test.go    # Large configurable transfers and upload preflight
-│   └── storage_multipart_internal_test.go # Multipart encoding and allocation benchmarks
+│   └── storage_streaming_test.go    # Large download behavior
 ├── project.nix                      # Nix build configuration
 └── Makefile                         # Standard shared Makefile targets
 ```
@@ -120,19 +117,16 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 
 **Role enforcement**: The `--enforce-role` flag checks that the JWT's `x-hasura-default-role` Hasura claim matches the specified role. When set, requests whose token carries a different default role receive a 403 Forbidden response. OAuth2 scopes (`openid`, `graphql`) are always advertised in the well-known endpoints.
 
-## Storage Tools
+## Storage Downloads
 
-- `--storage-url` / `MCP_STORAGE_URL` explicitly configures the storage API URL for the same backend, including its API prefix (normally `/v1`). Without it, no storage tools are registered. Do not infer service URLs from arbitrary GraphQL hosts.
-- `tools.RegisterStorage` registers `storage-upload`, `storage-download`, `storage-update`, and `storage-delete`. Keep parity with POST `/files` and GET/PUT/DELETE `/files/{id}` in `services/storage/controller/openapi.yaml`.
-- Use plain descriptions in `jsonschema` struct tags; mcp-go's reflector rejects `description=`, `minimum=`, and `minItems=` tags. Derive constrained upload/download schemas from their request structs, then set validation keywords on the generated properties.
-- Forward the caller's Authorization header via the same context/interceptor as GraphQL. Never add admin secrets, accept arbitrary request URLs/headers, or follow upstream redirects.
-- Transfer bytes as base64; do not read server-local paths or fetch user-provided source URLs. Upload/update use real multipart field names (`file[]`/`metadata[]`/`bucket-id`, or `file`/`metadata`). Preserve metadata ordering and explicit empty custom metadata objects.
-- `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` sets the decoded upload batch and upstream response budget (default 50,000,000 bytes). `--storage-max-request-bytes` / `MCP_STORAGE_MAX_REQUEST_BYTES` sets the MCP POST body budget (default 70,000,000 bytes). Both must be positive and less than MaxInt64. Keep flags, environment variables, registry metadata, public docs and tool descriptions synchronized; descriptions/errors must show the configured budget, not a hard-coded value.
-- `RegisterStorage` receives the transfer budget. Check Content-Length before reading and use `io.LimitReader` for unknown or incorrect lengths. Successful downloads encode directly into a base64 builder rather than retaining raw-file bytes. Oversized responses retain upstream status/headers, without truncated data; direct download callers to ranges within their configured budget, without transformations.
-- Preflight each upload/update's decoded size and the full batch total before contacting storage; account for base64 padding and CR/LF. Validate all base64 before sending any part, then decode lazily through multipart readers with known Content-Length. Do not buffer decoded files or a complete multipart payload, start producer goroutines, or read local files. Metadata retains its original multipart field semantics and order.
-- mcp-go reads HTTP bodies before typed handlers run. With storage enabled, `server.storageRequestBodyLimit` enforces the configured request budget for all MCP POST calls (including GraphQL and metadata); keep it ahead of MCP parsing. JSON input and final responses are still buffered, so deployments must size memory/concurrency appropriately. The byte budgets are not a total process-memory guarantee.
-- Return status, headers and complete bodies within the configured budget, including partial upload `processedFiles`, conditional 304/412 responses, and partial download bytes. Only full successful nonempty image downloads produce MCP image content; carry their bytes only in that block and omit `data` from the structured response and its JSON text mirror. Other downloads retain base64 `data`. A response-size error after a write does not imply the write failed.
-- The private `httpClient` interface allows `storage_limits_internal_test.go` to inject inline stubs for byte-read accounting; `storage_test.go` uses `httptest` servers to exercise the real transport. `RegisterStorage` owns the timeout and no-redirect policy rather than accepting caller-supplied clients.
+- `--storage-url` / `MCP_STORAGE_URL` explicitly configures the storage API URL for the same backend, including its API prefix (normally `/v1`). Without it, `storage-download` is not registered. Do not infer service URLs from GraphQL hosts.
+- `tools.RegisterStorage` registers only `storage-download`. Keep parity with GET `/files/{id}` in `services/storage/controller/openapi.yaml`.
+- Use plain descriptions in `jsonschema` struct tags. Derive the download schema from its request struct, then set validation keywords on the generated properties.
+- Forward the caller's Authorization header via the same context/interceptor as GraphQL. Do not add admin secrets, accept arbitrary request URLs or headers, or follow upstream redirects.
+- `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` limits upstream response bodies (default 50,000,000 bytes). It must be positive and less than MaxInt64. Keep flags, registry metadata, docs and tool descriptions in sync; descriptions and errors must show the configured budget.
+- Check Content-Length before reading and use `io.LimitReader` for unknown or incorrect lengths. Successful downloads encode directly into a base64 builder, but MCP responses are still buffered. Oversize errors retain upstream status and headers without truncated data; advise callers to retry with ranges and omit transformations.
+- Preserve status and headers for successful, conditional, partial, and error responses. Only complete, successful, nonempty images carry bytes in MCP image content; omit `data` from their structured response and JSON text summary. Other downloads retain base64 `data`.
+- The private `httpClient` interface supports inline stubs for byte-read accounting in `storage_limits_internal_test.go`. `storage_test.go` exercises the real transport with `httptest`. `RegisterStorage` owns the timeout and no-redirect policy.
 
 ## GraphQL Query Validation
 

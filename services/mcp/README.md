@@ -12,12 +12,7 @@ The MCP server sits between your AI assistant and your Nhost project's services.
 - **`graphql-query`** - Executes read-only GraphQL queries against your project.
 - **`graphql-mutation`** - Executes GraphQL mutations to create, update, or delete data.
 
-When `--storage-url` / `MCP_STORAGE_URL` is configured, it also provides four storage tools:
-
-- **`storage-upload`** - Uploads one or more files or images, with bucket selection and optional per-file IDs, names, and custom metadata.
-- **`storage-download`** - Downloads files or images, including image transformations, conditional requests, and byte ranges.
-- **`storage-update`** - Replaces file content while preserving its ID. The replacement filename becomes the stored name unless overridden.
-- **`storage-delete`** - Permanently deletes a file and its metadata.
+When `--storage-url` / `MCP_STORAGE_URL` is configured, it also provides the read-only **`storage-download`** tool for files and images, including image transformations, conditional requests, and byte ranges.
 
 On startup, the server fetches a schema summary from your GraphQL endpoint and includes it in the MCP instructions, giving the AI assistant immediate context about your data model without any additional configuration.
 
@@ -59,9 +54,8 @@ All flags can be set via environment variables.
 | `--debug` | `MCP_DEBUG` | Enable debug logging |
 | `--log-format-text` | `MCP_LOG_FORMAT_TEXT` | Format logs in plain text instead of JSON |
 | `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | GraphQL endpoint URL (**required**) |
-| `--storage-url` | `MCP_STORAGE_URL` | Storage service URL including API prefix, e.g. `https://SUBDOMAIN.storage.REGION.nhost.run/v1`; enables storage tools when set |
-| `--storage-max-transfer-bytes` | `MCP_STORAGE_MAX_TRANSFER_BYTES` | Maximum decoded upload batch or storage response size in bytes (default: `50000000`, 50 MB) |
-| `--storage-max-request-bytes` | `MCP_STORAGE_MAX_REQUEST_BYTES` | Maximum MCP POST body when storage is enabled, including base64 and metadata (default: `70000000`, 70 MB) |
+| `--storage-url` | `MCP_STORAGE_URL` | Storage service URL including API prefix, e.g. `https://SUBDOMAIN.storage.REGION.nhost.run/v1`; enables `storage-download` when set |
+| `--storage-max-transfer-bytes` | `MCP_STORAGE_MAX_TRANSFER_BYTES` | Maximum storage download response size in bytes (default: `50000000`, 50 MB) |
 | `--mcp-instructions` | `MCP_INSTRUCTIONS` | Server-level MCP instructions |
 | `--query-instructions` | `MCP_QUERY_INSTRUCTIONS` | Instructions for the graphql-query tool |
 | `--mutation-instructions` | `MCP_MUTATION_INSTRUCTIONS` | Instructions for the graphql-mutation tool |
@@ -75,35 +69,9 @@ All flags can be set via environment variables.
 
 Set `MCP_STORAGE_URL` to the storage service belonging to the **same backend** as your GraphQL and Auth URLs, including its API prefix (normally `/v1`). It is explicitly configured, not inferred from GraphQL, so custom domains and internal service addresses work too. Without this setting, only the three GraphQL tools are registered. Tool arguments cannot override the service URL, authorization, or arbitrary headers; upstream redirects are not followed.
 
-File content is transferred as standard base64 (not a data URL). The MCP server does not read local files or fetch arbitrary source URLs. The default transfer budget is **50 MB (50,000,000 bytes)** per call: it bounds each storage response and the combined decoded upload/update files. This matches storage's default file-size limit, but storage still enforces the selected bucket's own settings and permissions.
+`MCP_STORAGE_MAX_TRANSFER_BYTES` limits each upstream download response, including error bodies, to **50 MB (50,000,000 bytes)** by default. Set it to a positive integer less than `9223372036854775807` to change the limit. Storage still enforces the bucket's settings and the caller's permissions. The MCP server does not read local files or fetch arbitrary source URLs.
 
-Both budgets are deployment settings, not fixed small-file restrictions:
-
-- `MCP_STORAGE_MAX_TRANSFER_BYTES` controls decoded upload batch and upstream response bytes.
-- `MCP_STORAGE_MAX_REQUEST_BYTES` bounds HTTP POST bodies for the entire MCP endpoint, including GraphQL calls, **only when storage is enabled**. Its default is **70 MB (70,000,000 bytes)**, allowing base64 for 50 MB of files plus JSON and metadata. Oversized requests fail before MCP parsing.
-
-Both settings must be positive integers below `9223372036854775807`; zero does not disable protection. To allow 100 MB transfers, for example:
-
-```dotenv
-MCP_STORAGE_MAX_TRANSFER_BYTES=100000000
-MCP_STORAGE_MAX_REQUEST_BYTES=140000000
-```
-
-Choose request headroom for base64 (about 33% larger), JSON, and metadata when raising the transfer budget. Split batches above your configured budget; raise the limits or use storage directly for larger individual uploads/replacements, which do not support chunking. MCP clients, model providers, proxies, and bucket settings may impose smaller limits.
-
-Uploads validate base64 before contacting storage, then decode it lazily into the outgoing multipart stream without retaining decoded files or a complete multipart payload. Successful downloads encode directly into the final base64 buffer, avoiding a separate raw-file buffer. **MCP request parsing and final responses are still buffered**. As a starting memory estimate, allow about 7 times the file bytes per concurrent upload or image download, and about 15 times per concurrent non-image download, plus headroom for baseline memory, JSON, metadata, and other active calls. Measure peak memory with your workload. The budgets are byte-transfer ceilings, not a process-memory guarantee. Use the lower limits in the 256 MiB example below.
-
-### Upload (`POST /files`)
-
-```json
-{
-  "files": [{ "name": "avatar.png", "data": "<base64 bytes>", "contentType": "image/png" }],
-  "bucketId": "default",
-  "metadata": [{ "id": "optional-custom-id", "name": "profile.png", "metadata": { "alt": "Profile picture" } }]
-}
-```
-
-`files` is required. `contentType` is optional; storage detects the actual MIME type from file bytes. Omit `bucketId` to use storage's default bucket. Omit `metadata` entirely, or supply one entry per file in the same order (use `{}` for files without overrides). Each entry supports optional `id`, `name`, and arbitrary JSON `metadata`.
+Successful downloads encode directly into a base64 buffer without retaining a separate raw-file buffer. **MCP responses are still buffered**. As a starting memory estimate, allow about 7 times the file bytes per concurrent image download and about 15 times per concurrent non-image download, plus headroom for baseline memory and other calls. Measure with your workload; the transfer limit is not a process-memory guarantee. Client, model provider, or proxy limits may be smaller.
 
 ### Download (`GET /files/{id}`)
 
@@ -122,25 +90,7 @@ Uploads validate base64 before contacting storage, then decode it lazily into th
 
 Storage enforces its configured transformation limits and supported formats. As with the REST endpoint, ranges are ignored when transformations are requested. Responses include the HTTP status and all response headers, including caching, ETag, last-modified and content-range information. Complete, nonempty image downloads carry their bytes only in MCP image content; the structured response and its JSON text summary omit `data`. Other downloads, including partial and non-image responses and errors, return base64 `data` without image content. A `304` is a successful empty-body result; `412` is an error result with the response details preserved.
 
-Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the upstream `statusCode` and headers (including `Content-Length`, `Accept-Ranges`, and `ETag` when supplied), but no partial `data`. Raise the configured budget or retry with `range`, for example `{ "id": "large-file", "range": "bytes=0-1048575" }`, then request subsequent chunks within the budget and use `Content-Range` to determine the total size. If a transformation exceeds the limit, reduce its output size or omit transformation arguments and download the original in ranges: storage ignores ranges when transformations are requested. All storage response bodies, including upload/update/delete and error bodies, share the configured budget; a local size error after a write does not imply the write failed, so inspect storage state before retrying.
-
-### Update (`PUT /files/{id}`)
-
-```json
-{
-  "id": "existing-file-id",
-  "file": { "name": "new-avatar.png", "data": "<base64 bytes>" },
-  "metadata": { "name": "profile.png", "metadata": { "alt": "Updated picture" } }
-}
-```
-
-`id` and `file` are required, even when changing only the name or custom metadata. The file ID stays the same. The stored name becomes `file.name` unless `metadata.name` is non-empty. To keep the current name, use it as `file.name`. A non-empty `metadata.metadata` object replaces the entire custom metadata object. Omitting it or passing `{}` leaves the current custom metadata unchanged.
-
-### Delete (`DELETE /files/{id}`)
-
-Pass `{ "id": "existing-file-id" }` to permanently delete the file and its metadata.
-
-All four tools return structured `statusCode` and `headers`. Upload/update/delete include the complete storage response in `body` when present. Upstream failures set the MCP error flag without discarding error details or `processedFiles` from partially successful uploads. Batch uploads and replacements are not atomic; inspect failure responses before retrying. No administrative credentials are added: storage enforces the caller's permissions.
+Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the upstream `statusCode` and headers (including `Content-Length`, `Accept-Ranges`, and `ETag` when supplied), but no partial `data`. Raise the configured budget or retry with `range`, for example `{ "id": "large-file", "range": "bytes=0-1048575" }`, then request subsequent chunks within the budget and use `Content-Range` to determine the total size. If a transformation exceeds the limit, reduce its output size or omit transformation arguments and download the original in ranges: storage ignores ranges when transformations are requested.
 
 ## Deploying to Nhost
 
@@ -150,7 +100,7 @@ https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOn
 
 Set `MCP_AUTH_URL` to your project's Auth URL and `MCP_REALM` to your public MCP URL. Adjust `MCP_INSTRUCTIONS` and `MCP_ENFORCE_ROLE` as needed.
 
-Check the [releases](https://github.com/nhost/nhost/releases) page for the most recent version. Both examples pin `nhost/mcp:0.1.0` for GraphQL only; that image does not support storage tools.
+Check the [releases](https://github.com/nhost/nhost/releases) page for the most recent version. Both examples pin `nhost/mcp:0.1.0` for GraphQL only; that image does not support `storage-download`.
 
 Alternatively, add a `run-mcp.toml` to your project directory:
 
@@ -204,17 +154,16 @@ nhost up --run-service run-mcp.toml
 
 ### Enable storage on the example deployment
 
-For either method, replace `nhost/mcp:0.1.0` with a release image that supports `--storage-url`, `--storage-max-transfer-bytes`, and `--storage-max-request-bytes` (check `mcp --help` for that image). Older images ignore these environment variables.
+For either method, replace `nhost/mcp:0.1.0` with a release image that supports `--storage-url` and `--storage-max-transfer-bytes` (check `mcp --help` for that image). Older images ignore these environment variables.
 
-On the 256 MiB example service, set explicit lower limits for one transfer at a time. The server defaults can exhaust that much memory on a single call. Add one `[[environment]]` block per variable in `run-mcp.toml`, or set them in the one-click service configuration:
+On the 256 MiB example service, start with a 10 MB response limit for one download at a time. The 50 MB default can exhaust that much memory on a single call. Add one `[[environment]]` block per variable in `run-mcp.toml`, or set them in the one-click service configuration:
 
 ```dotenv
 MCP_STORAGE_URL=https://SUBDOMAIN.storage.REGION.nhost.run/v1
 MCP_STORAGE_MAX_TRANSFER_BYTES=10000000
-MCP_STORAGE_MAX_REQUEST_BYTES=14000000
 ```
 
-Use your backend's storage URL, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`). Increase memory as needed before raising the limits or allowing concurrent transfers. Leave `MCP_STORAGE_URL` unset to keep storage tools disabled.
+Use your backend's storage URL, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`). Increase memory as needed before raising the limit or allowing concurrent downloads. Grant only Download (`select`) on the files the caller’s role should be able to read. Leave `MCP_STORAGE_URL` unset to keep `storage-download` disabled.
 
 ## Connecting an MCP Client
 

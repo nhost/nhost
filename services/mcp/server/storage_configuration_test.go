@@ -22,42 +22,16 @@ func TestStorageLimitConfiguration(t *testing.T) {
 		name      string
 		flags     []string
 		transfer  int64
-		request   int64
 		wantError bool
 	}{
-		{"defaults allow 50 MB files", nil, 50_000_000, 70_000_000, false},
-		{
-			"lower budgets",
-			[]string{"--storage-max-transfer-bytes=123", "--storage-max-request-bytes=1024"},
-			123,
-			1024,
-			false,
-		},
-		{
-			"higher budgets",
-			[]string{
-				"--storage-max-transfer-bytes=100000000",
-				"--storage-max-request-bytes=150000000",
-			},
-			100_000_000,
-			150_000_000,
-			false,
-		},
-		{"zero transfer", []string{"--storage-max-transfer-bytes=0"}, 0, 70_000_000, true},
-		{"negative transfer", []string{"--storage-max-transfer-bytes=-1"}, -1, 70_000_000, true},
+		{"default 50 MB response limit", nil, 50_000_000, false},
+		{"lower budget", []string{"--storage-max-transfer-bytes=123"}, 123, false},
+		{"higher budget", []string{"--storage-max-transfer-bytes=100000000"}, 100_000_000, false},
+		{"zero transfer", []string{"--storage-max-transfer-bytes=0"}, 0, true},
+		{"negative transfer", []string{"--storage-max-transfer-bytes=-1"}, -1, true},
 		{
 			"overflowing transfer sentinel",
 			[]string{"--storage-max-transfer-bytes=" + strconv.FormatInt(math.MaxInt64, 10)},
-			math.MaxInt64,
-			70_000_000,
-			true,
-		},
-		{"zero request", []string{"--storage-max-request-bytes=0"}, 50_000_000, 0, true},
-		{"negative request", []string{"--storage-max-request-bytes=-1"}, 50_000_000, -1, true},
-		{
-			"overflowing request sentinel",
-			[]string{"--storage-max-request-bytes=" + strconv.FormatInt(math.MaxInt64, 10)},
-			50_000_000,
 			math.MaxInt64,
 			true,
 		},
@@ -69,8 +43,7 @@ func TestStorageLimitConfiguration(t *testing.T) {
 
 			cmd := server.Command("")
 			cmd.Action = func(ctx context.Context, cmd *cli.Command) error {
-				if cmd.Int64(server.FlagStorageMaxTransferBytes) != tt.transfer ||
-					cmd.Int64(server.FlagStorageMaxRequestBytes) != tt.request {
+				if cmd.Int64(server.FlagStorageMaxTransferBytes) != tt.transfer {
 					t.Error("unexpected CLI limit values")
 				}
 
@@ -136,17 +109,19 @@ func checkStorageLimitDescriptions(
 	}
 
 	for _, tool := range result.Tools {
-		if tool.Name == "storage-upload" || tool.Name == "storage-download" ||
-			tool.Name == "storage-update" {
+		if tool.Name == "storage-download" {
 			if !strings.Contains(tool.Description, strconv.FormatInt(limit, 10)+" bytes") {
 				t.Errorf(
-					"%s description does not show configured limit: %s",
-					tool.Name,
+					"storage-download description does not show configured limit: %s",
 					tool.Description,
 				)
 			}
+
+			return nil
 		}
 	}
+
+	t.Error("storage-download is not registered")
 
 	return nil
 }
@@ -155,12 +130,10 @@ func TestStorageLimitEnvironment(
 	t *testing.T,
 ) {
 	t.Setenv("MCP_STORAGE_MAX_TRANSFER_BYTES", "90000000")
-	t.Setenv("MCP_STORAGE_MAX_REQUEST_BYTES", "140000000")
 
 	cmd := server.Command("")
 	cmd.Action = func(_ context.Context, cmd *cli.Command) error {
-		if cmd.Int64(server.FlagStorageMaxTransferBytes) != 90_000_000 ||
-			cmd.Int64(server.FlagStorageMaxRequestBytes) != 140_000_000 {
+		if cmd.Int64(server.FlagStorageMaxTransferBytes) != 90_000_000 {
 			t.Error("storage limits were not loaded from environment")
 		}
 

@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
@@ -39,17 +38,14 @@ var (
 	errStorageURL = errors.New(
 		"storage-url must be an absolute HTTP(S) URL without credentials, query or fragment",
 	)
-	errStorageFileID   = errors.New("id must be a nonempty file ID, not a path")
-	errStorageFilename = errors.New("file name is required")
-	errStorageSize     = errors.New("storage transfer exceeds size limit")
-	errStorageLimit    = errors.New(
+	errStorageFileID = errors.New("id must be a nonempty file ID, not a path")
+	errStorageLimit  = errors.New(
 		"storage transfer limit must be positive and less than MaxInt64",
 	)
 )
 
-// RegisterStorage registers upload, download, update and delete tools for a
-// storage service URL (including its API prefix, normally /v1). maxTransferBytes
-// bounds decoded upload batches and upstream response bodies.
+// RegisterStorage registers the read-only download tool for a storage service URL
+// (including its API prefix, normally /v1). maxTransferBytes bounds upstream response bodies.
 func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBytes int64) error {
 	if maxTransferBytes <= 0 || maxTransferBytes == math.MaxInt64 {
 		return errStorageLimit
@@ -63,11 +59,6 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBy
 	if (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" ||
 		u.User != nil || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
 		return errStorageURL
-	}
-
-	uploadSchema, err := storageUploadInputSchema()
-	if err != nil {
-		return fmt.Errorf("building storage-upload schema: %w", err)
 	}
 
 	downloadSchema, err := storageDownloadInputSchema()
@@ -88,40 +79,9 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBy
 			},
 		},
 	}
-	t.registerUpload(server, uploadSchema)
 	t.registerDownload(server, downloadSchema)
-	t.registerUpdate(server)
-	t.registerDelete(server)
 
 	return nil
-}
-
-func constrainedStorageInputSchema[T any](
-	configure func(map[string]*jsonschema.Schema),
-) (mcp.ToolOption, error) {
-	schema, err := jsonschema.For[T](nil)
-	if err != nil {
-		return nil, fmt.Errorf("deriving schema from request type: %w", err)
-	}
-
-	configure(schema.Properties)
-
-	raw, err := json.Marshal(schema)
-	if err != nil {
-		return nil, fmt.Errorf("encoding input schema: %w", err)
-	}
-
-	return mcp.WithRawInputSchema(raw), nil
-}
-
-func storageAnnotation(title string, readOnly, destructive, idempotent bool) mcp.ToolOption {
-	return mcp.WithToolAnnotation(mcp.ToolAnnotation{
-		Title:           title,
-		ReadOnlyHint:    new(readOnly),
-		DestructiveHint: new(destructive),
-		IdempotentHint:  new(idempotent),
-		OpenWorldHint:   new(true),
-	})
 }
 
 func storageFilePath(id string) (string, error) {
@@ -132,26 +92,20 @@ func storageFilePath(id string) (string, error) {
 	return "/files/" + url.PathEscape(id), nil
 }
 
-func (t *storageTool) call(
+func (t *storageTool) fetchDownload(
 	ctx context.Context,
-	method, path string,
+	path string,
 	query url.Values,
 	headers http.Header,
-	body io.Reader,
-	download bool,
 ) (*mcp.CallToolResult, error) {
 	endpoint := t.endpoint + path
 	if len(query) != 0 {
 		endpoint += "?" + query.Encode()
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("creating storage request", err), nil
-	}
-
-	if multipart, ok := body.(*storageMultipartBody); ok {
-		req.ContentLength = multipart.contentLength
 	}
 
 	if headers != nil {
@@ -169,12 +123,11 @@ func (t *storageTool) call(
 	defer resp.Body.Close()
 
 	if resp.ContentLength > t.maxTransferBytes {
-		return t.storageSizeError(resp, download), nil
+		return t.storageSizeError(resp), nil
 	}
 
-	if download &&
-		((resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices) ||
-			resp.StatusCode == http.StatusNotModified) {
+	if (resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices) ||
+		resp.StatusCode == http.StatusNotModified {
 		return t.downloadResult(resp), nil
 	}
 
@@ -184,24 +137,19 @@ func (t *storageTool) call(
 	}
 
 	if int64(len(data)) > t.maxTransferBytes {
-		return t.storageSizeError(resp, download), nil
+		return t.storageSizeError(resp), nil
 	}
 
-	return storageResult(resp, data, download), nil
+	return storageDownloadError(resp, data), nil
 }
 
-func (t *storageTool) storageSizeError(resp *http.Response, download bool) *mcp.CallToolResult {
+func (t *storageTool) storageSizeError(resp *http.Response) *mcp.CallToolResult {
 	message := fmt.Sprintf(
-		"Storage response exceeds the %d-byte MCP transfer limit.",
-		t.maxTransferBytes,
+		"Storage response exceeds the %d-byte MCP transfer limit. "+
+			"Retry with range (e.g. bytes=0-%d) and download in chunks. "+
+			"Omit transformations, since storage ignores range when transforming images.",
+		t.maxTransferBytes, t.maxTransferBytes-1,
 	)
-	if download {
-		message += fmt.Sprintf(
-			" Retry with range (e.g. bytes=0-%d) and download in chunks. "+
-				"Omit transformations, since storage ignores range when transforming images.",
-			t.maxTransferBytes-1,
-		)
-	}
 
 	result := mcp.NewToolResultStructuredOnly(storageResponse{
 		StatusCode: resp.StatusCode,
@@ -214,21 +162,15 @@ func (t *storageTool) storageSizeError(resp *http.Response, download bool) *mcp.
 	return result
 }
 
-func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToolResult {
+func storageDownloadError(resp *http.Response, data []byte) *mcp.CallToolResult {
 	response := storageResponse{
 		StatusCode: resp.StatusCode,
 		Headers:    resp.Header,
 		Body:       nil,
-		Data:       nil,
-	}
-	isError := (resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices) &&
-		resp.StatusCode != http.StatusNotModified
-
-	if download {
-		response.Data = new(base64.StdEncoding.EncodeToString(data))
+		Data:       new(base64.StdEncoding.EncodeToString(data)),
 	}
 
-	if len(data) != 0 && (!download || isError) {
+	if len(data) != 0 {
 		if json.Valid(data) {
 			response.Body = json.RawMessage(data)
 		} else {
@@ -237,7 +179,7 @@ func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToo
 	}
 
 	result := mcp.NewToolResultStructuredOnly(response)
-	result.IsError = isError
+	result.IsError = true
 
 	return result
 }
@@ -262,7 +204,7 @@ func (t *storageTool) downloadResult(resp *http.Response) *mcp.CallToolResult {
 	}
 
 	if size > t.maxTransferBytes {
-		return t.storageSizeError(resp, true)
+		return t.storageSizeError(resp)
 	}
 
 	response := storageResponse{
@@ -286,31 +228,4 @@ func (t *storageTool) downloadResult(resp *http.Response) *mcp.CallToolResult {
 	}
 
 	return result
-}
-
-type storageIDRequest struct {
-	ID string `json:"id" jsonschema:"ID of the stored file"`
-}
-
-func (t *storageTool) registerDelete(server *mcpserver.MCPServer) {
-	server.AddTool(mcp.NewTool(
-		"storage-delete",
-		mcp.WithDescription(
-			"Permanently delete a file or image and its metadata from the connected storage service "+
-				"(DELETE /files/{id}). Returns the HTTP status and response headers/body.",
-		),
-		storageAnnotation("Delete Storage File", false, true, true),
-		mcp.WithInputSchema[storageIDRequest](),
-	), mcp.NewTypedToolHandler(t.handleDelete))
-}
-
-func (t *storageTool) handleDelete(
-	ctx context.Context, _ mcp.CallToolRequest, args storageIDRequest,
-) (*mcp.CallToolResult, error) {
-	path, err := storageFilePath(args.ID)
-	if err != nil {
-		return mcp.NewToolResultErrorFromErr("invalid file ID", err), nil
-	}
-
-	return t.call(ctx, http.MethodDelete, path, nil, nil, nil, false)
 }

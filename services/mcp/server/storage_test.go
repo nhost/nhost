@@ -100,10 +100,7 @@ func checkServerStorageTools(ctx context.Context, t *testing.T, s *mcpserver.MCP
 		"get-schema",
 		"graphql-mutation",
 		"graphql-query",
-		"storage-delete",
 		"storage-download",
-		"storage-update",
-		"storage-upload",
 	}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
