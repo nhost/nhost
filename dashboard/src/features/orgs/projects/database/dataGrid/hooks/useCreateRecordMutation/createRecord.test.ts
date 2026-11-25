@@ -129,4 +129,59 @@ describe('createRecord', () => {
       }),
     ).rejects.toThrow();
   });
+
+  describe('PostGIS columns', () => {
+    const point = '{"type":"Point","coordinates":[1,2]}';
+
+    test('inserts GeoJSON into a geometry column through ST_GeomFromGeoJSON', async () => {
+      await createRecord({
+        ...defaultOptions,
+        columnValues: {
+          location: { value: point, spatialType: 'geometry' },
+        },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain(`VALUES (ST_GeomFromGeoJSON('${point}'))`);
+    });
+
+    test('casts GeoJSON for a geography column', async () => {
+      await createRecord({
+        ...defaultOptions,
+        columnValues: {
+          location: { value: point, spatialType: 'geography' },
+        },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain(
+        `VALUES (ST_GeomFromGeoJSON('${point}')::geography)`,
+      );
+    });
+
+    test('inserts WKT into a spatial column as a plain literal', async () => {
+      await createRecord({
+        ...defaultOptions,
+        columnValues: {
+          location: { value: 'SRID=4326;POINT(1 2)', spatialType: 'geography' },
+        },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain("VALUES ('SRID=4326;POINT(1 2)')");
+      expect(sql).not.toContain('ST_GeomFromGeoJSON');
+    });
+
+    test('keeps the DEFAULT fallback for spatial columns', async () => {
+      await createRecord({
+        ...defaultOptions,
+        columnValues: {
+          location: { fallbackValue: 'DEFAULT', spatialType: 'geometry' },
+        },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain('VALUES (DEFAULT)');
+    });
+  });
 });
