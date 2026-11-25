@@ -147,7 +147,11 @@ curl -X DELETE \
 </Tabs>
 
 :::caution
-Deletion is permanent. Always use the Storage API to delete files -- deleting metadata directly through GraphQL leaves orphaned files in S3.
+Deletion is permanent. Use the Storage API (`DELETE /v1/files/{id}` or `nhost.storage.deleteFile`) to remove file content immediately and purge the CDN.
+
+Deleting `storage.files` rows through GraphQL, SQL, or a bucket cascade also queues the S3 content for automatic deletion. Storage checks the queue every 24 hours and deletes content after at least 24 hours, typically within 48 hours. If metadata with the same file ID exists when cleanup checks, the content is not deleted. Background cleanup does not purge the CDN.
+
+Automatic cleanup does not cover `TRUNCATE`, or deletions with the trigger disabled. Use the admin operations `/ops/list-orphans` and `/ops/delete-orphans` for those cases.
 :::
 
 ## Listing Files via GraphQL

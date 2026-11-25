@@ -206,6 +206,7 @@ function RelationshipForm({
             name="name"
             label="Relationship Name"
             placeholder="Name..."
+            autoFocus
             autoComplete="off"
           />
 

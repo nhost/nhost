@@ -17,12 +17,14 @@
 // call into permissions.Store for the permission-specific bits.
 //
 // Runtime model: session-variable resolution is two-phase. Initialize stores
-// the raw "x-hasura-*" marker strings inside each where.Clause; substitution
-// against the request's session variables happens later, inside the Write*
-// methods, after clause.WriteCondition has populated the SQL params slice.
+// "x-hasura-*" markers inside each where.Clause; substitution against request
+// session variables happens later, inside the Write* methods, after typed SQL
+// rendering. Only the permission-owned parameter range is substituted. Encoded
+// JSONB markers retain their SQL type so session wire JSON is not double-encoded.
 package permissions
 
 import (
+	stdjson "encoding/json"
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
@@ -60,6 +62,7 @@ var (
 	)
 	errExpectedWhereMapInExistsOp = errors.New("expected _where map in _exists operator")
 	errTableNotFoundForExistsOp   = errors.New("table not found for _exists operator")
+	errInvalidSessionJSON         = errors.New("session variable is not valid serialized JSON")
 )
 
 //go:generate mockgen -package mock -destination mock/permissions.go . Table,Relationship
@@ -740,9 +743,13 @@ func normalizePresets(presets map[string]any) map[string]any {
 // literals mixed with session-var markers are not dropped.
 //
 // Returns ErrSessionVariableNotFound (wrapped) when the variable name is not
-// present in sessionVariables.
+// present in sessionVariables. Encoded JSONB string parameters follow the same
+// lookup, but string session values are validated as serialized JSON wire data.
+// Only permission/preset values may be passed here, never user parameters.
 func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, error) {
 	switch v := v.(type) {
+	case stdjson.RawMessage:
+		return substituteJSONSessionVariable(v, sessionVariables)
 	case string:
 		if strings.HasPrefix(strings.ToLower(v), "x-hasura-") {
 			if val, found := sessionVariables[v]; found {
@@ -789,6 +796,41 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 	}
 
 	return v, nil
+}
+
+// JSONB string parameters have already been encoded by CoerceSQLValue. Only
+// permission-owned parameters and presets reach substitution, so decoding the
+// marker here never reinterprets user x-hasura-* data. Session strings, unlike
+// user strings, are serialized JSON from headers/claims; mark them as wire data
+// rather than applying user-string encoding again. Structured session values and
+// multiplexed SessionVarValue markers retain their representation.
+func substituteJSONSessionVariable(
+	encoded stdjson.RawMessage, sessionVariables map[string]any,
+) (any, error) {
+	var decoded any
+	if err := stdjson.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("decoding JSONB permission parameter: %w", err)
+	}
+
+	marker, ok := decoded.(string)
+	if !ok || !strings.HasPrefix(strings.ToLower(marker), "x-hasura-") {
+		return encoded, nil
+	}
+
+	resolved, err := SubstituteSessionVariable(marker, sessionVariables)
+	if err != nil {
+		return nil, err
+	}
+
+	if wire, ok := resolved.(string); ok {
+		if !stdjson.Valid([]byte(wire)) {
+			return nil, fmt.Errorf("%w: %s", errInvalidSessionJSON, marker)
+		}
+
+		return stdjson.RawMessage(wire), nil
+	}
+
+	return resolved, nil
 }
 
 func substituteFunctionSessionArgument(

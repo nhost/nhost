@@ -266,6 +266,7 @@ html.dark .graphiql-themed .graphiql-container {
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: var(--background);
@@ -284,6 +285,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
     --warning: 32 100% 57%;
+    --success: 149 70% 30%;
     /* Readable warning text on light tinted backgrounds (plan tags). */
     --warning-foreground: 32.13 94.62% 34%;
     /* Team plan tag color. */
@@ -363,6 +365,7 @@ html.dark .graphiql-themed .graphiql-container {
   }
 
   .dark {
+    color-scheme: dark;
     --background: 210 5.71% 11%;
     --foreground: 220 7% 91.6%;
     --card: var(--background);
@@ -382,6 +385,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
     --warning: 32 100% 57%;
+    --success: 149 55% 60%;
     --warning-foreground: 45.94 96.69% 64.51%;
     --brand-violet: 252.5 94.74% 85.1%;
     --sidebar-foreground: 220 6.98% 91.57%;

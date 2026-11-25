@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -25,6 +26,8 @@ func NewTypedToolHandler[T any](handler TypedToolHandlerFunc[T]) func(ctx contex
 // NewStructuredToolHandler creates a ToolHandlerFunc that automatically binds arguments to a typed struct
 // and returns structured output. It automatically creates both structured and
 // text content (from the structured output) for backwards compatibility.
+// URLElicitationRequiredError is returned to the server for protocol handling;
+// other execution errors are reported as tool error results.
 func NewStructuredToolHandler[TArgs any, TResult any](handler StructuredToolHandlerFunc[TArgs, TResult]) func(ctx context.Context, request CallToolRequest) (*CallToolResult, error) {
 	return func(ctx context.Context, request CallToolRequest) (*CallToolResult, error) {
 		var args TArgs
@@ -34,6 +37,11 @@ func NewStructuredToolHandler[TArgs any, TResult any](handler StructuredToolHand
 
 		result, err := handler(ctx, request, args)
 		if err != nil {
+			var required URLElicitationRequiredError
+			var pointer *URLElicitationRequiredError
+			if errors.As(err, &required) || (errors.As(err, &pointer) && pointer != nil) {
+				return nil, err
+			}
 			return NewToolResultError(fmt.Sprintf("tool execution failed: %v", err)), nil
 		}
 

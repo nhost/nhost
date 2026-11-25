@@ -147,7 +147,6 @@ export default function DatabaseAllowedCIDRs() {
                   type="button"
                   variant="subtle"
                   size="sm"
-                  className="h-10"
                   onClick={() => remove(index)}
                 >
                   <Trash className="size-4" />

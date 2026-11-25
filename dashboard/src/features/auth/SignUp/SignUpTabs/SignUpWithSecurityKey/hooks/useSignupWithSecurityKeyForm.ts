@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 
 const validationSchema = z
   .object({
@@ -18,7 +19,9 @@ const validationSchema = z
       .max(32, { message: 'Name must be 32 characters or less' }),
     turnstileToken: z
       .string()
-      .min(1, { message: 'Please complete the CAPTCHA' }),
+      .refine((token) => !isTurnstileEnabled() || token.length > 0, {
+        message: 'Please complete the CAPTCHA',
+      }),
   })
   .required();
 

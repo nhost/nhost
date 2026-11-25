@@ -461,6 +461,20 @@ func (mr *MockDialectMockRecorder) SupportsVarianceAggregates() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsVarianceAggregates", reflect.TypeOf((*MockDialect)(nil).SupportsVarianceAggregates))
 }
 
+// SupportsZeroColumnSelect mocks base method.
+func (m *MockDialect) SupportsZeroColumnSelect() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsZeroColumnSelect")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsZeroColumnSelect indicates an expected call of SupportsZeroColumnSelect.
+func (mr *MockDialectMockRecorder) SupportsZeroColumnSelect() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsZeroColumnSelect", reflect.TypeOf((*MockDialect)(nil).SupportsZeroColumnSelect))
+}
+
 // TableRef mocks base method.
 func (m *MockDialect) TableRef(schema, table string) string {
 	m.ctrl.T.Helper()

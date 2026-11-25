@@ -122,6 +122,10 @@ type InputObjectType struct {
 	// provenance, not a GraphQL field, and survives schema customization so
 	// the composer can prune it without removing a tracked function's input.
 	ComputedArgument bool
+	// EmptySQLInsert marks a SQL-generated insert input with no client-writable
+	// fields. Only these inputs may bypass GraphQL's non-empty input rule for
+	// Hasura compatibility. This provenance is not emitted in ToAST.
+	EmptySQLInsert bool
 }
 
 // InputField represents a field on an input object.

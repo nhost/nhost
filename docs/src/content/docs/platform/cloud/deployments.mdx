@@ -7,7 +7,7 @@ head:
     content: "Automate Deployments with Git Push Integration | Nhost Docs"
 ---
 
-By connecting your Nhost project to GitHub, you can deploy your database migrations, GraphQL metadata, Run services, and [serverless functions](/products/functions) — either automatically on every push or manually via the CLI or GitHub Actions.
+By connecting your Nhost project to GitHub, you can deploy your database migrations, GraphQL metadata, Run services, and [serverless functions](/products/functions) — either automatically on every push or manually from the dashboard, the CLI or GitHub Actions.
 
 ## Getting Started
 
@@ -35,7 +35,7 @@ After authorizing the GitHub integration, you'll need to tell Nhost a couple of 
 When connecting your repository you can choose between **automatic** and **manual** deployments:
 
 - **Automatic deploys** — every push to the deployment branch triggers a deployment automatically. This is the default.
-- **Manual deploys** — deployments are only triggered when you explicitly request them via the CLI or a GitHub Action. This gives you full control over when changes go live.
+- **Manual deploys** — deployments are only triggered when you explicitly request them from the dashboard, the CLI or a GitHub Action. This gives you full control over when changes go live.
 
 You can change this setting at any time under **Deployments** → **Settings**.
 
@@ -65,16 +65,28 @@ You can head to your project's deployment tab to see your deployments and their 
 
 ## Manual Deployments
 
-If you have automatic deploys disabled — or simply want to trigger a deployment on demand — you can use the Nhost CLI or a GitHub Action.
+If you have automatic deploys disabled — or simply want to trigger a deployment on demand — you can use the dashboard, the Nhost CLI or a GitHub Action.
+
+### Using the Dashboard
+
+1. Go to your project's **Deployments** page
+2. Click **New deployment**
+3. Enter a branch, tag or full commit SHA and a commit message, then click **Deploy**
+
+The deployment is made in your name. Short commit SHAs don't work; to copy a full SHA, use the copy button next to it in the deployments list.
+
+:::caution
+The deployed ref's metadata, settings and functions replace the current ones. Database migrations are not rolled back.
+:::
 
 ### Using the CLI
 
-Use the `nhost deployments new` command to create a deployment for a specific git ref:
+Use the `nhost deployments new` command to create a deployment for a branch, tag or full commit SHA:
 
 ```bash
 nhost deployments new \
   --subdomain <your-subdomain> \
-  --ref <commit-sha> \
+  --ref <git-ref> \
   --message "your deploy message" \
   --user <username> \
   --follow

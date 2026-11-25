@@ -84,9 +84,9 @@ export default function NativeQueriesSidebarListItem({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="subtle"
-                size="icon"
+                size="icon-xs"
                 className={cn(
-                  'relative z-10 h-6 w-6 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100',
+                  'relative z-10 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100',
                   (isSelected || isMenuOpen) && 'opacity-100',
                 )}
                 aria-label={`Actions for ${name}`}

@@ -455,6 +455,30 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
+// GetUserByActiveTicket is like GetUserByTicket but does not consume the ticket.
+func (wf *Workflows) GetUserByActiveTicket(
+	ctx context.Context,
+	ticket string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByActiveTicket(ctx, sql.Text(ticket))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return sql.AuthUser{}, ErrInvalidTicket
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
+		return user, apiErr
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) VerifyEmailOTP(
 	ctx context.Context,
 	email string,

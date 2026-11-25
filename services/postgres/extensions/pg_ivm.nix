@@ -2,12 +2,12 @@
 
 buildPGXSExtension rec {
   pname = "pg_ivm";
-  version = "1.15";
+  version = "1.17";
 
   src = pkgs.fetchFromGitHub {
     owner = "sraoss";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-8JQ7r/e5FRAWsshTcTmPnVnbwjXkshP4yaulYS7Zse4=";
+    hash = "sha256-fZsd0GU+syKf6B8Da1zbV7hdfUd9KBmGmkZlB5+uvCw=";
   };
 }

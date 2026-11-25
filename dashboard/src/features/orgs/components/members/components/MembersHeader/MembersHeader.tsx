@@ -135,7 +135,7 @@ export default function MembersHeader() {
     <div className="flex flex-col gap-4">
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
-          <h1 className="font-semibold text-3xl">Members</h1>
+          <h1 className="font-normal text-3xl">Members</h1>
           <p className="text-muted-foreground text-sm">
             People in {org?.name} can manage all projects within the
             organization.
@@ -151,7 +151,7 @@ export default function MembersHeader() {
             }}
           >
             <DialogTrigger asChild>
-              <Button className="shrink-0 gap-2">
+              <Button size="xs" className="shrink-0 gap-2">
                 <Plus />
                 Add member
               </Button>
@@ -180,6 +180,7 @@ export default function MembersHeader() {
                               {...field}
                               type="email"
                               placeholder="name@company.com"
+                              autoFocus
                             />
                           </FormControl>
                           <FormMessage />

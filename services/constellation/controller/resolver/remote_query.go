@@ -13,7 +13,7 @@ import (
 // package consumes it: per-strategy tests use inline stubs.
 type remoteQueryResolver interface {
 	// BuildOperation constructs the GraphQL operation to execute against the target.
-	BuildOperation(rq *remoteQuery) *ast.OperationDefinition
+	BuildOperation(rq *remoteQuery, variables map[string]any) *ast.OperationDefinition
 
 	// ExtractResults extracts results from the remote response.
 	ExtractResults(rq *remoteQuery, response any) []any
@@ -96,12 +96,12 @@ func newRemoteJoinArgument(values map[string]any) *remoteJoinArgument {
 }
 
 // buildOperation delegates to the resolver.
-func (rq *remoteQuery) buildOperation() *ast.OperationDefinition {
+func (rq *remoteQuery) buildOperation(variables map[string]any) *ast.OperationDefinition {
 	if rq.resolver == nil {
 		return nil
 	}
 
-	return rq.resolver.BuildOperation(rq)
+	return rq.resolver.BuildOperation(rq, variables)
 }
 
 // extractResults delegates to the resolver.

@@ -19,7 +19,27 @@ func (s *MCPServer) EnableSampling() {
 
 // RequestSampling sends a sampling request to the client.
 // The client must have declared sampling capability during initialization.
+//
+// Protocol version 2026-07-28 removed server-initiated requests (SEP-2322):
+// against a client using that version or later, a handler must instead return
+// an input_required result carrying the request. Use [InputRequestBuilder] to
+// build one; the same handler still works with older clients, because this
+// package issues the server-initiated request on their behalf.
+//
+// Deprecated: the Sampling feature is deprecated as of protocol version
+// 2026-07-28 (SEP-2577). Integrate with an LLM provider API directly.
 func (s *MCPServer) RequestSampling(ctx context.Context, request mcp.CreateMessageRequest) (*mcp.CreateMessageResult, error) {
+	// An in-process handler is a direct function call rather than a protocol
+	// message, so it is unaffected by the removal of server-initiated
+	// requests.
+	if handler := InProcessSamplingHandlerFromContext(ctx); handler != nil {
+		return handler.CreateMessage(ctx, request)
+	}
+
+	if err := s.assertServerInitiatedRequestAllowed(ctx, mcp.MethodSamplingCreateMessage); err != nil {
+		return nil, err
+	}
+
 	session := ClientSessionFromContext(ctx)
 	if session == nil {
 		return nil, fmt.Errorf("no active session")
@@ -28,11 +48,6 @@ func (s *MCPServer) RequestSampling(ctx context.Context, request mcp.CreateMessa
 	// Check if the session supports sampling requests
 	if samplingSession, ok := session.(SessionWithSampling); ok {
 		return samplingSession.RequestSampling(ctx, request)
-	}
-
-	// Check for inprocess sampling handler in context
-	if handler := InProcessSamplingHandlerFromContext(ctx); handler != nil {
-		return handler.CreateMessage(ctx, request)
 	}
 
 	return nil, fmt.Errorf("session does not support sampling")

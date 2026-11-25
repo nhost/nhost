@@ -84,13 +84,46 @@ Columns are introspected with the following metadata:
 | `Type`           | `format_type(atttypid, atttypmod)` | Resolves domain types and aliases                                                                                                                                                                                                                                                                                                         |
 | `IsNullable`     | `information_schema.columns`       | —                                                                                                                                                                                                                                                                                                                                         |
 | `Default`        | `column_default`                   | Captures `nextval(...)` (sequences), `gen_random_uuid()`, `now()`, etc.                                                                                                                                                                                                                                                                   |
-| `IsGenerated`    | `pg_attribute.attgenerated != ''`  | `GENERATED ALWAYS AS` columns; not insertable                                                                                                                                                                                                                                                                                             |
-| `IsIdentity`     | `pg_attribute.attidentity != ''`   | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Distinct from `IsGenerated`: the value is engine-assigned at INSERT time rather than computed from other columns, and insert-check predicates referencing the column run post-INSERT (against `RETURNING *`). SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
+| `IsGenerated`    | `pg_attribute.attgenerated != '' OR attidentity = 'a'` | Computed columns and `GENERATED ALWAYS AS IDENTITY` columns; excluded from insert/update inputs                                                                                                                                                                                                                                                                                             |
+| `IsIdentity`     | `pg_attribute.attidentity != ''`   | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Both identity modes require post-INSERT permission checks against the engine-assigned value. `ALWAYS` also sets `IsGenerated`; `BY DEFAULT` remains writable. SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
 | `IsArray`        | `pg_type.typcategory = 'A'`        | Postgres-only                                                                                                                                                                                                                                                                                                                             |
 | `SupportsMinMax` | derived from type                  | Drives `min`/`max` aggregates                                                                                                                                                                                                                                                                                                             |
 | `SupportsInc`    | derived from type                  | Drives `_inc` update operator                                                                                                                                                                                                                                                                                                             |
 | `SupportsAgg`    | derived from type                  | Drives numeric aggregates                                                                                                                                                                                                                                                                                                                 |
 | `Comment`        | `pg_description`                   | Surfaced as field description                                                                                                                                                                                                                                                                                                             |
+
+`GENERATED ALWAYS AS IDENTITY` columns remain selectable, filterable, sortable,
+aggregatable and usable as stream cursors, but are omitted from `_insert_input`,
+`_set_input`, `_inc_input` and `_update_column` for every role, including admin.
+This matches Hasura and avoids advertising writes PostgreSQL rejects.
+`GENERATED BY DEFAULT AS IDENTITY` and serial columns still accept explicit
+values, subject to column permissions.
+
+Permitted inserts remain available even when there are no client-writable
+fields. For example, a table containing only an ALWAYS identity accepts
+`insert_<table>_one(object: {})` and `insert_<table>(objects: [{}, {}])`, using
+database-generated values for each row. A role with `columns: []` can likewise
+insert rows using session presets or database defaults. Preset columns remain
+hidden, whether included in the column grant or not; neither preset overrides
+nor explicit ALWAYS identity values are accepted.
+
+These SQL-generated insert inputs introspect as `INPUT_OBJECT` with
+`inputFields: []`: no identity or placeholder field is exposed. Constellation
+allows this specific Hasura-compatible exception to GraphQL's non-empty input
+rule during composition. Other empty inputs and invalid schemas still fail
+validation. Empty objects work as literals, variables, bulk rows and nested
+relationship data, subject to the existing table/role permission gates. Incoming
+insert relationships to these inputs and the table's conflict types remain
+available. Presets, foreign-key propagation and post-insert permission checks
+still apply; a failed check rolls back the mutation. Database constraints still
+apply too: `{}` cannot supply a missing required value with no preset or default.
+This does not enable SQLite writes; see [SQLite source differences](sqlite.md).
+
+`nhost schema dump` preserves these field-less input definitions in SDL, and
+`nhost schema diff` can load and compare them, including customized type names.
+The offline diff loader accepts empty input definitions because serialized SDL
+has no SQL provenance marker; it still performs all other schema validation.
+This does not broaden the service's SQL-generated-input-only exception above.
 
 ### Views and materialized views
 
@@ -259,6 +292,7 @@ PostgreSQL sources serve table-owned `computed_fields` backed by `STABLE` or `IM
 - **Permission rules** can reference computed fields without user arguments in select/update/delete filters and insert/update checks, even when the role cannot select the field.
 - **`SETOF` scalar returns** are limited to `text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and `public.citext`. A row with no values returns `null`, and a row with several values fails the request (a mutation is rolled back). Filtering on such a field always fails, sorting by it can drop or repeat rows, and selecting it in an aggregate makes `count`, the other aggregates and `nodes` use one row per returned value.
 - **Custom argument types** (domain, enum, composite, range, multirange and array) are passed as strings in PostgreSQL literal syntax, for example `"{happy}"` for an enum array.
+- **Optional variables in `args`** follow input-presence rules: omitting a variable omits the parameter, allowing its SQL default to apply. A missing required SQL parameter is rejected. Explicit `null` is still passed as SQL NULL rather than activating a default.
 
 Invalid definitions, grants and permission references are dropped rather than served; see [inconsistencies](./inconsistencies.md). Remote-relationship join keys are covered in the [metadata support matrix](./hasura-metadata-support.md), and Hasura differences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md#computed-fields).
 
@@ -269,6 +303,38 @@ Each tracked table produces three root query fields (names overridable via `cust
 - `<table>` — collection query with `where`, `order_by`, `limit`, `offset`, `distinct_on`.
 - `<table>_by_pk` — single-row lookup by primary key.
 - `<table>_aggregate` — aggregates over the same filter set.
+
+### Variables and optional inputs
+
+Variables can supply complete input objects/lists or appear inside them, including
+comparison objects, `_in`/`_nin` elements, JSONB objects and paths, ordering
+objects/directions, and `distinct_on` columns. Values remain SQL parameters;
+ordering directions and column names still pass their enum/column validation.
+
+Outside mutation selectors, an omitted nullable variable omits the argument or
+input-object field that references it. GraphQL input defaults and SQL
+column/function defaults can then apply. In a nullable list position it
+contributes `null` without shifting later elements. Explicit `null` stays present instead of activating a default; for
+nullable `limit` and `offset` it means no modifier. Missing required variables
+and null at non-null positions are rejected before SQL execution.
+
+**Mutation selector safety:** An omitted variable must not remove a restriction
+from a mutation's `where` input. With `where: {id: {_eq: $id}}` and `$id: String`
+(no default), omitting `$id` rejects the whole request with a `validation-failed`
+error before any mutation executes. This includes nested `_or`/`_and` filters,
+whole comparison objects, relationship filters, `update_<table>_many[].where`
+and `on_conflict.where`, including nested inserts. Input and variable defaults
+still apply. Optional inputs outside these selectors, such as `_set` columns,
+insert columns, ordering, pagination and computed `args`, retain omission
+semantics. Read filters, including mutation `returning` selections, do too.
+
+Explicit `null` is different: `_eq: null` still binds SQL `NULL` and matches no
+rows. Intentional empty filters (`where: {}` or `where: {id: {}}`) remain valid
+and can affect every row the role's permissions allow. Permission filters always
+apply. Declare required selectors as non-null without a default (`$id: String!`)
+to make the requirement explicit to clients. See
+[filter input differences](../../KNOWN_DIFFERENCES.md#filter-input-variables)
+for the remaining differences from Hasura's default null handling.
 
 ### Filter operators
 
@@ -284,7 +350,7 @@ Boolean expression operators per column type (`connector/sql/graphql/schema/inpu
 
 The `_cast` operator wraps a nested boolean expression on the casted scalar type (e.g., `{ data: { _cast: { String: { _ilike: "%foo%" } } } }`).
 
-For PostGIS `geometry` and `geography` columns, `_eq` and `_neq` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<column> = <value>)` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved.
+For PostGIS `geometry` and `geography` columns, `_eq`, `_neq`, `_in` and `_nin` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<target> = <value>)` and `_nin` as `NOT (<target> = ANY(<values>))` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved and to avoid implicit geography-to-`bytea` inequality. This applies to columns, spatial `_cast` targets and computed fields. Empty `_in` lists match no rows and empty `_nin` lists match all rows, including rows whose target is SQL `NULL`; a SQL `NULL` target matches neither operator with a non-empty list.
 
 ### `distinct_on`
 

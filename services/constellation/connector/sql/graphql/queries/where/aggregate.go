@@ -240,15 +240,10 @@ func boolAggFunc(target Table, kind aggregateFuncKind) string {
 // Reusing ParseFieldComparison keeps operator handling and parameterisation
 // centralised: the comparison renders `<subAlias>."__cs_agg" <op> $n`.
 //
-// A whole-predicate variable (`predicate: $p`) is resolved here before
-// ParseFieldComparison sees it: the schema types `predicate` as a non-null
-// comparison input object, so a variable bound to that input object is valid
-// GraphQL, exactly as parseLogicalAnd/parseLogicalOr resolve a whole-argument
-// _and/_or variable. ParseFieldComparison itself only resolves variables inside
-// operator values, and it is shared with permission filters, so the resolution
-// stays at this boundary rather than broadening that shared contract. A literal
-// predicate object is returned unchanged by ResolveVariable, so non-variable
-// predicates parse exactly as before.
+// ParseFieldComparison resolves both whole-object and nested variables through
+// copy-on-write values.ResolveVariables. The local ResolveVariable call only
+// adds aggregate-predicate context to errors resolving a whole-predicate variable
+// (`predicate: $p`); literal objects pass through that call unchanged.
 func parseAggregatePredicateComparison( //nolint:ireturn,nolintlint
 	target Table,
 	kind aggregateFuncKind,

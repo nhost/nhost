@@ -6,7 +6,7 @@ import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 
 export default function OrgMembers() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-8">
+    <div className="mx-auto flex w-full max-w-page flex-col gap-4 px-5 py-8">
       <MembersHeader />
       <MembersList />
     </div>

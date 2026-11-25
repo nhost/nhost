@@ -113,11 +113,18 @@ WITH refresh_token AS (
 SELECT * FROM auth.users
 WHERE id = (SELECT user_id FROM refresh_token) LIMIT 1;
 
+-- name: GetUserByActiveTicket :one
+-- Like GetUserByTicket but does not consume the ticket.
+SELECT * FROM auth.users
+WHERE ticket = $1 AND ticket_expires_at > now()
+LIMIT 1;
+
 -- name: GetUserByTicket :one
 WITH selected_user AS (
     SELECT * FROM auth.users
     WHERE ticket = $1  AND ticket_expires_at > now()
     LIMIT 1
+    FOR UPDATE
 )
 UPDATE auth.users
 SET ticket = NULL, ticket_expires_at = now()

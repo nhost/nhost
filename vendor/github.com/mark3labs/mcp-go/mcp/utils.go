@@ -1,8 +1,12 @@
 package mcp
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cast"
 )
@@ -100,6 +104,16 @@ func AsEmbeddedResource(content any) (*EmbeddedResource, bool) {
 	return asType[EmbeddedResource](content)
 }
 
+// AsToolUseContent attempts to cast the given interface to ToolUseContent
+func AsToolUseContent(content any) (*ToolUseContent, bool) {
+	return asType[ToolUseContent](content)
+}
+
+// AsToolResultContent attempts to cast the given interface to ToolResultContent
+func AsToolResultContent(content any) (*ToolResultContent, bool) {
+	return asType[ToolResultContent](content)
+}
+
 // AsTextResourceContents attempts to cast the given interface to TextResourceContents
 func AsTextResourceContents(content any) (*TextResourceContents, bool) {
 	return asType[TextResourceContents](content)
@@ -157,8 +171,7 @@ func NewJSONRPCError(
 	}
 }
 
-// NewProgressNotification
-// Helper function for creating a progress notification
+// NewProgressNotification creates a progress notification.
 func NewProgressNotification(
 	token ProgressToken,
 	progress float64,
@@ -167,7 +180,7 @@ func NewProgressNotification(
 ) ProgressNotification {
 	notification := ProgressNotification{
 		Notification: Notification{
-			Method: "notifications/progress",
+			Method: string(MethodNotificationProgress),
 		},
 		Params: struct {
 			ProgressToken ProgressToken `json:"progressToken"`
@@ -188,8 +201,7 @@ func NewProgressNotification(
 	return notification
 }
 
-// NewLoggingMessageNotification
-// Helper function for creating a logging message notification
+// NewLoggingMessageNotification creates a logging message notification.
 func NewLoggingMessageNotification(
 	level LoggingLevel,
 	logger string,
@@ -197,7 +209,7 @@ func NewLoggingMessageNotification(
 ) LoggingMessageNotification {
 	return LoggingMessageNotification{
 		Notification: Notification{
-			Method: "notifications/message",
+			Method: string(MethodNotificationMessage),
 		},
 		Params: struct {
 			Level  LoggingLevel `json:"level"`
@@ -211,8 +223,7 @@ func NewLoggingMessageNotification(
 	}
 }
 
-// NewPromptMessage
-// Helper function to create a new PromptMessage
+// NewPromptMessage creates a prompt message.
 func NewPromptMessage(role Role, content Content) PromptMessage {
 	return PromptMessage{
 		Role:    role,
@@ -220,8 +231,7 @@ func NewPromptMessage(role Role, content Content) PromptMessage {
 	}
 }
 
-// NewTextContent
-// Helper function to create a new TextContent
+// NewTextContent creates text content.
 func NewTextContent(text string) TextContent {
 	return TextContent{
 		Type: ContentTypeText,
@@ -229,8 +239,7 @@ func NewTextContent(text string) TextContent {
 	}
 }
 
-// NewImageContent
-// Helper function to create a new ImageContent
+// NewImageContent creates image content.
 func NewImageContent(data, mimeType string) ImageContent {
 	return ImageContent{
 		Type:     ContentTypeImage,
@@ -239,7 +248,7 @@ func NewImageContent(data, mimeType string) ImageContent {
 	}
 }
 
-// Helper function to create a new AudioContent
+// NewAudioContent creates audio content.
 func NewAudioContent(data, mimeType string) AudioContent {
 	return AudioContent{
 		Type:     ContentTypeAudio,
@@ -248,7 +257,7 @@ func NewAudioContent(data, mimeType string) AudioContent {
 	}
 }
 
-// Helper function to create a new ResourceLink
+// NewResourceLink creates a resource link.
 func NewResourceLink(uri, name, description, mimeType string) ResourceLink {
 	return ResourceLink{
 		Type:        ContentTypeLink,
@@ -259,11 +268,31 @@ func NewResourceLink(uri, name, description, mimeType string) ResourceLink {
 	}
 }
 
-// Helper function to create a new EmbeddedResource
+// NewEmbeddedResource creates an embedded resource.
 func NewEmbeddedResource(resource ResourceContents) EmbeddedResource {
 	return EmbeddedResource{
 		Type:     ContentTypeResource,
 		Resource: resource,
+	}
+}
+
+// NewToolUseContent creates a new ToolUseContent with the given id, tool name, and input arguments.
+func NewToolUseContent(id, name string, input any) ToolUseContent {
+	return ToolUseContent{
+		Type:  ContentTypeToolUse,
+		ID:    id,
+		Name:  name,
+		Input: input,
+	}
+}
+
+// NewToolResultContent creates a new ToolResultContent with the given tool use ID, content, and error flag.
+func NewToolResultContent(toolUseID string, content []Content, isError bool) ToolResultContent {
+	return ToolResultContent{
+		Type:      ContentTypeToolResult,
+		ToolUseID: toolUseID,
+		Content:   content,
+		IsError:   isError,
 	}
 }
 
@@ -319,7 +348,7 @@ func NewToolResultStructuredOnly(structured any) *CallToolResult {
 	// Convert to JSON string for backward compatibility
 	jsonBytes, err := json.Marshal(structured)
 	if err != nil {
-		fallbackText = fmt.Sprintf("Error serializing structured content: %v", err)
+		return NewToolResultError(fmt.Sprintf("Error serializing structured content: %v", err))
 	} else {
 		fallbackText = string(jsonBytes)
 	}
@@ -353,7 +382,7 @@ func NewToolResultImage(text, imageData, mimeType string) *CallToolResult {
 }
 
 // NewToolResultAudio creates a new CallToolResult with both text and audio content
-func NewToolResultAudio(text, imageData, mimeType string) *CallToolResult {
+func NewToolResultAudio(text, audioData, mimeType string) *CallToolResult {
 	return &CallToolResult{
 		Content: []Content{
 			TextContent{
@@ -362,7 +391,7 @@ func NewToolResultAudio(text, imageData, mimeType string) *CallToolResult {
 			},
 			AudioContent{
 				Type:     ContentTypeAudio,
-				Data:     imageData,
+				Data:     audioData,
 				MIMEType: mimeType,
 			},
 		},
@@ -521,8 +550,7 @@ func NewInitializeResult(
 	}
 }
 
-// FormatNumberResult
-// Helper for formatting numbers in tool results
+// FormatNumberResult formats a number as a tool result.
 func FormatNumberResult(value float64) *CallToolResult {
 	return NewToolResultText(fmt.Sprintf("%.2f", value))
 }
@@ -536,13 +564,22 @@ func ExtractString(data map[string]any, key string) string {
 	return ""
 }
 
+// ParseAnnotations parses priority, audience, and lastModified fields from the provided map
+// and returns an Annotations struct populated with any valid values found.
+// If data is nil, ParseAnnotations returns nil. Priority is set when a numeric value can be
+// parsed and is stored as a *float64. Audience is populated from string values and includes
+// only RoleUser and RoleAssistant entries. LastModified is set when the value is a string.
 func ParseAnnotations(data map[string]any) *Annotations {
 	if data == nil {
 		return nil
 	}
 	annotations := &Annotations{}
 	if value, ok := data["priority"]; ok {
-		annotations.Priority = cast.ToFloat64(value)
+		if value != nil {
+			if priority, err := cast.ToFloat64E(value); err == nil {
+				annotations.Priority = &priority
+			}
+		}
 	}
 
 	if value, ok := data["audience"]; ok {
@@ -551,6 +588,12 @@ func ParseAnnotations(data map[string]any) *Annotations {
 			if a == RoleUser || a == RoleAssistant {
 				annotations.Audience = append(annotations.Audience, a)
 			}
+		}
+	}
+
+	if value, ok := data["lastModified"]; ok {
+		if str, ok := value.(string); ok {
+			annotations.LastModified = str
 		}
 	}
 	return annotations
@@ -566,6 +609,9 @@ func ExtractMap(data map[string]any, key string) map[string]any {
 	return nil
 }
 
+// ParseContent parses a generic map into a strongly-typed Content value.
+// It extracts annotations and _meta fields from the map and sets them on
+// the returned content type.
 func ParseContent(contentMap map[string]any) (Content, error) {
 	contentType := ExtractString(contentMap, "type")
 
@@ -574,11 +620,17 @@ func ParseContent(contentMap map[string]any) (Content, error) {
 		annotations = ParseAnnotations(annotationsMap)
 	}
 
+	var meta *Meta
+	if metaMap := ExtractMap(contentMap, "_meta"); metaMap != nil {
+		meta = NewMetaFromMap(metaMap)
+	}
+
 	switch contentType {
 	case ContentTypeText:
 		text := ExtractString(contentMap, "text")
 		c := NewTextContent(text)
 		c.Annotations = annotations
+		c.Meta = meta
 		return c, nil
 
 	case ContentTypeImage:
@@ -589,6 +641,7 @@ func ParseContent(contentMap map[string]any) (Content, error) {
 		}
 		c := NewImageContent(data, mimeType)
 		c.Annotations = annotations
+		c.Meta = meta
 		return c, nil
 
 	case ContentTypeAudio:
@@ -599,6 +652,7 @@ func ParseContent(contentMap map[string]any) (Content, error) {
 		}
 		c := NewAudioContent(data, mimeType)
 		c.Annotations = annotations
+		c.Meta = meta
 		return c, nil
 
 	case ContentTypeLink:
@@ -610,7 +664,14 @@ func ParseContent(contentMap map[string]any) (Content, error) {
 			return nil, fmt.Errorf("resource_link uri or name is missing")
 		}
 		c := NewResourceLink(uri, name, description, mimeType)
+		c.Title = ExtractString(contentMap, "title")
+		if value, ok := contentMap["size"]; ok && value != nil {
+			if size, err := cast.ToInt64E(value); err == nil && size >= 0 {
+				c.Size = &size
+			}
+		}
 		c.Annotations = annotations
+		c.Meta = meta
 		return c, nil
 
 	case ContentTypeResource:
@@ -626,10 +687,99 @@ func ParseContent(contentMap map[string]any) (Content, error) {
 
 		c := NewEmbeddedResource(resourceContents)
 		c.Annotations = annotations
+		c.Meta = meta
+		return c, nil
+
+	case ContentTypeToolUse:
+		id := ExtractString(contentMap, "id")
+		if id == "" {
+			return nil, fmt.Errorf("tool_use id is missing")
+		}
+		name := ExtractString(contentMap, "name")
+		if name == "" {
+			return nil, fmt.Errorf("tool_use name is missing")
+		}
+		input := contentMap["input"]
+		c := NewToolUseContent(id, name, input)
+		c.Annotations = annotations
+		c.Meta = meta
+		return c, nil
+
+	case ContentTypeToolResult:
+		toolUseID := ExtractString(contentMap, "toolUseId")
+		if toolUseID == "" {
+			return nil, fmt.Errorf("tool_result toolUseId is missing")
+		}
+		isError, _ := contentMap["isError"].(bool)
+		var contentItems []Content
+		if rawContent, ok := contentMap["content"].([]any); ok {
+			for i, item := range rawContent {
+				itemMap, ok := item.(map[string]any)
+				if !ok {
+					return nil, fmt.Errorf("tool_result content[%d]: expected object, got %T", i, item)
+				}
+				parsed, err := ParseContent(itemMap)
+				if err != nil {
+					return nil, fmt.Errorf("parsing tool result content[%d]: %w", i, err)
+				}
+				contentItems = append(contentItems, parsed)
+			}
+		}
+		c := NewToolResultContent(toolUseID, contentItems, isError)
+		c.StructuredContent = contentMap["structuredContent"]
+		c.Annotations = annotations
+		c.Meta = meta
 		return c, nil
 	}
 
 	return nil, fmt.Errorf("unsupported content type: %s", contentType)
+}
+
+// ParseSamplingContent parses the content of a SamplingMessage that was
+// decoded into generic JSON values. A single content block is returned as a
+// Content and an array of blocks as a []Content. Any other value, such as
+// content that is already typed, is returned unchanged.
+func ParseSamplingContent(content any) (any, error) {
+	switch c := content.(type) {
+	case map[string]any:
+		return ParseContent(c)
+	case []any:
+		blocks := make([]Content, 0, len(c))
+		for i, item := range c {
+			itemMap, ok := item.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("content[%d]: expected object, got %T", i, item)
+			}
+			block, err := ParseContent(itemMap)
+			if err != nil {
+				return nil, fmt.Errorf("content[%d]: %w", i, err)
+			}
+			blocks = append(blocks, block)
+		}
+		return blocks, nil
+	default:
+		return content, nil
+	}
+}
+
+// resultEnvelope holds the fields a result carries outside its payload: the
+// SEP-2322 round-trip fields and the SEP-2549 cache hints.
+type resultEnvelope struct {
+	ResultType    ResultType    `json:"resultType"`
+	InputRequests InputRequests `json:"inputRequests"`
+	RequestState  string        `json:"requestState"`
+	TTLMs         *int64        `json:"ttlMs"`
+	CacheScope    CacheScope    `json:"cacheScope"`
+}
+
+// parseResultEnvelope decodes the envelope of a result whose payload holds
+// interface values and therefore has to be walked by hand.
+func parseResultEnvelope(rawMessage json.RawMessage) (resultEnvelope, error) {
+	var envelope resultEnvelope
+	if err := json.Unmarshal(rawMessage, &envelope); err != nil {
+		return resultEnvelope{}, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return envelope, nil
 }
 
 func ParseGetPromptResult(rawMessage *json.RawMessage) (*GetPromptResult, error) {
@@ -642,7 +792,15 @@ func ParseGetPromptResult(rawMessage *json.RawMessage) (*GetPromptResult, error)
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	envelope, err := parseResultEnvelope(*rawMessage)
+	if err != nil {
+		return nil, err
+	}
+
 	result := GetPromptResult{}
+	result.ResultType = envelope.ResultType
+	result.InputRequests = envelope.InputRequests
+	result.RequestState = envelope.RequestState
 
 	meta, ok := jsonContent["_meta"]
 	if ok {
@@ -658,13 +816,16 @@ func ParseGetPromptResult(rawMessage *json.RawMessage) (*GetPromptResult, error)
 		}
 	}
 
+	// A null payload is treated like an absent one: an input_required result
+	// carries no messages, and so does a zero-valued GetPromptResult.
 	messages, ok := jsonContent["messages"]
-	if ok {
+	if ok && messages != nil {
 		messagesArr, ok := messages.([]any)
 		if !ok {
 			return nil, fmt.Errorf("messages is not an array")
 		}
 
+		result.Messages = make([]PromptMessage, 0, len(messagesArr))
 		for _, message := range messagesArr {
 			messageMap, ok := message.(map[string]any)
 			if !ok {
@@ -703,57 +864,25 @@ func ParseCallToolResult(rawMessage *json.RawMessage) (*CallToolResult, error) {
 		return nil, fmt.Errorf("response is nil")
 	}
 
-	var jsonContent map[string]any
-	if err := json.Unmarshal(*rawMessage, &jsonContent); err != nil {
+	var probe struct {
+		Content           json.RawMessage `json:"content"`
+		StructuredContent json.RawMessage `json:"structuredContent"`
+		ResultType        ResultType      `json:"resultType"`
+	}
+	if err := json.Unmarshal(*rawMessage, &probe); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-
-	var result CallToolResult
-
-	meta, ok := jsonContent["_meta"]
-	if ok {
-		if metaMap, ok := meta.(map[string]any); ok {
-			result.Meta = NewMetaFromMap(metaMap)
-		}
-	}
-
-	isError, ok := jsonContent["isError"]
-	if ok {
-		if isErrorBool, ok := isError.(bool); ok {
-			result.IsError = isErrorBool
-		}
-	}
-
-	contents, ok := jsonContent["content"]
-	if !ok {
+	// A structured-only result, and a result asking for more input (SEP-2322)
+	// that carries only the input requests and the request state, legitimately
+	// have no content. A null structuredContent counts as missing.
+	hasStructured := len(probe.StructuredContent) > 0 && !bytes.Equal(bytes.TrimSpace(probe.StructuredContent), []byte("null"))
+	if probe.Content == nil && !hasStructured && probe.ResultType != ResultTypeInputRequired {
 		return nil, fmt.Errorf("content is missing")
 	}
 
-	contentArr, ok := contents.([]any)
-	if !ok {
-		return nil, fmt.Errorf("content is not an array")
-	}
-
-	for _, content := range contentArr {
-		// Extract content
-		contentMap, ok := content.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("content is not an object")
-		}
-
-		// Process content
-		content, err := ParseContent(contentMap)
-		if err != nil {
-			return nil, err
-		}
-
-		result.Content = append(result.Content, content)
-	}
-
-	// Handle structured content
-	structuredContent, ok := jsonContent["structuredContent"]
-	if ok {
-		result.StructuredContent = structuredContent
+	var result CallToolResult
+	if err := json.Unmarshal(*rawMessage, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	return &result, nil
@@ -767,16 +896,28 @@ func ParseResourceContents(contentMap map[string]any) (ResourceContents, error) 
 
 	mimeType := ExtractString(contentMap, "mimeType")
 
-	if text := ExtractString(contentMap, "text"); text != "" {
+	meta := ExtractMap(contentMap, "_meta")
+
+	if _, present := contentMap["_meta"]; present && meta == nil {
+		return nil, fmt.Errorf("_meta must be an object")
+	}
+
+	// Select the variant on the presence of a string "text" or "blob" field,
+	// not on its emptiness. An empty resource is still a resource, and both
+	// fields marshal unconditionally, so treating "" as absent rejected
+	// payloads this library itself produces.
+	if text, ok := contentMap["text"].(string); ok {
 		return TextResourceContents{
+			Meta:     meta,
 			URI:      uri,
 			MIMEType: mimeType,
 			Text:     text,
 		}, nil
 	}
 
-	if blob := ExtractString(contentMap, "blob"); blob != "" {
+	if blob, ok := contentMap["blob"].(string); ok {
 		return BlobResourceContents{
+			Meta:     meta,
 			URI:      uri,
 			MIMEType: mimeType,
 			Blob:     blob,
@@ -796,7 +937,17 @@ func ParseReadResourceResult(rawMessage *json.RawMessage) (*ReadResourceResult, 
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	envelope, err := parseResultEnvelope(*rawMessage)
+	if err != nil {
+		return nil, err
+	}
+
 	var result ReadResourceResult
+	result.ResultType = envelope.ResultType
+	result.InputRequests = envelope.InputRequests
+	result.RequestState = envelope.RequestState
+	result.TTLMs = envelope.TTLMs
+	result.CacheScope = envelope.CacheScope
 
 	meta, ok := jsonContent["_meta"]
 	if ok {
@@ -806,7 +957,12 @@ func ParseReadResourceResult(rawMessage *json.RawMessage) (*ReadResourceResult, 
 	}
 
 	contents, ok := jsonContent["contents"]
-	if !ok {
+	if !ok || contents == nil {
+		// An input_required result asks for more input instead of returning
+		// contents, so the payload is legitimately absent.
+		if result.NeedsInput() {
+			return &result, nil
+		}
 		return nil, fmt.Errorf("contents is missing")
 	}
 
@@ -815,6 +971,7 @@ func ParseReadResourceResult(rawMessage *json.RawMessage) (*ReadResourceResult, 
 		return nil, fmt.Errorf("contents is not an array")
 	}
 
+	result.Contents = make([]ResourceContents, 0, len(contentArr))
 	for _, content := range contentArr {
 		// Extract content
 		contentMap, ok := content.(map[string]any)
@@ -852,65 +1009,260 @@ func ParseBoolean(request CallToolRequest, key string, defaultValue bool) bool {
 	return cast.ToBool(v)
 }
 
+// checkedSignedInteger validates before narrowing or crossing signedness. Float
+// bounds are exact powers of two with an exclusive upper bound, since converting
+// MaxInt64 or MaxUint64 to float64 rounds up to an unrepresentable integer.
+func checkedSignedInteger(value any, bits int) (int64, bool) {
+	switch v := value.(type) {
+	case string:
+		n, err := strconv.ParseInt(strings.TrimSpace(v), 10, bits)
+		return n, err == nil
+	case json.Number:
+		return checkedSignedInteger(string(v), bits)
+	case int64:
+		max := int64(uint64(1)<<(bits-1) - 1)
+		return v, v >= -max-1 && v <= max
+	case uint64:
+		max := uint64(1)<<(bits-1) - 1
+		if v > max {
+			return 0, false
+		}
+		return int64(v), true
+	case float64:
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return 0, false
+		}
+		n := math.Trunc(v)
+		bound := math.Ldexp(1, bits-1)
+		if n < -bound || n >= bound {
+			return 0, false
+		}
+		return int64(n), true
+	case int:
+		return checkedSignedInteger(int64(v), bits)
+	case int8:
+		return checkedSignedInteger(int64(v), bits)
+	case int16:
+		return checkedSignedInteger(int64(v), bits)
+	case int32:
+		return checkedSignedInteger(int64(v), bits)
+	case uint:
+		return checkedSignedInteger(uint64(v), bits)
+	case uint8:
+		return checkedSignedInteger(uint64(v), bits)
+	case uint16:
+		return checkedSignedInteger(uint64(v), bits)
+	case uint32:
+		return checkedSignedInteger(uint64(v), bits)
+	case float32:
+		return checkedSignedInteger(float64(v), bits)
+	case bool:
+		if v {
+			return 1, true
+		}
+		return 0, true
+	default:
+		return 0, false
+	}
+}
+
+// checkedUnsignedInteger never routes unsigned integers through int64 and
+// rejects negative floats before truncation, including fractions above -1.
+func checkedUnsignedInteger(value any, bits int) (uint64, bool) {
+	switch v := value.(type) {
+	case string:
+		n, err := strconv.ParseUint(strings.TrimSpace(v), 10, bits)
+		return n, err == nil
+	case json.Number:
+		return checkedUnsignedInteger(string(v), bits)
+	case uint64:
+		max := ^uint64(0) >> (64 - bits)
+		return v, v <= max
+	case int64:
+		if v < 0 {
+			return 0, false
+		}
+		return checkedUnsignedInteger(uint64(v), bits)
+	case float64:
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return 0, false
+		}
+		n := math.Trunc(v)
+		if v < 0 || n >= math.Ldexp(1, bits) {
+			return 0, false
+		}
+		return uint64(n), true
+	case int:
+		return checkedUnsignedInteger(int64(v), bits)
+	case int8:
+		return checkedUnsignedInteger(int64(v), bits)
+	case int16:
+		return checkedUnsignedInteger(int64(v), bits)
+	case int32:
+		return checkedUnsignedInteger(int64(v), bits)
+	case uint:
+		return checkedUnsignedInteger(uint64(v), bits)
+	case uint8:
+		return checkedUnsignedInteger(uint64(v), bits)
+	case uint16:
+		return checkedUnsignedInteger(uint64(v), bits)
+	case uint32:
+		return checkedUnsignedInteger(uint64(v), bits)
+	case float32:
+		return checkedUnsignedInteger(float64(v), bits)
+	case bool:
+		if v {
+			return 1, true
+		}
+		return 0, true
+	default:
+		return 0, false
+	}
+}
+
 // ParseInt64 extracts and converts an int64 parameter from a CallToolRequest.
-// If the key is not found in the Arguments map, the defaultValue is returned.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax with an optional sign; prefixes, decimal points and exponents are invalid.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseInt64(request CallToolRequest, key string, defaultValue int64) int64 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToInt64(v)
+	v, ok := checkedSignedInteger(ParseArgument(request, key, defaultValue), 64)
+	if !ok {
+		return defaultValue
+	}
+	return v
 }
 
 // ParseInt32 extracts and converts an int32 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax with an optional sign; prefixes, decimal points and exponents are invalid.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseInt32(request CallToolRequest, key string, defaultValue int32) int32 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToInt32(v)
+	v, ok := checkedSignedInteger(ParseArgument(request, key, defaultValue), 32)
+	if !ok {
+		return defaultValue
+	}
+	return int32(v)
 }
 
 // ParseInt16 extracts and converts an int16 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax with an optional sign; prefixes, decimal points and exponents are invalid.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseInt16(request CallToolRequest, key string, defaultValue int16) int16 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToInt16(v)
+	v, ok := checkedSignedInteger(ParseArgument(request, key, defaultValue), 16)
+	if !ok {
+		return defaultValue
+	}
+	return int16(v)
 }
 
 // ParseInt8 extracts and converts an int8 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax with an optional sign; prefixes, decimal points and exponents are invalid.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseInt8(request CallToolRequest, key string, defaultValue int8) int8 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToInt8(v)
+	v, ok := checkedSignedInteger(ParseArgument(request, key, defaultValue), 8)
+	if !ok {
+		return defaultValue
+	}
+	return int8(v)
 }
 
 // ParseInt extracts and converts an int parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax with an optional sign; prefixes, decimal points and exponents are invalid.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseInt(request CallToolRequest, key string, defaultValue int) int {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToInt(v)
+	v, ok := checkedSignedInteger(ParseArgument(request, key, defaultValue), strconv.IntSize)
+	if !ok {
+		return defaultValue
+	}
+	return int(v)
 }
 
-// ParseUInt extracts and converts an uint parameter from a CallToolRequest.
+// ParseUInt extracts and converts a uint parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax without a sign; prefixes, decimal points and exponents are invalid.
+// Negative numeric values return defaultValue, even fractional values above -1.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseUInt(request CallToolRequest, key string, defaultValue uint) uint {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToUint(v)
+	v, ok := checkedUnsignedInteger(ParseArgument(request, key, defaultValue), strconv.IntSize)
+	if !ok {
+		return defaultValue
+	}
+	return uint(v)
 }
 
-// ParseUInt64 extracts and converts an uint64 parameter from a CallToolRequest.
+// ParseUInt64 extracts and converts a uint64 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax without a sign; prefixes, decimal points and exponents are invalid.
+// Negative numeric values return defaultValue, even fractional values above -1.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseUInt64(request CallToolRequest, key string, defaultValue uint64) uint64 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToUint64(v)
+	v, ok := checkedUnsignedInteger(ParseArgument(request, key, defaultValue), 64)
+	if !ok {
+		return defaultValue
+	}
+	return v
 }
 
-// ParseUInt32 extracts and converts an uint32 parameter from a CallToolRequest.
+// ParseUInt32 extracts and converts a uint32 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax without a sign; prefixes, decimal points and exponents are invalid.
+// Negative numeric values return defaultValue, even fractional values above -1.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseUInt32(request CallToolRequest, key string, defaultValue uint32) uint32 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToUint32(v)
+	v, ok := checkedUnsignedInteger(ParseArgument(request, key, defaultValue), 32)
+	if !ok {
+		return defaultValue
+	}
+	return uint32(v)
 }
 
-// ParseUInt16 extracts and converts an uint16 parameter from a CallToolRequest.
+// ParseUInt16 extracts and converts a uint16 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax without a sign; prefixes, decimal points and exponents are invalid.
+// Negative numeric values return defaultValue, even fractional values above -1.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseUInt16(request CallToolRequest, key string, defaultValue uint16) uint16 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToUint16(v)
+	v, ok := checkedUnsignedInteger(ParseArgument(request, key, defaultValue), 16)
+	if !ok {
+		return defaultValue
+	}
+	return uint16(v)
 }
 
-// ParseUInt8 extracts and converts an uint8 parameter from a CallToolRequest.
+// ParseUInt8 extracts and converts a uint8 parameter from a CallToolRequest.
+// It accepts built-in integers, floats (truncated toward zero), bools (0/1),
+// strings and json.Number. Strings and json.Number use trimmed base-10 integer
+// syntax without a sign; prefixes, decimal points and exponents are invalid.
+// Negative numeric values return defaultValue, even fractional values above -1.
+// Missing, nil, unsupported (including pointers and named types), invalid or
+// out-of-range values (including non-finite floats) return defaultValue.
 func ParseUInt8(request CallToolRequest, key string, defaultValue uint8) uint8 {
-	v := ParseArgument(request, key, defaultValue)
-	return cast.ToUint8(v)
+	v, ok := checkedUnsignedInteger(ParseArgument(request, key, defaultValue), 8)
+	if !ok {
+		return defaultValue
+	}
+	return uint8(v)
 }
 
 // ParseFloat32 extracts and converts a float32 parameter from a CallToolRequest.
@@ -940,4 +1292,115 @@ func ParseStringMap(request CallToolRequest, key string, defaultValue map[string
 // ToBoolPtr returns a pointer to the given boolean value
 func ToBoolPtr(b bool) *bool {
 	return &b
+}
+
+// ToInt64Ptr returns a pointer to the given int64 value
+func ToInt64Ptr(i int64) *int64 {
+	return &i
+}
+
+// GetTextFromContent extracts text from a Content interface that might be a TextContent struct
+// or a map[string]any that was unmarshaled from JSON. This is useful when dealing with content
+// that comes from different transport layers that may handle JSON differently.
+//
+// This function uses fallback behavior for non-text content - it returns a string representation
+// via fmt.Sprintf for any content that cannot be extracted as text. This is a lossy operation
+// intended for convenience in logging and display scenarios.
+//
+// For strict type validation, use ParseContent() instead, which returns an error for invalid content.
+func GetTextFromContent(content any) string {
+	switch c := content.(type) {
+	case TextContent:
+		return c.Text
+	case map[string]any:
+		// Handle JSON unmarshaled content
+		if contentType, exists := c["type"]; exists && contentType == "text" {
+			if text, exists := c["text"].(string); exists {
+				return text
+			}
+		}
+		return fmt.Sprintf("%v", content)
+	case string:
+		return c
+	default:
+		return fmt.Sprintf("%v", content)
+	}
+}
+
+// ParseCancelTaskResult parses a JSON message and converts it to a CancelTaskResult.
+func ParseCancelTaskResult(rawMessage *json.RawMessage) (*CancelTaskResult, error) {
+	if rawMessage == nil {
+		return nil, fmt.Errorf("response is nil")
+	}
+	var result CancelTaskResult
+	if err := json.Unmarshal(*rawMessage, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return &result, nil
+}
+
+// ParseListTasksResult parses a JSON message and converts it to a ListTasksResult.
+func ParseListTasksResult(rawMessage *json.RawMessage) (*ListTasksResult, error) {
+	if rawMessage == nil {
+		return nil, fmt.Errorf("response is nil")
+	}
+	var result ListTasksResult
+	if err := json.Unmarshal(*rawMessage, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return &result, nil
+}
+
+// ParseTaskResultResult parses a JSON message and converts it to a TaskResultResult.
+func ParseTaskResultResult(rawMessage *json.RawMessage) (*TaskResultResult, error) {
+	if rawMessage == nil {
+		return nil, fmt.Errorf("response is nil")
+	}
+
+	// Content holds interface values, so it is decoded element by element -
+	// the same shape CallToolResult.UnmarshalJSON handles.
+	var raw struct {
+		Meta              *Meta             `json:"_meta"`
+		ResultType        ResultType        `json:"resultType"`
+		Content           []json.RawMessage `json:"content"`
+		StructuredContent json.RawMessage   `json:"structuredContent"`
+		IsError           bool              `json:"isError"`
+	}
+	if err := json.Unmarshal(*rawMessage, &raw); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	resultResult := TaskResultResult{
+		Result:               Result{Meta: raw.Meta, ResultType: raw.ResultType},
+		RawStructuredContent: raw.StructuredContent,
+		IsError:              raw.IsError,
+	}
+
+	if len(raw.StructuredContent) > 0 {
+		if err := json.Unmarshal(raw.StructuredContent, &resultResult.StructuredContent); err != nil {
+			return nil, fmt.Errorf("unmarshal task structured content: %w", err)
+		}
+	}
+
+	for _, item := range raw.Content {
+		content, err := UnmarshalContent(item)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal task result content: %w", err)
+		}
+		resultResult.Content = append(resultResult.Content, content)
+	}
+
+	return &resultResult, nil
+}
+
+// ParseGetTaskResult parses a JSON message and converts it to a GetTaskResult.
+func ParseGetTaskResult(rawMessage *json.RawMessage) (*GetTaskResult, error) {
+	if rawMessage == nil {
+		return nil, fmt.Errorf("response is nil")
+	}
+	var result GetTaskResult
+	if err := json.Unmarshal(*rawMessage, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return &result, nil
 }
