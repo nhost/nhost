@@ -113,11 +113,10 @@ export default function TicketList() {
   const waitingForQueues =
     !isAgent && !!user && router.isReady && queueAvailability.isLoading;
   const showQueueTabs =
-    isAgent || queueAvailability.isError || queueAvailability.data === true;
-  const search =
-    !isAgent && queueAvailability.data === false && !queueAvailability.isError
-      ? { ...urlSearch, status: 'all' as const }
-      : urlSearch;
+    isAgent || (queueAvailability.isSuccess && queueAvailability.data);
+  const search = showQueueTabs
+    ? urlSearch
+    : { ...urlSearch, status: 'all' as const };
   const [query, setQuery] = useState(search.q);
   const [suggestionQuery, setSuggestionQuery] = useState('');
   useEffect(() => {
@@ -438,21 +437,15 @@ export default function TicketList() {
                 <TableRow
                   key={ticket.id}
                   className={cn(
-                    'group cursor-pointer hover:bg-muted/20',
+                    'group relative cursor-pointer hover:bg-muted/20',
                     newReply &&
                       'bg-primary/5 shadow-[inset_2px_0_0_hsl(var(--primary))] hover:bg-primary/10',
                   )}
-                  onClick={(event) => {
-                    if ((event.target as HTMLElement).closest('a')) {
-                      return;
-                    }
-                    void router.push(`/support/tickets/${ticket.id}`);
-                  }}
                 >
                   <TableCell className="max-w-md px-2 py-3">
                     <Link
                       href={`/support/tickets/${ticket.id}`}
-                      className="break-words font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:text-primary"
+                      className="break-words font-medium after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:text-primary"
                     >
                       {ticket.title}
                     </Link>
