@@ -25,7 +25,8 @@ export default function getUsersOrderBy({
 }: UsersSort): Users_Order_By[] {
   return [
     {
-      [column]: direction === 'asc' ? Order_By.AscNullsLast : Order_By.DescNullsLast,
+      [column]:
+        direction === 'asc' ? Order_By.AscNullsLast : Order_By.DescNullsLast,
     },
     { id: Order_By.Asc },
   ];
