@@ -3,8 +3,10 @@ package migrations
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"io/fs"
 	"log/slog"
 	"net/url"
@@ -15,8 +17,11 @@ import (
 
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 	"github.com/nhost/nhost/internal/lib/pgmigrate"
+	authsql "github.com/nhost/nhost/services/auth/go/sql"
 )
 
 // pi-lens-ignore: go-hardcoded-secrets
@@ -58,6 +63,179 @@ func TestPostgresMigrationFiveRollsBack(t *testing.T) {
 
 	assertAuthMigrationState(t, database, 4)
 	assertAuthSchemaMigrationsComment(t, database, false)
+}
+
+func TestPostgresOIDCIssuerBinding(t *testing.T) {
+	t.Parallel()
+
+	database := openAuthMigrationTestDatabase(t)
+	executeAuthMigrationSQL(t, database, "CREATE SCHEMA auth")
+
+	logger := slog.New(slog.DiscardHandler)
+	run := func(bundle fs.FS) error {
+		return pgmigrate.Migrate(
+			t.Context(),
+			logger,
+			database,
+			bundle,
+			postgresMigrationPath,
+			schemaName,
+		)
+	}
+
+	previous := authMigrationBundleThrough(t, 27)
+	if err := run(previous); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := run(postgresMigrations); err != nil {
+		t.Fatal(err)
+	}
+
+	var databaseName string
+	if err := database.QueryRowContext(t.Context(), "SELECT current_database()").
+		Scan(&databaseName); err != nil {
+		t.Fatal(err)
+	}
+
+	dsn := authMigrationDSNWithDatabase(
+		t,
+		os.Getenv(authMigrationTestEnvironmentPrefix+"DSN"),
+		databaseName,
+	)
+
+	conn, err := pgx.Connect(t.Context(), dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		if err := conn.Close(context.WithoutCancel(t.Context())); err != nil {
+			t.Error(err)
+		}
+	})
+
+	queries := authsql.New(conn)
+
+	const issuer = "https://idp.example/application/o/test/"
+
+	params := assertOIDCRegistration(t, database, queries, issuer)
+
+	userID, identity := assertOIDCIdentityLookup(t, database, queries, issuer)
+
+	if err := run(previous); err != nil {
+		t.Fatal(err)
+	}
+
+	assertAuthMigrationState(t, database, 27)
+
+	if err := run(postgresMigrations); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := queries.RegisterOIDCProviders(t.Context(), params); err != nil {
+		t.Fatal(err)
+	}
+
+	identity.Issuer = authsql.Text(issuer)
+	if user, err := queries.GetUserByOIDCIdentity(
+		t.Context(),
+		identity,
+	); err != nil ||
+		user.ID != userID {
+		t.Fatalf("identity lookup failed after downgrade and re-upgrade: %v", err)
+	}
+}
+
+func assertOIDCRegistration(
+	t *testing.T, database *sql.DB, queries *authsql.Queries, issuer string,
+) authsql.RegisterOIDCProvidersParams {
+	t.Helper()
+
+	params := authsql.RegisterOIDCProvidersParams{
+		ProviderIds: []string{"oidc:test", "oidc:second"},
+		Issuers:     []string{issuer, "https://second.example"},
+	}
+	for range 2 {
+		if err := queries.RegisterOIDCProviders(t.Context(), params); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	var pgErr *pgconn.PgError
+	if err := queries.RegisterOIDCProviders(t.Context(), authsql.RegisterOIDCProvidersParams{
+		ProviderIds: []string{"oidc:new", "oidc:test"},
+		Issuers:     []string{issuer, "https://another.example"},
+	}); !errors.As(err, &pgErr) || pgErr.ConstraintName != "providers_oidc_issuer_check" {
+		t.Fatalf("expected issuer change rejection, got %v", err)
+	}
+
+	var exists bool
+	if err := database.QueryRowContext(t.Context(),
+		"SELECT EXISTS(SELECT 1 FROM auth.providers WHERE id = 'oidc:new')",
+	).Scan(&exists); err != nil || exists {
+		t.Fatalf("registration must be atomic, got exists=%v err=%v", exists, err)
+	}
+
+	return params
+}
+
+func assertOIDCIdentityLookup(
+	t *testing.T, database *sql.DB, queries *authsql.Queries, issuer string,
+) (uuid.UUID, authsql.GetUserByOIDCIdentityParams) {
+	t.Helper()
+
+	userID := uuid.New()
+	if _, err := database.ExecContext(t.Context(),
+		"INSERT INTO auth.users (id, locale, default_role) VALUES ($1, 'en', 'user')", userID,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	oldSubject := sha256.Sum256([]byte(issuer + "\x00shared-subject"))
+	if _, err := queries.InsertUserProvider(t.Context(), authsql.InsertUserProviderParams{
+		UserID: userID, ProviderID: "oidc:test", ProviderUserID: hex.EncodeToString(oldSubject[:]),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	identity := authsql.GetUserByOIDCIdentityParams{
+		ProviderID: "oidc:test",
+		Issuer:     authsql.Text(issuer),
+		Subject:    hex.EncodeToString(oldSubject[:]),
+	}
+	if user, err := queries.GetUserByOIDCIdentity(
+		t.Context(),
+		identity,
+	); err != nil ||
+		user.ID != userID {
+		t.Fatalf("issuer-bound identity lookup failed: %v", err)
+	}
+
+	identity.Issuer = authsql.Text("https://another.example")
+	if _, err := queries.GetUserByOIDCIdentity(
+		t.Context(),
+		identity,
+	); !errors.Is(
+		err,
+		pgx.ErrNoRows,
+	) {
+		t.Fatalf("identity matched across issuers: %v", err)
+	}
+
+	if _, err := queries.InsertUserProviderByEmail(
+		t.Context(),
+		authsql.InsertUserProviderByEmailParams{
+			UserID: userID, ProviderID: "google", ProviderUserID: "same-email-different-provider",
+		},
+	); !errors.Is(
+		err,
+		pgx.ErrNoRows,
+	) {
+		t.Fatalf("implicit provider linking was allowed: %v", err)
+	}
+
+	return userID, identity
 }
 
 func openAuthMigrationTestDatabase(t *testing.T) *sql.DB {

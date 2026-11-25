@@ -276,7 +276,9 @@ COMMENT ON TABLE auth.provider_requests IS 'Oauth requests, inserted before redi
 --
 
 CREATE TABLE auth.providers (
-    id text NOT NULL
+    id text NOT NULL,
+    oidc_issuer text,
+    CONSTRAINT providers_oidc_issuer_check CHECK (((oidc_issuer IS NULL) OR ((id ~~ 'oidc:%'::text) AND (oidc_issuer <> ''::text))))
 );
 
 
@@ -787,6 +789,13 @@ CREATE UNIQUE INDEX schema_migration_catalog_active_version ON auth.schema_migra
 --
 
 CREATE UNIQUE INDEX schema_migration_catalog_one_active_root ON auth.schema_migration_catalog USING btree (((previous_id IS NULL))) WHERE ((archived_at IS NULL) AND (previous_id IS NULL));
+
+
+--
+-- Name: user_providers_oidc_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX user_providers_oidc_user_id_idx ON auth.user_providers USING btree (user_id) WHERE (provider_id ~~ 'oidc:%'::text);
 
 
 --

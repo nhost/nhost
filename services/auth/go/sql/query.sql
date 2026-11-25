@@ -331,6 +331,22 @@ WITH user_providers AS (
 SELECT * FROM auth.users
 WHERE id = (SELECT user_id FROM user_providers) LIMIT 1;
 
+-- name: RegisterOIDCProviders :exec
+INSERT INTO auth.providers (id, oidc_issuer)
+SELECT id, issuer FROM unnest(@provider_ids::text[], @issuers::text[]) AS config(id, issuer)
+ON CONFLICT (id) DO UPDATE
+SET oidc_issuer = CASE WHEN providers.oidc_issuer IS NULL
+                           OR providers.oidc_issuer = EXCLUDED.oidc_issuer
+                      THEN EXCLUDED.oidc_issuer
+                      -- Fail the entire statement via providers_oidc_issuer_check.
+                      ELSE '' END;
+
+-- name: GetUserByOIDCIdentity :one
+SELECT u.* FROM auth.users u
+JOIN auth.user_providers up ON up.user_id = u.id
+JOIN auth.providers p ON p.id = up.provider_id
+WHERE p.id = @provider_id AND p.oidc_issuer = @issuer AND up.provider_user_id = @subject;
+
 
 -- name: InsertUser :one
 WITH inserted_user AS (
@@ -789,6 +805,15 @@ WHERE provider_user_id = $1 AND provider_id = $2;
 INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
 VALUES ($1, $2, $3, 'unset')
 RETURNING *;
+
+-- name: InsertUserProviderByEmail :one
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
+SELECT @user_id::uuid, @provider_id::text, @provider_user_id::text, 'unset'
+WHERE NOT EXISTS (
+    SELECT 1 FROM auth.user_providers
+    WHERE user_id = @user_id AND provider_id LIKE 'oidc:%'
+)
+RETURNING id;
 
 -- name: UpdateUserTotpSecret :exec
 UPDATE auth.users

@@ -75,7 +75,8 @@ type AuthPkceAuthorizationCode struct {
 
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
-	ID string
+	ID         string
+	OidcIssuer pgtype.Text
 }
 
 // Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly.
