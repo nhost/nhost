@@ -425,7 +425,8 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthProvider",
 					},
 					CustomColumnNames: map[string]string{
-						"id": "id",
+						"id":          "id",
+						"oidc_issuer": "oidcIssuer",
 					},
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
