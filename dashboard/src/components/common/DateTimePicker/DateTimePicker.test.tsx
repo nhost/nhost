@@ -132,7 +132,7 @@ describe('DateTimePicker', () => {
     expect(screen.getByText('June 2025')).toBeInTheDocument();
   });
 
-  test('when the date changes datetime is emitted in utc string format', async () => {
+  it('when the date changes datetime is emitted in utc string format', async () => {
     render(<TestComponent />);
     const user = new TestUserEvent();
 
@@ -173,7 +173,7 @@ describe('DateTimePicker', () => {
     );
   });
 
-  test('timezone can be changed and the calendar is updated', async () => {
+  it('timezone can be changed and the calendar is updated', async () => {
     await waitFor(() => render(<TestComponent withTimezone />));
     const user = new TestUserEvent();
 
@@ -211,7 +211,7 @@ describe('DateTimePicker', () => {
     expect(gridCell).toHaveClass('[&>button]:bg-primary');
   });
 
-  test('Displays the correct time zone offset when changing the selected date from standard time (ST) to daylight saving time (DST)', async () => {
+  it('Displays the correct time zone offset when changing the selected date from standard time (ST) to daylight saving time (DST)', async () => {
     await waitFor(() => render(<TestComponent withTimezone />));
     const user = new TestUserEvent();
 

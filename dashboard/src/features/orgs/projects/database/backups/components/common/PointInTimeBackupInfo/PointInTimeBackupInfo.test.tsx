@@ -1,5 +1,5 @@
 import { setupServer } from 'msw/node';
-import { test, vi } from 'vitest';
+import { vi } from 'vitest';
 import {
   fetchEmptyPiTRBaseBackups,
   fetchPiTRBaseBackups,
@@ -73,7 +73,7 @@ describe('PointInTimeBackupInfo', () => {
     server.close();
   });
 
-  test("will display the earliest backup's date with the local timezone", async () => {
+  it("will display the earliest backup's date with the local timezone", async () => {
     server.use(getProjectQuery);
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
@@ -90,7 +90,7 @@ describe('PointInTimeBackupInfo', () => {
     );
   });
 
-  test("that the system fetches the earliest backup, displays 'Project has no backups yet' message when no backups exist, and verifies that the restore button is disabled.", async () => {
+  it("that the system fetches the earliest backup, displays 'Project has no backups yet' message when no backups exist, and verifies that the restore button is disabled.", async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchEmptyPiTRBaseBackups,
@@ -109,7 +109,7 @@ describe('PointInTimeBackupInfo', () => {
     expect(startRestoreButton).toBeDisabled();
   });
 
-  test('will update the date after the timezone has changed', async () => {
+  it('will update the date after the timezone has changed', async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
@@ -137,7 +137,7 @@ describe('PointInTimeBackupInfo', () => {
     );
   });
 
-  test('will schedule a restore', async () => {
+  it('will schedule a restore', async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
@@ -236,7 +236,7 @@ describe('PointInTimeBackupInfo', () => {
     ).toBeInTheDocument();
   });
 
-  test('that dates before the earliest backup cannot be selected', async () => {
+  it('that dates before the earliest backup cannot be selected', async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
@@ -300,7 +300,7 @@ describe('PointInTimeBackupInfo', () => {
     ).toHaveClass('border-destructive');
   });
 
-  test('Learn more link is displayed in the "footer" and aligned to the left and the "Start restore" button is to the right', async () => {
+  it('Learn more link is displayed in the "footer" and aligned to the left and the "Start restore" button is to the right', async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
@@ -319,7 +319,7 @@ describe('PointInTimeBackupInfo', () => {
     expect(linkWrapper).not.toHaveClass('justify-end');
   });
 
-  test('Learn more link is in not displayed in the "footer" the "Start restore" button is aligned to the right', async () => {
+  it('Learn more link is in not displayed in the "footer" the "Start restore" button is aligned to the right', async () => {
     server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,

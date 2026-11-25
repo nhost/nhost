@@ -1,4 +1,3 @@
-import { describe, it } from 'vitest';
 import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import prepareRemoteSourceRelationshipDTO from './prepareRemoteSourceRelationshipDTO';

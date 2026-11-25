@@ -1,9 +1,8 @@
-import { test } from 'vitest';
 import getProjectSwitchHref from './getProjectSwitchHref';
 
 const target = { orgSlug: 'org-a', subdomain: 'project-b' };
 
-test('keeps the feature page', () => {
+it('keeps the feature page', () => {
   expect(
     getProjectSwitchHref({
       ...target,
@@ -12,7 +11,7 @@ test('keeps the feature page', () => {
   ).toBe('/orgs/org-a/projects/project-b/logs');
 });
 
-test('keeps the tab on the same page', () => {
+it('keeps the tab on the same page', () => {
   expect(
     getProjectSwitchHref({
       ...target,
@@ -22,7 +21,7 @@ test('keeps the tab on the same page', () => {
   ).toBe('/orgs/org-a/projects/project-b/settings?tab=secrets');
 });
 
-test('drops the tab when a dynamic segment was stripped', () => {
+it('drops the tab when a dynamic segment was stripped', () => {
   expect(
     getProjectSwitchHref({
       ...target,
@@ -33,7 +32,7 @@ test('drops the tab when a dynamic segment was stripped', () => {
   ).toBe('/orgs/org-a/projects/project-b/functions');
 });
 
-test('applies feature path overrides', () => {
+it('applies feature path overrides', () => {
   expect(
     getProjectSwitchHref({
       ...target,

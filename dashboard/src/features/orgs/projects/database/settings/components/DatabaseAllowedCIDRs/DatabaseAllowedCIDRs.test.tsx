@@ -85,19 +85,19 @@ describe('DatabaseAllowedCIDRs', () => {
     );
   }
 
-  test('returns null when enablePublicAccess is false', () => {
+  it('returns null when enablePublicAccess is false', () => {
     setupMocks({ enablePublicAccess: false, allowedCIDRs: null });
     render(<DatabaseAllowedCIDRs />);
     expect(screen.queryByText('Allowed CIDRs')).not.toBeInTheDocument();
   });
 
-  test('renders when enablePublicAccess is true', async () => {
+  it('renders when enablePublicAccess is true', async () => {
     setupMocks({ enablePublicAccess: true, allowedCIDRs: null });
     render(<DatabaseAllowedCIDRs />);
     expect(await screen.findByText('Allowed CIDRs')).toBeInTheDocument();
   });
 
-  test('can add and remove CIDR fields up to max of 3', async () => {
+  it('can add and remove CIDR fields up to max of 3', async () => {
     setupMocks({ enablePublicAccess: true, allowedCIDRs: null });
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
@@ -133,7 +133,7 @@ describe('DatabaseAllowedCIDRs', () => {
     ).toBeInTheDocument();
   });
 
-  test('shows validation error for invalid CIDR', async () => {
+  it('shows validation error for invalid CIDR', async () => {
     setupMocks({ enablePublicAccess: true, allowedCIDRs: null });
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
@@ -152,7 +152,7 @@ describe('DatabaseAllowedCIDRs', () => {
     });
   });
 
-  test('shows required error for empty CIDR', async () => {
+  it('shows required error for empty CIDR', async () => {
     setupMocks({ enablePublicAccess: true, allowedCIDRs: null });
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
@@ -166,7 +166,7 @@ describe('DatabaseAllowedCIDRs', () => {
     });
   });
 
-  test('calls updateConfig with correct payload on submit', async () => {
+  it('calls updateConfig with correct payload on submit', async () => {
     setupMocks({ enablePublicAccess: true, allowedCIDRs: null });
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
@@ -195,7 +195,7 @@ describe('DatabaseAllowedCIDRs', () => {
     });
   });
 
-  test('sends allowedCIDRs: null when all CIDRs are removed', async () => {
+  it('sends allowedCIDRs: null when all CIDRs are removed', async () => {
     setupMocks({
       enablePublicAccess: true,
       allowedCIDRs: ['192.168.1.0/24'],

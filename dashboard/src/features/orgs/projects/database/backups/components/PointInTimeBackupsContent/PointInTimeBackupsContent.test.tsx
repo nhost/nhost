@@ -32,14 +32,14 @@ describe('PointInTimeBackupsContent', () => {
     vi.restoreAllMocks();
   });
 
-  test('if Point-in-Time Recovery is enabled', async () => {
+  it('if Point-in-Time Recovery is enabled', async () => {
     server.use(getPostgresSettings);
     server.use(getProjectQuery);
     render(<TestComponent />);
     expect(await screen.findByText('PiTR enabled')).toBeInTheDocument();
   });
 
-  test('if Point-in-sTime Recovery is not enabled', async () => {
+  it('if Point-in-sTime Recovery is not enabled', async () => {
     server.use(getOrganization);
     server.use(getProjectQuery);
     server.use(getPiTRNotEnabledPostgresSettings);

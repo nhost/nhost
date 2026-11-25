@@ -1,6 +1,5 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import createRecord from './createRecord';
 
 const defaultOptions = {
@@ -30,7 +29,7 @@ afterAll(() => server.close());
 type CapturedRequest = { args: Array<{ args: { sql: string } }> };
 
 describe('createRecord', () => {
-  test('inserts scalar values as SQL literals', async () => {
+  it('inserts scalar values as SQL literals', async () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
@@ -44,7 +43,7 @@ describe('createRecord', () => {
     expect(sql).not.toContain('ARRAY[');
   });
 
-  test('inserts array values using ARRAY[...] syntax', async () => {
+  it('inserts array values using ARRAY[...] syntax', async () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
@@ -61,7 +60,7 @@ describe('createRecord', () => {
     expect(sql).not.toMatch(/'(\[.*\])'/);
   });
 
-  test('inserts integer array values using ARRAY[...] syntax', async () => {
+  it('inserts integer array values using ARRAY[...] syntax', async () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
@@ -74,7 +73,7 @@ describe('createRecord', () => {
     expect(sql).not.toMatch(/'(\[.*\])'/);
   });
 
-  test('uses DEFAULT when value is absent and column has a default', async () => {
+  it('uses DEFAULT when value is absent and column has a default', async () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
@@ -86,7 +85,7 @@ describe('createRecord', () => {
     expect(sql).toContain('DEFAULT');
   });
 
-  test('uses NULL when value is absent and column is nullable', async () => {
+  it('uses NULL when value is absent and column is nullable', async () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
@@ -98,7 +97,7 @@ describe('createRecord', () => {
     expect(sql).toContain('NULL');
   });
 
-  test('throws a descriptive error when an array column value is not valid JSON', async () => {
+  it('throws a descriptive error when an array column value is not valid JSON', async () => {
     await expect(
       createRecord({
         ...defaultOptions,
@@ -109,7 +108,7 @@ describe('createRecord', () => {
     ).rejects.toThrow('Invalid array value for column "tags"');
   });
 
-  test('throws a normalized error when the server returns an error', async () => {
+  it('throws a normalized error when the server returns an error', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json(

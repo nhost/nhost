@@ -16,7 +16,7 @@ describe('AppLoader', () => {
     vi.clearAllMocks();
   });
 
-  test('renders loading screen when useProject is loading', () => {
+  it('renders loading screen when useProject is loading', () => {
     mocks.useProject.mockReturnValue({
       project: null,
       loading: true,
@@ -27,7 +27,7 @@ describe('AppLoader', () => {
     expect(screen.queryByText(/Provisioning/i)).not.toBeInTheDocument();
   });
 
-  test('renders subdomain and region with copy buttons during initialization', () => {
+  it('renders subdomain and region with copy buttons during initialization', () => {
     mocks.useProject.mockReturnValue({
       project: mockApplication,
       loading: false,

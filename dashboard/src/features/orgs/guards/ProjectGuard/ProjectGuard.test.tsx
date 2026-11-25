@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { ErrorBoundary } from 'react-error-boundary';
-import { afterEach, describe, vi } from 'vitest';
+import { vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import {
   getProjectQuery,

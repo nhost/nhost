@@ -20,7 +20,7 @@ afterEach(() => {
   toast.remove();
 });
 
-test('shows the server-provided error message over the generic message', async () => {
+it('shows the server-provided error message over the generic message', async () => {
   render(<div />);
 
   await execPromiseWithErrorToast(failWith(portError), {
@@ -38,7 +38,7 @@ test('shows the server-provided error message over the generic message', async (
   ).not.toBeInTheDocument();
 });
 
-test('shows the generic message for a network-only Apollo error', async () => {
+it('shows the generic message for a network-only Apollo error', async () => {
   render(<div />);
 
   await execPromiseWithErrorToast(
@@ -58,7 +58,7 @@ test('shows the generic message for a network-only Apollo error', async () => {
   ).toBeInTheDocument();
 });
 
-test('shows the resolved message when errorMessage is a function', async () => {
+it('shows the resolved message when errorMessage is a function', async () => {
   render(<div />);
 
   await execPromiseWithErrorToast(failWith(portError), {
@@ -73,7 +73,7 @@ test('shows the resolved message when errorMessage is a function', async () => {
   ).toBeInTheDocument();
 });
 
-test('never shows the server message when errorMessage is a function', async () => {
+it('never shows the server message when errorMessage is a function', async () => {
   render(<div />);
 
   await execPromiseWithErrorToast(failWith(portError), {

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import type { CreateLocalRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import prepareLocalRelationshipDTO from './prepareLocalRelationshipDTO';

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import convertSnakeToCamelCase from './convertSnakeToCamelCase';
 
 describe('convertSnakeToCamelCase', () => {

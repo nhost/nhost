@@ -95,7 +95,7 @@ describe('DatabasePiTRSettings', () => {
     mocks.useGetPostgresSettingsQuery.mockRestore();
   });
 
-  test('If the org is free the switch should not be available and the save button is disabled', async () => {
+  it('If the org is free the switch should not be available and the save button is disabled', async () => {
     server.use(getProjectQuery);
     server.use(prefetchNewAppQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
@@ -117,7 +117,7 @@ describe('DatabasePiTRSettings', () => {
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
   });
 
-  test('the Save button is disabled until the switch in the header is not touched', async () => {
+  it('the Save button is disabled until the switch in the header is not touched', async () => {
     server.use(getProjectQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: false }),
@@ -147,7 +147,7 @@ describe('DatabasePiTRSettings', () => {
     ).not.toBeDisabled();
   });
 
-  test('should disable the savebutton after toggling back to original state', async () => {
+  it('should disable the savebutton after toggling back to original state', async () => {
     server.use(getProjectQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: false }),
@@ -172,7 +172,7 @@ describe('DatabasePiTRSettings', () => {
     ).toBeDisabled();
   });
 
-  test('should send { retention: 7 } when enabling PiTR', async () => {
+  it('should send { retention: 7 } when enabling PiTR', async () => {
     server.use(getProjectQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: false }),
@@ -197,7 +197,7 @@ describe('DatabasePiTRSettings', () => {
     ).toStrictEqual({ retention: 7 });
   });
 
-  test('should send { pitr: null } when disabling PiTR', async () => {
+  it('should send { pitr: null } when disabling PiTR', async () => {
     server.use(getProjectQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: false }),

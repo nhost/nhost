@@ -1,5 +1,5 @@
 import { FormProvider, type UseFormReturn, useForm } from 'react-hook-form';
-import { afterEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import type { PostgresFunction } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {

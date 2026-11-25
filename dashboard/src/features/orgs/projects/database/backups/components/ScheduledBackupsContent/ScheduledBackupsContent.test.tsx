@@ -49,7 +49,7 @@ describe('ScheduledBackupsContent', () => {
     vi.restoreAllMocks();
   });
 
-  test('that Scheduled backups is loaded if PiTR is not enabled', async () => {
+  it('that Scheduled backups is loaded if PiTR is not enabled', async () => {
     server.use(
       getPiTRNotEnabledPostgresSettings,
       getProjectQuery,
@@ -62,7 +62,7 @@ describe('ScheduledBackupsContent', () => {
     expect(await screen.findByText('1.02 KB')).toBeInTheDocument();
   });
 
-  test('that a warning message is displayed if Point-in-Time Recovery is enabled ', async () => {
+  it('that a warning message is displayed if Point-in-Time Recovery is enabled ', async () => {
     server.use(getProjectQuery);
     server.use(getPostgresSettings);
 
@@ -72,7 +72,7 @@ describe('ScheduledBackupsContent', () => {
     ).toBeInTheDocument();
   });
 
-  test('restores a scheduled backup into the current project', async () => {
+  it('restores a scheduled backup into the current project', async () => {
     const user = new TestUserEvent();
     server.use(
       getPiTRNotEnabledPostgresSettings,
@@ -103,7 +103,7 @@ describe('ScheduledBackupsContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('downloads a scheduled backup from the current project', async () => {
+  it('downloads a scheduled backup from the current project', async () => {
     const user = new TestUserEvent();
     vi.spyOn(window, 'open').mockImplementation(() => null);
     server.use(

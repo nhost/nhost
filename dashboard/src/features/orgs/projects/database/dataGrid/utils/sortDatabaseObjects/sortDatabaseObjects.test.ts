@@ -1,4 +1,3 @@
-import { describe, expect, test } from 'vitest';
 import type {
   DatabaseObjectViewModel,
   TableLikeObjectType,
@@ -22,7 +21,7 @@ function fn(
 }
 
 describe('sortDatabaseObjects', () => {
-  test('should sort all objects alphabetically regardless of type', () => {
+  it('should sort all objects alphabetically regardless of type', () => {
     const input = [
       fn('search_users', '16384'),
       obj('users', 'ORDINARY TABLE'),
@@ -42,7 +41,7 @@ describe('sortDatabaseObjects', () => {
     ]);
   });
 
-  test('should sort alphabetically within mixed types', () => {
+  it('should sort alphabetically within mixed types', () => {
     const input = [
       obj('zebra', 'VIEW'),
       fn('alpha', '1'),
@@ -54,7 +53,7 @@ describe('sortDatabaseObjects', () => {
     expect(result.map((o) => o.name)).toEqual(['alpha', 'middle', 'zebra']);
   });
 
-  test('should not mutate the original array', () => {
+  it('should not mutate the original array', () => {
     const input = [obj('b_view', 'VIEW'), obj('a_table', 'ORDINARY TABLE')];
     const original = [...input];
 
@@ -63,7 +62,7 @@ describe('sortDatabaseObjects', () => {
     expect(input).toEqual(original);
   });
 
-  test('should handle an empty array', () => {
+  it('should handle an empty array', () => {
     expect(sortDatabaseObjects([])).toEqual([]);
   });
 });

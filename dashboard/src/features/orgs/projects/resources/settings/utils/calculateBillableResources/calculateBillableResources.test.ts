@@ -1,10 +1,10 @@
 import calculateBillableResources from './calculateBillableResources';
 
-test('should return zero if no services are provided', () => {
+it('should return zero if no services are provided', () => {
   expect(calculateBillableResources()).toMatchObject({ vcpu: 0, memory: 0 });
 });
 
-test('should return the correct cost for a single service', () => {
+it('should return the correct cost for a single service', () => {
   expect(
     calculateBillableResources({ replicas: 1, vcpu: 250, memory: 500 }),
   ).toMatchObject({
@@ -13,7 +13,7 @@ test('should return the correct cost for a single service', () => {
   });
 });
 
-test('should return the correct cost for multiple services', () => {
+it('should return the correct cost for multiple services', () => {
   expect(
     calculateBillableResources(
       { replicas: 1, vcpu: 250, memory: 250 },
@@ -22,7 +22,7 @@ test('should return the correct cost for multiple services', () => {
   ).toMatchObject({ vcpu: 500, memory: 750 });
 });
 
-test('should return the correct cost for multiple services with different vCPU and replica counts', () => {
+it('should return the correct cost for multiple services with different vCPU and replica counts', () => {
   expect(
     calculateBillableResources(
       { replicas: 2, vcpu: 250, memory: 500 },
@@ -31,7 +31,7 @@ test('should return the correct cost for multiple services with different vCPU a
   ).toMatchObject({ vcpu: 1000, memory: 1750 });
 });
 
-test('should not count services with no replicas or vCPU and memory', () => {
+it('should not count services with no replicas or vCPU and memory', () => {
   expect(
     calculateBillableResources(
       // should count

@@ -1,8 +1,7 @@
-import { test } from 'vitest';
 import type { JwtSecretFragment } from '@/generated/graphql';
 import getJwtSecretsWithoutFalsyValues from './getJwtSecretsWithoutFalsyValues';
 
-test('returns array of objects without falsy values and __typename property', () => {
+it('returns array of objects without falsy values and __typename property', () => {
   const input: JwtSecretFragment[] = [
     {
       __typename: 'ConfigJWTSecret',

@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { ErrorBoundary } from 'react-error-boundary';
-import { afterEach, describe, vi } from 'vitest';
+import { vi } from 'vitest';
 import { mockOrganization } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';

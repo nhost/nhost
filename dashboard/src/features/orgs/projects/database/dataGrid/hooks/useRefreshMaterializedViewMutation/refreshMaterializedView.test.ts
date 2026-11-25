@@ -1,6 +1,5 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import refreshMaterializedView from './refreshMaterializedView';
 
 const defaultOptions = {
@@ -26,7 +25,7 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('refreshMaterializedView', () => {
-  test('should produce REFRESH MATERIALIZED VIEW SQL', async () => {
+  it('should produce REFRESH MATERIALIZED VIEW SQL', async () => {
     await refreshMaterializedView({
       ...defaultOptions,
       schema: 'analytics',
@@ -41,7 +40,7 @@ describe('refreshMaterializedView', () => {
     );
   });
 
-  test('should quote unsafe identifiers', async () => {
+  it('should quote unsafe identifiers', async () => {
     await refreshMaterializedView({
       ...defaultOptions,
       schema: 'analytics schema',

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import fetchFunctionDefinition, {
   type FunctionDefinitionRow,
 } from './fetchFunctionDefinition';

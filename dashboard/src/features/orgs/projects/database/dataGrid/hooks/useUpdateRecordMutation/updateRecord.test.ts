@@ -65,7 +65,7 @@ afterAll(() => server.close());
 type CapturedRequest = { args: Array<{ args: { sql: string } }> };
 
 describe('updateRecord', () => {
-  test('updates a scalar column using SQL literal syntax', async () => {
+  it('updates a scalar column using SQL literal syntax', async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       { id: 'name', specificType: 'text', value: 'Alice' },
@@ -83,7 +83,7 @@ describe('updateRecord', () => {
     expect(sql).not.toContain('ARRAY[');
   });
 
-  test('updates an array column using ARRAY[...] syntax', async () => {
+  it('updates an array column using ARRAY[...] syntax', async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       { id: 'tags', specificType: 'text[]', value: ['a', 'b'] },
@@ -102,7 +102,7 @@ describe('updateRecord', () => {
     expect(sql).not.toMatch(/tags = '(\[.*\])'/);
   });
 
-  test("sets a column to NULL when reset is 'null'", async () => {
+  it("sets a column to NULL when reset is 'null'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       { id: 'bio', specificType: 'text', value: 'hello' },
@@ -118,7 +118,7 @@ describe('updateRecord', () => {
     expect(sql).toContain('bio = NULL');
   });
 
-  test("sets a column to DEFAULT when reset is 'default'", async () => {
+  it("sets a column to DEFAULT when reset is 'default'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       {
@@ -139,7 +139,7 @@ describe('updateRecord', () => {
     expect(sql).not.toContain('created_at = NULL');
   });
 
-  test('builds the WHERE clause from primary key columns', async () => {
+  it('builds the WHERE clause from primary key columns', async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 42 },
       { id: 'name', specificType: 'text', value: 'Alice' },
@@ -156,7 +156,7 @@ describe('updateRecord', () => {
     expect(sql).toContain('42');
   });
 
-  test('throws when no primary key column is present', async () => {
+  it('throws when no primary key column is present', async () => {
     const row = makeRow([{ id: 'name', specificType: 'text', value: 'Alice' }]);
 
     await expect(
@@ -168,7 +168,7 @@ describe('updateRecord', () => {
     ).rejects.toThrow('No primary keys found for row.');
   });
 
-  test('throws a descriptive error when an array column value is not valid JSON', async () => {
+  it('throws a descriptive error when an array column value is not valid JSON', async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       { id: 'tags', specificType: 'text[]', value: ['a'] },
@@ -224,7 +224,7 @@ describe('updateRecord', () => {
     expect(sql).toContain("bio = 'foo'");
   });
 
-  test('throws a normalized error when the server returns an error', async () => {
+  it('throws a normalized error when the server returns an error', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json(

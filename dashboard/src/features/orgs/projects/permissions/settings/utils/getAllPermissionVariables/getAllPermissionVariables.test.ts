@@ -1,8 +1,7 @@
-import { expect, test } from 'vitest';
 import type { PermissionVariable } from '@/types/application';
 import getAllPermissionVariables from './getAllPermissionVariables';
 
-test('should convert permission variable object to array', () => {
+it('should convert permission variable object to array', () => {
   const permissionVariables: PermissionVariable[] = [
     {
       id: 'variable-1',
@@ -23,7 +22,7 @@ test('should convert permission variable object to array', () => {
   ]);
 });
 
-test('should only return system variables if no permission variables are provided', () => {
+it('should only return system variables if no permission variables are provided', () => {
   const systemVariables = [
     { id: 'User-Id', key: 'User-Id', value: 'id', isSystemVariable: true },
   ];
