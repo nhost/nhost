@@ -144,7 +144,7 @@ You do not need to manually expose individual tables or operations as separate M
 
 `storage-download` takes a stored file ID, not a local path or source URL. It returns complete images as MCP image content and other file bytes as base64. To enable it, configure the [storage URL](/products/ai/mcp/configuration#storage) and grant the role only the [file and bucket access](/products/ai/mcp/permissions#storage-permissions) the assistant needs.
 
-In clients that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview), `storage-download` can also show an inline preview of complete AVIF, GIF, JPEG, PNG, and WebP downloads. The preview uses the image already in the tool result, without a public URL or a second download.
+[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) clients can open an inline panel for any `storage-download` call. The panel previews complete AVIF, GIF, JPEG, PNG, and WebP images that the client's browser can decode. If there is no previewable image, for example when downloading a PDF or a byte range, the panel shows a short status message instead. The panel uses the existing tool result and does not need a public URL or a second download.
 
 ## Access control
 

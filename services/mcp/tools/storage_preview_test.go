@@ -1,6 +1,7 @@
 package tools_test
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -47,6 +48,46 @@ func TestStoragePreviewResource(t *testing.T) {
 	if !ok || view.URI != uri || view.MIMEType != mimeType ||
 		!strings.HasPrefix(view.Text, "<!doctype html>") {
 		t.Fatalf("expected HTML preview resource, got %T", result.Contents[0])
+	}
+
+	checkStoragePreviewHTML(t, view.Text)
+}
+
+func checkStoragePreviewHTML(t *testing.T, page string) {
+	t.Helper()
+
+	const (
+		cspHeader = `http-equiv="content-security-policy"`
+		wantCSP   = "default-src 'none'; img-src data:; " +
+			"script-src 'unsafe-inline'; style-src 'unsafe-inline'"
+	)
+
+	cspTag := regexp.MustCompile(`(?i)<meta\s+` + cspHeader + `\s+content="([^"]*)"\s*>`)
+
+	match := cspTag.FindStringSubmatch(page)
+	if strings.Count(strings.ToLower(page), cspHeader) != 1 ||
+		len(match) != 2 || match[1] != wantCSP {
+		t.Errorf("expected one no-network CSP %q, got %q", wantCSP, match)
+	}
+
+	for _, forbidden := range []string{
+		"fetch(", "XMLHttpRequest", "WebSocket", "EventSource", "<link", `src="http`, "@import",
+	} {
+		if strings.Contains(page, forbidden) {
+			t.Errorf("preview must not reference %q", forbidden)
+		}
+	}
+
+	for _, required := range []string{
+		"'2026-01-26'",
+		"'ui/initialize'",
+		"'ui/notifications/initialized'",
+		"'ui/notifications/tool-result'",
+		"'ui/resource-teardown'",
+	} {
+		if !strings.Contains(page, required) {
+			t.Errorf("preview is missing MCP Apps protocol marker %s", required)
+		}
 	}
 }
 
