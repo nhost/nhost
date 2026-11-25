@@ -194,11 +194,11 @@ export type RawQueryDataRow = string[];
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
 
-export type FunctionObject = {
+export interface FunctionObject {
   function_schema: string;
   function_name: string;
   function_oid: string;
-};
+}
 
 /**
  * Represents an object that can be a table, view or materialized view in the database.

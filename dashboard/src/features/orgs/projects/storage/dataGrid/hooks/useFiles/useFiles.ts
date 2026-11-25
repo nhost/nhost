@@ -8,7 +8,7 @@ import type {
 } from '@/generated/graphql';
 import { useGetFilesQuery } from '@/generated/graphql';
 
-export type UseFilesOptions = {
+export interface UseFilesOptions {
   /**
    * Hasura where clause to filter files.
    */
@@ -29,7 +29,7 @@ export type UseFilesOptions = {
    * Custom options for the query.
    */
   options?: QueryHookOptions<GetFilesQuery>;
-};
+}
 
 export default function useFiles({
   where,

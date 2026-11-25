@@ -1,9 +1,9 @@
 import type { Fetcher } from '@graphiql/toolkit';
 
-export type GraphQLPlaygroundSelection = {
+export interface GraphQLPlaygroundSelection {
   userId: string;
   role: string;
-};
+}
 
 interface ComposeRequestHeadersOptions {
   adminSecret: string;

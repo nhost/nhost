@@ -49,10 +49,10 @@ export interface PermissionVariable extends PermissionVariableFragment {
   isSystemVariable?: boolean;
 }
 
-export type Role = {
+export interface Role {
   name: string;
   isSystemRole?: boolean;
-};
+}
 
 export type EnvironmentVariable = EnvironmentVariableFragment;
 export type Secret = SecretFragment;

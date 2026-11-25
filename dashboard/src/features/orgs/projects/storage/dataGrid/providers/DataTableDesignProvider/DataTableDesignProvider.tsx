@@ -11,10 +11,10 @@ import {
   saveRowDensity,
 } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
-type DataTableDesign = {
+interface DataTableDesign {
   setRowDensity: (newDensity: RowDensity) => void;
   rowDensity: RowDensity;
-};
+}
 
 const DataTableDesignContext = createContext<DataTableDesign>({
   rowDensity: 'comfortable',

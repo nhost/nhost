@@ -13,10 +13,10 @@ type InTransformerFn<
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type OutTransformerFn = (...args: any[]) => any;
 
-export type Transformer = {
+export interface Transformer {
   in: InTransformerFn;
   out: OutTransformerFn;
-};
+}
 
 const DEFAULT_TRANSFORMER: Transformer = {
   in: (v) => v,

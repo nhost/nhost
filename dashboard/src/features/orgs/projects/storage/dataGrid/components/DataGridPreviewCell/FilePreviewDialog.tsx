@@ -13,7 +13,7 @@ import { previewableImages } from '@/features/orgs/projects/storage/dataGrid/com
 import { cn } from '@/lib/utils';
 import { getFileUrlOrFallback } from './utils';
 
-export type FilePreviewDialogProps = {
+export interface FilePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   id: string;
@@ -21,7 +21,7 @@ export type FilePreviewDialogProps = {
   alt?: string;
   downloadExpiration: number;
   presignedUrlsEnabled?: boolean;
-};
+}
 
 const PRESIGNED_URL_SAFETY_MARGIN_SECONDS = 10;
 

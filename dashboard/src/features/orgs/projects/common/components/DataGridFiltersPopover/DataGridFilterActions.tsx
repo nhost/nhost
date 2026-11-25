@@ -6,9 +6,9 @@ import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { useGetDataColumns } from './useGetDataColumns';
 
-type DataGridFilterActionsProps = {
+interface DataGridFilterActionsProps {
   isFetching: boolean;
-};
+}
 
 function DataGridFilterActions({ isFetching }: DataGridFilterActionsProps) {
   const { setAppliedFilters } = useDataGridQueryParams();

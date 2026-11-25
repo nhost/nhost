@@ -12,11 +12,11 @@ export type RemoteSchemaAccessLevel = 'full' | 'partial' | 'none';
 
 export type ArgLeafType = string | number | boolean | null;
 
-export type ArgTreeType = {
+export interface ArgTreeType {
   [key: string]: ArgLeafType | ArgTreeType;
-};
+}
 
-export type CustomFieldType = {
+export interface CustomFieldType {
   name: string;
   checked: boolean;
   args?: Record<string, GraphQLArgument>;
@@ -28,7 +28,7 @@ export type CustomFieldType = {
   isInputObjectType?: boolean;
   parentName?: string;
   expanded?: boolean;
-};
+}
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type FieldType = CustomFieldType & GraphQLField<any, any>;
@@ -41,8 +41,8 @@ export type RemoteSchemaFields =
     }
   | FieldType;
 
-export type ChildArgumentType = {
+export interface ChildArgumentType {
   children?: GraphQLInputFieldMap | GraphQLEnumValue[];
   path?: string;
   childrenType?: GraphQLType;
-};
+}
