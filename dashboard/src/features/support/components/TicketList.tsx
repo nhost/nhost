@@ -400,10 +400,16 @@ export default function TicketList() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="px-2 text-foreground">Ticket</TableHead>
-              <TableHead className="hidden text-foreground md:table-cell">Status</TableHead>
-              <TableHead className="hidden text-foreground md:table-cell">Severity</TableHead>
+              <TableHead className="hidden text-foreground md:table-cell">
+                Status
+              </TableHead>
+              <TableHead className="hidden text-foreground md:table-cell">
+                Severity
+              </TableHead>
               {isAgent && (
-                <TableHead className="hidden text-foreground md:table-cell">Assignee</TableHead>
+                <TableHead className="hidden text-foreground md:table-cell">
+                  Assignee
+                </TableHead>
               )}
               <TableHead className="hidden text-right text-foreground md:table-cell">
                 Updated
@@ -486,11 +492,16 @@ export default function TicketList() {
                     </p>
                     <div className="mt-2 space-y-1 md:hidden">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <TicketStatus status={ticket.status} isAgent={isAgent} />
+                        <TicketStatus
+                          status={ticket.status}
+                          isAgent={isAgent}
+                        />
                         <TicketSeverity severity={ticket.severity} />
                       </div>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 break-words text-muted-foreground text-xs">
-                        {isAgent && <span>{ticket.assigneeName ?? 'Unassigned'}</span>}
+                        {isAgent && (
+                          <span>{ticket.assigneeName ?? 'Unassigned'}</span>
+                        )}
                         <time dateTime={ticket.updatedAt}>{updated}</time>
                       </div>
                     </div>
@@ -519,9 +530,7 @@ export default function TicketList() {
                     </TableCell>
                   )}
                   <TableCell className="hidden whitespace-nowrap py-3 text-right text-muted-foreground text-xs md:table-cell">
-                    <time dateTime={ticket.updatedAt}>
-                      {updated}
-                    </time>
+                    <time dateTime={ticket.updatedAt}>{updated}</time>
                   </TableCell>
                 </TableRow>
               );
