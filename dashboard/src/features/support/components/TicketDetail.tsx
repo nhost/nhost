@@ -211,7 +211,7 @@ export default function TicketDetail() {
                     Mark as resolved
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground">
+                <AlertDialogContent className="flex w-full max-w-lg flex-col gap-6 p-6 text-left text-foreground sm:p-12">
                   <AlertDialogHeader className="gap-2">
                     <AlertDialogTitle className="text-xl">
                       Mark ticket #{ticket.number} as resolved?

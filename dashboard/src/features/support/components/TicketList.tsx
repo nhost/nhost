@@ -253,7 +253,7 @@ export default function TicketList() {
             </TabsList>
           </Tabs>
         )}
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
           {isAgent && (
             <div className="mr-2 flex items-center gap-2">
               <Checkbox
@@ -308,6 +308,7 @@ export default function TicketList() {
             </DropdownMenuContent>
           </DropdownMenu>
           <form
+            className="w-full min-w-0 sm:w-auto"
             onSubmit={(event) => {
               event.preventDefault();
               changeSearch({ q: query, organization: '' });
@@ -395,16 +396,16 @@ export default function TicketList() {
           )}
         </div>
       ) : (
-        <Table>
+        <Table className="table-fixed md:table-auto">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="px-2 text-foreground">Ticket</TableHead>
-              <TableHead className="text-foreground">Status</TableHead>
-              <TableHead className="text-foreground">Severity</TableHead>
+              <TableHead className="hidden text-foreground md:table-cell">Status</TableHead>
+              <TableHead className="hidden text-foreground md:table-cell">Severity</TableHead>
               {isAgent && (
-                <TableHead className="text-foreground">Assignee</TableHead>
+                <TableHead className="hidden text-foreground md:table-cell">Assignee</TableHead>
               )}
-              <TableHead className="text-right text-foreground">
+              <TableHead className="hidden text-right text-foreground md:table-cell">
                 Updated
               </TableHead>
             </TableRow>
@@ -421,6 +422,12 @@ export default function TicketList() {
               const newReply =
                 !!lastReply &&
                 (!readAt || Date.parse(lastReply) > Date.parse(readAt));
+              const updated = new Intl.DateTimeFormat(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(ticket.updatedAt));
               return (
                 <TableRow
                   key={ticket.id}
@@ -477,15 +484,25 @@ export default function TicketList() {
                         </span>
                       )}
                     </p>
+                    <div className="mt-2 space-y-1 md:hidden">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <TicketStatus status={ticket.status} isAgent={isAgent} />
+                        <TicketSeverity severity={ticket.severity} />
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 break-words text-muted-foreground text-xs">
+                        {isAgent && <span>{ticket.assigneeName ?? 'Unassigned'}</span>}
+                        <time dateTime={ticket.updatedAt}>{updated}</time>
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="hidden py-3 md:table-cell">
                     <TicketStatus status={ticket.status} isAgent={isAgent} />
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="hidden py-3 md:table-cell">
                     <TicketSeverity severity={ticket.severity} />
                   </TableCell>
                   {isAgent && (
-                    <TableCell className="py-3">
+                    <TableCell className="hidden py-3 md:table-cell">
                       {ticket.assigneeName ? (
                         <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm">
                           <Avatar
@@ -501,14 +518,9 @@ export default function TicketList() {
                       )}
                     </TableCell>
                   )}
-                  <TableCell className="whitespace-nowrap py-3 text-right text-muted-foreground text-xs">
+                  <TableCell className="hidden whitespace-nowrap py-3 text-right text-muted-foreground text-xs md:table-cell">
                     <time dateTime={ticket.updatedAt}>
-                      {new Intl.DateTimeFormat(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }).format(new Date(ticket.updatedAt))}
+                      {updated}
                     </time>
                   </TableCell>
                 </TableRow>

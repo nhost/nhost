@@ -351,9 +351,9 @@ function NewTicketForm() {
             }}
           >
             <section>
-              <fieldset className="min-w-0 rounded-t-lg border bg-background p-6">
+              <fieldset className="min-w-0 rounded-t-lg border bg-background p-4 sm:p-6">
                 <legend className="sr-only">Where</legend>
-                <div className="grid gap-8 lg:grid-cols-support-ticket">
+                <div className="grid gap-4 sm:gap-8 lg:grid-cols-support-ticket">
                   <div className="flex items-start gap-3">
                     <span
                       aria-hidden="true"
@@ -450,10 +450,10 @@ function NewTicketForm() {
               >
                 <fieldset
                   disabled={!selectedOrganization}
-                  className="min-w-0 border-b p-6"
+                  className="min-w-0 border-b p-4 sm:p-6"
                 >
                   <legend className="sr-only">What</legend>
-                  <div className="grid gap-8 lg:grid-cols-support-ticket">
+                  <div className="grid gap-4 sm:gap-8 lg:grid-cols-support-ticket">
                     <div className="flex items-start gap-3">
                       <span
                         aria-hidden="true"
@@ -653,10 +653,10 @@ function NewTicketForm() {
                 </fieldset>
                 <fieldset
                   disabled={!selectedOrganization}
-                  className="min-w-0 border-b p-6"
+                  className="min-w-0 border-b p-4 sm:p-6"
                 >
                   <legend className="sr-only">Details</legend>
-                  <div className="grid gap-8 lg:grid-cols-support-ticket">
+                  <div className="grid gap-4 sm:gap-8 lg:grid-cols-support-ticket">
                     <div className="flex items-start gap-3">
                       <span
                         aria-hidden="true"
@@ -774,7 +774,7 @@ function NewTicketForm() {
                     </div>
                   </div>
                 </fieldset>
-                <div className="flex flex-wrap items-center justify-between gap-4 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6">
                   <p className="text-muted-foreground text-xs">
                     Visible to everyone in your organization. Don't share
                     passwords or keys.
@@ -812,7 +812,7 @@ function NewTicketForm() {
             }}
           >
             <AlertDialogContent
-              className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground"
+              className="flex w-full max-w-lg flex-col gap-6 p-6 text-left text-foreground sm:p-12"
               onCloseAutoFocus={(event) => {
                 event.preventDefault();
                 organizationTrigger.current?.focus();

@@ -176,7 +176,7 @@ export default function TicketConversation({
                 return (
                   <li
                     key={message.id}
-                    className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-6"
+                    className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3 sm:gap-6"
                   >
                     {!comments.isError &&
                       (index < conversation.length || !closed) && (
@@ -278,7 +278,7 @@ export default function TicketConversation({
                 need further help.
               </p>
             ) : (
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-6">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
                 <Avatar
                   className="h-9 w-9"
                   aria-hidden="true"
