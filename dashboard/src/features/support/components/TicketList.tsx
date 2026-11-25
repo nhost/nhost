@@ -172,7 +172,8 @@ export default function TicketList() {
       ),
     enabled: !!user && router.isReady && !waitingForQueues,
     cacheTime: 0,
-    retry: false,
+    retry: 1,
+    retryDelay: 500,
     refetchInterval: 30000,
   });
   const loadingTickets =
@@ -339,7 +340,7 @@ export default function TicketList() {
       </div>
       {tickets.isError ? (
         <SupportError
-          message="Unable to load support tickets. Your access may have changed; please try again."
+          message="Unable to load support tickets. Please try again."
           retry={() => {
             void tickets.refetch();
           }}
