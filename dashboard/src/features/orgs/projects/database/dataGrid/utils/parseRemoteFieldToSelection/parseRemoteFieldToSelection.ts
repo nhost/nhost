@@ -4,11 +4,11 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { serializeRemoteFieldArgumentValue } from '@/features/orgs/projects/remote-schemas/utils/forms';
 
-export type ParsedRemoteFieldSelection = {
+export interface ParsedRemoteFieldSelection {
   rootFieldPath: string;
   selectedFieldPaths: Set<string>;
   argumentMappingsByPath: RemoteFieldArgumentMappingsByPath;
-};
+}
 
 /**
  * Parse a Hasura remote_field object into selection state for the UI.

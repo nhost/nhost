@@ -30,6 +30,12 @@ type BucketMetadata struct {
 	CacheControl         string
 }
 
+// FileToDelete identifies queued content awaiting deletion.
+type FileToDelete struct {
+	ID        string
+	DeletedAt time.Time
+}
+
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
 	GetFileByID(ctx context.Context, id string, headers http.Header) (api.FileMetadata, *APIError)
@@ -52,6 +58,15 @@ type MetadataStorage interface {
 	) *APIError
 	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *APIError
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
+	ListFilesToDelete(
+		ctx context.Context, before time.Time, after string, limit int, headers http.Header,
+	) ([]FileToDelete, *APIError)
+	RemoveFileFromCleanup(
+		ctx context.Context,
+		id string,
+		before time.Time,
+		headers http.Header,
+	) *APIError
 	InsertVirus(
 		ctx context.Context,
 		fileID, filename, virus string,

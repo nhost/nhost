@@ -11,11 +11,11 @@ import { isNotEmptyValue } from '@/lib/utils';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { useGetDataColumns } from './useGetDataColumns';
 
-type DataFilterColumnProps = {
+interface DataFilterColumnProps {
   value: string;
   index: number;
   currentOp: string;
-};
+}
 
 function DataGridFilterColumn({
   value,

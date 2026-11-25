@@ -1,10 +1,13 @@
-import * as React from 'react';
+import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
-const SettingsCardFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+const SettingsCardFooter = ({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.Ref<HTMLDivElement>;
+}) => (
   <div
     ref={ref}
     // Marks the footer so SettingsCard can drop its bottom padding and let
@@ -16,7 +19,6 @@ const SettingsCardFooter = React.forwardRef<
     )}
     {...props}
   />
-));
-SettingsCardFooter.displayName = 'SettingsCardFooter';
+);
 
 export { SettingsCardFooter };

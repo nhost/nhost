@@ -335,10 +335,10 @@ export const orgPages = definePages([
   },
 ]);
 
-export type PaletteGating = {
+export interface PaletteGating {
   isNotPlatform: boolean;
   shouldDisableSettings: boolean;
-};
+}
 
 export const isHiddenFromPalette = (
   gate: PaletteGate | undefined,

@@ -17,11 +17,11 @@ import {
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 
-type Option = {
+interface Option {
   value: string;
   label: string;
   key?: string;
-};
+}
 
 interface VirtualizedCommandProps<O extends Option> {
   height?: string;

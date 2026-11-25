@@ -1,13 +1,8 @@
-import type { ForwardedRef, SVGProps } from 'react';
-import { forwardRef } from 'react';
+import type { SVGProps } from 'react';
 
-function NhostIcon(
-  props: SVGProps<SVGSVGElement>,
-  ref: ForwardedRef<SVGSVGElement>,
-) {
+function NhostIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      ref={ref}
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -33,4 +28,4 @@ function NhostIcon(
   );
 }
 
-export default forwardRef(NhostIcon);
+export default NhostIcon;

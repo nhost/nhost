@@ -17,11 +17,11 @@ export interface UseSoftwareVersionsInfoOptions
     GetConfiguredVersionsQueryVariables
   > {}
 
-type ServiceVersionInfo = {
+interface ServiceVersionInfo {
   configuredVersion: string | undefined | null;
   recommendedVersions: string[];
   isVersionMismatch: boolean;
-};
+}
 
 export default function useSoftwareVersionsInfo(
   options: UseSoftwareVersionsInfoOptions = {},

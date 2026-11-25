@@ -113,6 +113,34 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 				Source: dbName,
 				Table: metadata.Table{
 					Schema: "storage",
+					Name:   "files_to_delete",
+				},
+				Configuration: metadata.Configuration{
+					CustomName: "filesToDelete",
+					CustomRootFields: metadata.CustomRootFields{
+						Select:          "filesToDelete",
+						SelectByPk:      "fileToDelete",
+						SelectAggregate: "filesToDeleteAggregate",
+						Insert:          "insertFilesToDelete",
+						InsertOne:       "insertFileToDelete",
+						Update:          "updateFilesToDelete",
+						UpdateByPk:      "updateFileToDelete",
+						Delete:          "deleteFilesToDelete",
+						DeleteByPk:      "deleteFileToDelete",
+					},
+					CustomColumnNames: map[string]string{
+						"id":         "id",
+						"deleted_at": "deletedAt",
+					},
+				},
+			},
+		},
+		{
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{
+				Source: dbName,
+				Table: metadata.Table{
+					Schema: "storage",
 					Name:   "virus",
 				},
 				Configuration: metadata.Configuration{

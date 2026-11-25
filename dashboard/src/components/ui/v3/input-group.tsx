@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/a11y/useSemanticElements: shadcn components */
 import { cva, type VariantProps } from 'class-variance-authority';
-import React from 'react';
+import type React from 'react';
 
 import { Button } from '@/components/ui/v3/button';
 import { controlHeight } from '@/components/ui/v3/control';
@@ -146,10 +146,12 @@ function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
   );
 }
 
-const InputGroupInput = React.forwardRef<
-  React.ComponentRef<typeof Input>,
-  React.ComponentPropsWithoutRef<typeof Input>
->(({ className, wrapperClassName, ...props }, ref) => {
+const InputGroupInput = ({
+  className,
+  wrapperClassName,
+  ref,
+  ...props
+}: React.ComponentProps<typeof Input>) => {
   return (
     <Input
       data-slot="input-group-control"
@@ -162,13 +164,15 @@ const InputGroupInput = React.forwardRef<
       {...props}
     />
   );
-});
-InputGroupInput.displayName = 'InputGroupInput';
+};
 
-const InputGroupTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  React.ComponentProps<'textarea'>
->(({ className, ...props }, ref) => {
+const InputGroupTextarea = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<'textarea'> & {
+  ref?: React.Ref<HTMLTextAreaElement>;
+}) => {
   return (
     <Textarea
       data-slot="input-group-control"
@@ -180,8 +184,7 @@ const InputGroupTextarea = React.forwardRef<
       {...props}
     />
   );
-});
-InputGroupTextarea.displayName = 'InputGroupTextarea';
+};
 
 export {
   InputGroup,

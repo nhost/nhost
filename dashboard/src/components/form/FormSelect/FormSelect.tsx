@@ -1,9 +1,4 @@
-import {
-  type ForwardedRef,
-  forwardRef,
-  type PropsWithChildren,
-  type ReactNode,
-} from 'react';
+import type { PropsWithChildren, ReactNode, Ref } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
@@ -54,30 +49,30 @@ interface FormSelectProps<
   'data-testid'?: string;
 }
 
-function FormSelectImpl<
+function FormSelect<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    className,
-    containerClassName,
-    contentClassName,
-    inline,
-    helperText,
-    helperTextClassName,
-    disabled,
-    autoFocus,
-    children,
-    transform,
-    onChange: onChangeProp,
-    'data-testid': dataTestId,
-  }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>,
-  ref?: ForwardedRef<HTMLButtonElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  className,
+  containerClassName,
+  contentClassName,
+  inline,
+  helperText,
+  helperTextClassName,
+  disabled,
+  autoFocus,
+  children,
+  transform,
+  onChange: onChangeProp,
+  'data-testid': dataTestId,
+  ref,
+}: PropsWithChildren<FormSelectProps<TFieldValues, TName>> & {
+  ref?: Ref<HTMLButtonElement>;
+}) {
   return (
     <FormField
       control={control}
@@ -152,12 +147,4 @@ function FormSelectImpl<
     />
   );
 }
-const FormSelect = forwardRef(FormSelectImpl) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: PropsWithChildren<FormSelectProps<TFieldValues, TName>> & {
-    ref?: ForwardedRef<HTMLButtonElement>;
-  },
-) => ReturnType<typeof FormSelectImpl>;
 export default FormSelect;

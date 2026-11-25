@@ -11,15 +11,15 @@ import {
   usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/generated/graphql';
 
-export type AppDeploymentsProps = {
+export interface AppDeploymentsProps {
   appId: string;
-};
+}
 
-type NextPrevPageLinkProps = {
+interface NextPrevPageLinkProps {
   direction: 'next' | 'prev';
   allowed: boolean;
   targetPage: number;
-};
+}
 
 function NextPrevPageLink({
   direction,

@@ -1,31 +1,28 @@
 import { Funnel } from 'lucide-react';
-import { type ForwardedRef, forwardRef } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { cn } from '@/lib/utils';
 
-export default forwardRef(
-  (props: ButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {
-    const { appliedFilters } = useDataGridQueryParams();
-    const numberOfAppliedFilters = appliedFilters.length;
+export default function DataGridFiltersTrigger({ ref, ...props }: ButtonProps) {
+  const { appliedFilters } = useDataGridQueryParams();
+  const numberOfAppliedFilters = appliedFilters.length;
 
-    const { className, ...buttonProps } = props;
+  const { className, ...buttonProps } = props;
 
-    return (
-      <Button
-        ref={ref}
-        variant="outline"
-        size="icon"
-        className={cn('relative', className)}
-        {...buttonProps}
-      >
-        <Funnel />
-        {numberOfAppliedFilters > 0 && (
-          <span className="absolute right-1.5 bottom-1.5 w-2.5 rounded-full bg-primary-text p-0 text-2xs text-paper leading-none">
-            {numberOfAppliedFilters}
-          </span>
-        )}
-      </Button>
-    );
-  },
-);
+  return (
+    <Button
+      ref={ref}
+      variant="outline"
+      size="icon"
+      className={cn('relative', className)}
+      {...buttonProps}
+    >
+      <Funnel />
+      {numberOfAppliedFilters > 0 && (
+        <span className="absolute right-1.5 bottom-1.5 w-2.5 rounded-full bg-primary-text p-0 text-2xs text-paper leading-none">
+          {numberOfAppliedFilters}
+        </span>
+      )}
+    </Button>
+  );
+}

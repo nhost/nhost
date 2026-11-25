@@ -69,7 +69,9 @@ describe('useEventPagination', () => {
   });
 
   it('uses getPageLength for non-array responses', () => {
-    type Resp = { items: string[] };
+    interface Resp {
+      items: string[];
+    }
     const { result } = renderHook(() =>
       useEventPagination<unknown, Resp>({
         initialLimit: 10,

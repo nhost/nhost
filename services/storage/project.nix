@@ -229,7 +229,7 @@ rec {
           destination = "/etc/clamav/clamd.conf.tmpl";
         })
         envsubst
-        clamav
+        nhost.clamav
         fakeNss
         dockerTools.caCertificates
       ]

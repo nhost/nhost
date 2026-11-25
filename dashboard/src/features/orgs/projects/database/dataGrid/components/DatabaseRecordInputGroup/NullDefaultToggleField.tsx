@@ -1,9 +1,4 @@
-import {
-  type ChangeEvent,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
-} from 'react';
+import type { ChangeEvent, ReactNode, Ref } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import {
@@ -38,23 +33,23 @@ interface NullDefaultToggleFieldProps<
   multiline?: boolean;
 }
 
-function InnerNullDefaultToggleField<
+function NullDefaultToggleField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    helperText,
-    className,
-    inline,
-    type = 'text',
-    multiline = false,
-  }: NullDefaultToggleFieldProps<TFieldValues, TName>,
-  ref: ForwardedRef<HTMLInputElement | HTMLTextAreaElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  helperText,
+  className,
+  inline,
+  type = 'text',
+  multiline = false,
+  ref,
+}: NullDefaultToggleFieldProps<TFieldValues, TName> & {
+  ref?: Ref<HTMLInputElement | HTMLTextAreaElement>;
+}) {
   return (
     <FormField
       control={control}
@@ -117,7 +112,7 @@ function InnerNullDefaultToggleField<
                     onChange={handleTextChange}
                     ref={mergeRefs([
                       field.ref,
-                      ref as ForwardedRef<HTMLTextAreaElement>,
+                      ref as Ref<HTMLTextAreaElement>,
                     ])}
                     className={cn('resize-none', className)}
                   />
@@ -128,10 +123,7 @@ function InnerNullDefaultToggleField<
                     placeholder={inputPlaceholder}
                     value={displayValue as string}
                     onChange={handleTextChange}
-                    ref={mergeRefs([
-                      field.ref,
-                      ref as ForwardedRef<HTMLInputElement>,
-                    ])}
+                    ref={mergeRefs([field.ref, ref as Ref<HTMLInputElement>])}
                     className={className}
                   />
                 )}
@@ -165,14 +157,5 @@ function InnerNullDefaultToggleField<
     />
   );
 }
-
-const NullDefaultToggleField = forwardRef(InnerNullDefaultToggleField) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: NullDefaultToggleFieldProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLInputElement | HTMLTextAreaElement>;
-  },
-) => ReturnType<typeof InnerNullDefaultToggleField>;
 
 export default NullDefaultToggleField;
