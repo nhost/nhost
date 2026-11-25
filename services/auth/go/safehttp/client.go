@@ -96,16 +96,17 @@ func New(cfg Config) *http.Client {
 	}
 }
 
-// IsBlockedHost reports whether a literal IP or any DNS answer is blocked. A
-// lookup error leaves the check to the dial path, which requires a valid answer.
+// IsBlockedHost reports whether a literal IP or any DNS answer is non-public,
+// using the same policy as Config.PublicIPsOnly. A lookup error leaves the check
+// to the dial path, which requires a valid answer.
 func IsBlockedHost(ctx context.Context, host string) bool {
 	if ip := net.ParseIP(host); ip != nil {
-		return isBlockedIP(ip)
+		return isNonPublicIP(ip)
 	}
 
 	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 
-	return err == nil && hasBlockedAddress(ips, isBlockedIP)
+	return err == nil && hasBlockedAddress(ips, isNonPublicIP)
 }
 
 func dialChecked(

@@ -142,7 +142,7 @@ func NewProvider(
 				MaxRedirects: cimdMaxRedirects,
 				// FetchCIMDMetadata reads one extra byte to report an oversized document.
 				MaxResponseBodyBytes: CIMDMaxResponseSize + 1,
-				PublicIPsOnly:        false,
+				PublicIPsOnly:        true,
 				AllowPrivateIPs:      false,
 			})
 		}

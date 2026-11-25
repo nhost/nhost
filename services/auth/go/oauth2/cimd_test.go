@@ -168,6 +168,30 @@ func TestValidateCIMDURL(t *testing.T) {
 			expectErr: true,
 			errDesc:   "private",
 		},
+		{
+			name:      "CGNAT IP",
+			clientID:  "https://100.64.0.1/client.json",
+			expectErr: true,
+			errDesc:   "private",
+		},
+		{
+			name:      "CGNAT cloud metadata",
+			clientID:  "https://100.100.100.200/client.json",
+			expectErr: true,
+			errDesc:   "private",
+		},
+		{
+			name:      "benchmarking IP",
+			clientID:  "https://198.18.0.1/client.json",
+			expectErr: true,
+			errDesc:   "private",
+		},
+		{
+			name:      "NAT64 public IP",
+			clientID:  "https://[64:ff9b::808:808]/client.json",
+			expectErr: true,
+			errDesc:   "private",
+		},
 	}
 
 	for _, tc := range cases {

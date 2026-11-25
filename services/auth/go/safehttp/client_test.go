@@ -59,6 +59,26 @@ func TestIsBlockedHost(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "CGNAT",
+			host:     "100.64.0.1",
+			expected: true,
+		},
+		{
+			name:     "CGNAT cloud metadata",
+			host:     "100.100.100.200",
+			expected: true,
+		},
+		{
+			name:     "benchmarking",
+			host:     "198.18.0.1",
+			expected: true,
+		},
+		{
+			name:     "nat64 wrapped public IP",
+			host:     "64:ff9b::808:808",
+			expected: true,
+		},
+		{
 			name:     "public IP",
 			host:     "8.8.8.8",
 			expected: false,
