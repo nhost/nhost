@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -59,6 +60,7 @@ type JSONRPCRequest struct {
 	ID      mcp.RequestId `json:"id"`
 	Method  string        `json:"method"`
 	Params  any           `json:"params,omitempty"`
+	Header  http.Header   `json:"-"`
 }
 
 // JSONRPCResponse represents a JSON-RPC 2.0 response message.
