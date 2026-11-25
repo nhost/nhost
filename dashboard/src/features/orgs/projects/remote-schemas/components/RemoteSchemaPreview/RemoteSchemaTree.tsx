@@ -1,6 +1,5 @@
 import type { GraphQLSchema } from 'graphql';
 import React, {
-  forwardRef,
   useCallback,
   useImperativeHandle,
   useMemo,
@@ -36,10 +35,12 @@ export interface RemoteSchemaTreeRef {
   focusTree: () => void;
 }
 
-export const RemoteSchemaTree = forwardRef<
-  RemoteSchemaTreeRef,
-  RemoteSchemaTreeProps
->(({ schema, className, highlightTerm }, ref) => {
+export const RemoteSchemaTree = ({
+  schema,
+  className,
+  highlightTerm,
+  ref,
+}: RemoteSchemaTreeProps & { ref?: React.Ref<RemoteSchemaTreeRef> }) => {
   const treeRef = useRef<TreeRef<string | React.ReactNode>>(null);
 
   const { resolvedTheme } = useThemePreference();
@@ -174,6 +175,4 @@ export const RemoteSchemaTree = forwardRef<
       </ControlledTreeEnvironment>
     </div>
   );
-});
-
-RemoteSchemaTree.displayName = 'RemoteSchemaTree';
+};
