@@ -6,11 +6,9 @@ The Nhost AI service adds auto-embeddings and multi-provider agents to the Nhost
 
 ### Auto-embeddings
 
-Auto-embeddings keep vector columns synchronized with source data. Each configuration specifies the source schema and table, the destination vector column, an OpenAI embedding model, and GraphQL operations used to read pending rows and persist generated vectors.
+Auto-embeddings keep vector columns synchronized with source data. Each configuration specifies the source schema and table, the destination vector column, an embedding provider, model and dimensions, and the GraphQL operations used to read pending rows and persist generated vectors.
 
-The service deploys permission-aware GraphQL functions for natural-language and similarity search.
-
-Supported embedding models include `text-embedding-ada-002`, `text-embedding-3-small`, and `text-embedding-3-large`. `OPENAI_API_KEY`, `OPENAI_ORG`, `--openai-key`, and `--openai-org` configure **auto-embeddings only**. They never register or authenticate an agent provider.
+The service deploys permission-aware GraphQL functions for natural-language and similarity search. See [Auto-embeddings configuration](#auto-embeddings-configuration).
 
 ### Multi-provider agents
 
@@ -29,6 +27,51 @@ POST /v1/agents/sessions/:sessionID/approve-tools
 ```
 
 Both routes remain registered when no providers are configured. An authorized, resolvable session whose selected provider is unavailable receives the secret-free HTTP 400 response `provider not available`.
+
+## Auto-embeddings configuration
+
+### Embedding providers
+
+`EMBEDDING_PROVIDERS` (or `--embedding-providers`) declares embedding providers. It is independent of `AGENT_PROVIDERS` but uses the same JSON shape, naming rules and [validation](#validation-and-wire-behavior):
+
+```json
+[
+  {
+    "name": "openai",
+    "type": "openai_embeddings",
+    "configuration": {
+      "base_url": "https://api.openai.com/v1",
+      "headers": {
+        "Authorization": "Bearer secret"
+      }
+    }
+  }
+]
+```
+
+| Type | Base URL example | Resulting operation |
+| --- | --- | --- |
+| `openai_embeddings` | `https://api.openai.com/v1`, `http://localhost:11434/v1` | `/embeddings` |
+| `voyage_embeddings` | `https://api.voyageai.com` | `/v1/embeddings` |
+| `google_gemini_embeddings` | `https://generativelanguage.googleapis.com` | `/v1beta/models/{model}:batchEmbedContents` |
+
+`openai_embeddings` also covers OpenAI-compatible servers such as Ollama, vLLM, LM Studio and LiteLLM. Use `voyage_embeddings` with Anthropic, which has no embeddings API.
+
+The deprecated `OPENAI_API_KEY` / `OPENAI_ORG` still work: when set and no provider is named `openai`, the service creates an `openai` provider for `https://api.openai.com/v1` and logs a deprecation warning.
+
+### Configurations
+
+Each row in `ai.auto_embeddings_configuration` must set `provider` to a declared provider name and `dimensions` to the size of the target `vector(N)` column. Keep `name` at most 52 bytes, because it is used in the generated function names.
+
+When a configuration is inserted or updated, the service validates it before deploying its functions: the provider is declared, the table has exactly one primary key, and the column is a `vector` of the configured size. A failure returns 422, stores a `deploy: …` message in `last_error` and leaves the existing functions in place. Search always uses the current row, so until the row is fixed, search for that configuration fails as well.
+
+The background worker embeds pending rows in batches, records `last_run`, and sets `last_error` to a short summary when rows fail. It also records a `deploy: …` error when the configuration stops validating, for example after the target table changes. A `deploy: …` error stays until a deployment succeeds: change one of the configuration's deployment columns, or restart the service, which redeploys every configuration. Restart after fixing the target table outside the configuration or declaring a missing provider.
+
+### Upgrading
+
+- Existing configurations are migrated to `provider = 'openai'`, with `dimensions` taken from the vector column. Deployments that only set `OPENAI_API_KEY` keep working without changes.
+- Startup redeploys every search function. Until then, functions deployed by an older version get a 400.
+- Inserts must now supply `provider` and `dimensions`.
 
 ## Agent provider configuration
 

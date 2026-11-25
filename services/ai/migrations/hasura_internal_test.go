@@ -11,6 +11,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
@@ -157,6 +158,24 @@ func assertAIEventTrigger(t *testing.T, request map[string]any) {
 	args := requiredMap(t, request, "args")
 	if name := requiredString(t, args, "name"); !strings.HasPrefix(name, "ai_") {
 		t.Errorf("event trigger name = %q, want ai_ prefix", name)
+	}
+
+	update := requiredMap(t, args, "update")
+
+	want := []any{
+		"id",
+		"name",
+		"model",
+		"provider",
+		"dimensions",
+		"schema_name",
+		"table_name",
+		"column_name",
+		"query",
+		"mutation",
+	}
+	if diff := cmp.Diff(want, update["columns"]); diff != "" {
+		t.Errorf("update columns (-want +got): %s", diff)
 	}
 
 	headers, ok := args["headers"].([]any)

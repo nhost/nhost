@@ -17,6 +17,7 @@ func TestIsSensitiveFlag(t *testing.T) {
 		want bool
 	}{
 		{name: flagAgentProviders, want: true},
+		{name: flagEmbeddingProviders, want: true},
 		{name: "database-password", want: true},
 		{name: "access-token", want: true},
 		{name: "client-secret", want: true},

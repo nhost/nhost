@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/gqlgo/gqlgenc/clientv2"
+	"github.com/nhost/nhost/services/ai/autoai/embedder"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
@@ -44,16 +45,14 @@ func (s *agentHandlersStub) HandleApproveTools(c *gin.Context) {
 	}
 }
 
-type embeddingsGeneratorFunc func(
-	ctx context.Context,
-	input, embeddingsModel string,
-) ([]float64, error)
+type embedderFunc func(context.Context, embedder.Request) ([][]float32, error)
 
-func (f embeddingsGeneratorFunc) EmbeddingsGenerate(
-	ctx context.Context,
-	input, embeddingsModel string,
-) ([]float64, error) {
-	return f(ctx, input, embeddingsModel)
+func (f embedderFunc) Embed(ctx context.Context, req embedder.Request) ([][]float32, error) {
+	return f(ctx, req)
+}
+
+func (f embedderFunc) BatchLimits() embedder.Limits {
+	return embedder.Limits{MaxInputs: 1, MaxBytes: 10000}
 }
 
 type autoEmbeddingsConfigurationGetterFunc func(
@@ -164,37 +163,56 @@ func newAutoEmbeddingsUpsertWebhookHandler(
 
 func newEmbeddingsWebhookHandler(
 	t *testing.T,
-	embeddings []float64,
+	embeddings []float32,
 	generateErr error,
 ) *webhookHandler {
 	t.Helper()
 
+	// Unclassified failures count as transient, so search retries them.
+	wantCalls := 1
+	if generateErr != nil {
+		wantCalls = searchRetryAttempts
+	}
+
 	calls := 0
 	t.Cleanup(func() {
-		if calls != 1 {
-			t.Errorf("embeddings generator calls = %d, want 1", calls)
+		if calls != wantCalls {
+			t.Errorf("embedding calls = %d", calls)
 		}
 	})
 
 	return &webhookHandler{
 		autoAI: nil,
-		embeddings: embeddingsGeneratorFunc(func(
-			_ context.Context,
-			input, model string,
-		) ([]float64, error) {
-			calls++
+		embeddings: embedder.Registry{
+			"test": embedderFunc(
+				func(_ context.Context, req embedder.Request) ([][]float32, error) {
+					calls++
 
-			if input != "hello" {
-				t.Errorf("input = %q, want hello", input)
-			}
+					want := embedder.Request{
+						Model:      "model",
+						Inputs:     []string{"hello"},
+						Dimensions: 2,
+						Kind:       embedder.Query,
+					}
+					if diff := cmp.Diff(want, req); diff != "" {
+						t.Errorf("request (-want +got): %s", diff)
+					}
 
-			if model != "model" {
-				t.Errorf("model = %q, want model", model)
-			}
-
-			return embeddings, generateErr
-		}),
-		hasura: nil,
+					return [][]float32{embeddings}, generateErr
+				},
+			),
+		},
+		hasura: autoEmbeddingsConfigurationGetterFunc(
+			func(_ context.Context, _ string, _ ...clientv2.RequestInterceptor) (*hasura.GetAiAutoEmbeddingsConfiguration, error) {
+				return &hasura.GetAiAutoEmbeddingsConfiguration{
+					AiAutoEmbeddingsConfiguration: &hasura.AiAutoEmbeddingsConfigurationFragment{
+						Provider:   "test",
+						Model:      "model",
+						Dimensions: 2,
+					},
+				}, nil
+			},
+		),
 	}
 }
 
@@ -387,6 +405,7 @@ func TestSetupRouterResponses(t *testing.T) {
 			path:   "/v1/webhooks/auto-embeddings-configuration",
 			body: `{"event":{"op":"DELETE","data":{"old":{` +
 				`"id":"delete-id","name":"articles","model":"model",` +
+				`"provider":"openai","dimensions":1536,"last_error":"ignored",` +
 				`"schema_name":"public","table_name":"articles",` +
 				`"column_name":"embedding"}}}}`,
 			secret: "test-secret",
@@ -411,6 +430,9 @@ func TestSetupRouterResponses(t *testing.T) {
 
 						wantConfig := &hasura.AiAutoEmbeddingsConfigurationFragment{
 							ID:         "delete-id",
+							Provider:   "",
+							Dimensions: 0,
+							LastError:  nil,
 							Name:       "articles",
 							SchemaName: "public",
 							TableName:  "articles",
@@ -480,8 +502,7 @@ func TestSetupRouterResponses(t *testing.T) {
 				}
 			},
 			wantStatus: http.StatusInternalServerError,
-			wantBody: `{"error":"getting auto embeddings configuration: ` +
-				`hasura unavailable"}`,
+			wantBody:   `{"error":"configuration lookup failed"}`,
 		},
 		{
 			name:   "configuration synchronizer failure",
@@ -499,19 +520,18 @@ func TestSetupRouterResponses(t *testing.T) {
 				)
 			},
 			wantStatus: http.StatusInternalServerError,
-			wantBody: `{"error":"synchronizing auto embeddings configuration: ` +
-				`deployment failed"}`,
+			wantBody:   `{"error":"deployment failed"}`,
 		},
 		{
 			name:   "generate embeddings",
 			method: http.MethodPost,
 			path:   "/v1/webhooks/generate-embeddings",
-			body:   `{"query":"hello","model":"model"}`,
+			body:   `{"query":"hello","configuration_id":"11111111-1111-1111-1111-111111111111"}`,
 			secret: "test-secret",
 			webhooks: func(t *testing.T) *webhookHandler {
 				t.Helper()
 
-				return newEmbeddingsWebhookHandler(t, []float64{0.25, 0.5}, nil)
+				return newEmbeddingsWebhookHandler(t, []float32{0.25, 0.5}, nil)
 			},
 			wantStatus: http.StatusOK,
 			wantBody:   `{"embeddings":[0.25,0.5]}`,
@@ -520,7 +540,7 @@ func TestSetupRouterResponses(t *testing.T) {
 			name:   "embeddings generator failure",
 			method: http.MethodPost,
 			path:   "/v1/webhooks/generate-embeddings",
-			body:   `{"query":"hello","model":"model"}`,
+			body:   `{"query":"hello","configuration_id":"11111111-1111-1111-1111-111111111111"}`,
 			secret: "test-secret",
 			webhooks: func(t *testing.T) *webhookHandler {
 				t.Helper()
@@ -531,8 +551,8 @@ func TestSetupRouterResponses(t *testing.T) {
 					errTestOpenAIUnavailable,
 				)
 			},
-			wantStatus: http.StatusInternalServerError,
-			wantBody:   `{"error":"generating embeddings: OpenAI unavailable"}`,
+			wantStatus: http.StatusBadGateway,
+			wantBody:   `{"error":"embedding provider request failed"}`,
 		},
 	}
 

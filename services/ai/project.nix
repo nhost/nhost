@@ -57,6 +57,9 @@ rec {
 
     preCheck = ''
       export AI_MIGRATION_TEST_DATABASE_REQUIRED=1
+      export AI_LIVE_TEST_REQUIRED=1
+      export AI_LIVE_TEST_HASURA_URL="http://localhost:8080/v1/graphql"
+      export AI_LIVE_TEST_HASURA_ADMIN_SECRET="nhost-admin-secret"
       export POSTGRES_CONNECTION="postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
     '';
   };

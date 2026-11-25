@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/ai/autoai"
+	"github.com/nhost/nhost/services/ai/autoai/embedder"
 	"github.com/nhost/nhost/services/ai/hasura"
-	"github.com/nhost/nhost/services/ai/openai"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,20 +29,47 @@ var errUnknownAutoEmbeddingsEventOperation = errors.New(
 	"unknown auto-embeddings event operation",
 )
 
+var (
+	errInvalidSearchJSON = errors.New("invalid request JSON")
+	errOldSearchContract = errors.New(
+		"search function was deployed by an older ai service; " +
+			"restart the service to redeploy it and check the configuration's last_error",
+	)
+	errInvalidConfigurationID      = errors.New("invalid configuration_id")
+	errConfigurationLookup         = errors.New("configuration lookup failed")
+	errConfigurationNotFound       = errors.New("configuration not found")
+	errEmbeddingProviderUndeclared = errors.New("embedding provider is not declared")
+	errEmbeddingProviderRequest    = errors.New("embedding provider request failed")
+)
+
+const searchRequestTimeout = 4 * time.Second
+
+// searchRetry absorbs brief rate limits and 5xx errors inside the search deadline,
+// as the OpenAI SDK used by the previous client did (two retries). A longer
+// Retry-After exceeds the wait budget and fails the search immediately.
+const (
+	searchRetryAttempts = 3
+	searchRetryWait     = 1500 * time.Millisecond
+	searchRetryDelay    = 200 * time.Millisecond
+)
+
+func searchRetry() embedder.RetryPolicy {
+	return embedder.RetryPolicy{
+		MaxAttempts:  searchRetryAttempts,
+		MaxWait:      searchRetryWait,
+		InitialDelay: searchRetryDelay,
+		MaxDelay:     time.Second,
+		Clock:        nil,
+		Jitter:       nil,
+	}
+}
+
 type loggerContextKey struct{}
 
 //go:generate mockgen -package mock -destination mock/agent_handlers.go . agentHandlers
 type agentHandlers interface {
 	HandleStreamMessage(c *gin.Context)
 	HandleApproveTools(c *gin.Context)
-}
-
-//go:generate mockgen -package mock -destination mock/embeddings_generator.go . embeddingsGenerator
-type embeddingsGenerator interface {
-	EmbeddingsGenerate(
-		ctx context.Context,
-		input, embeddingsModel string,
-	) ([]float64, error)
 }
 
 //go:generate mockgen -package mock -destination mock/embeddings_configuration_getter.go . autoEmbeddingsConfigurationGetter
@@ -65,7 +93,7 @@ type autoEmbeddingsSynchronizer interface {
 
 type webhookHandler struct {
 	autoAI     autoEmbeddingsSynchronizer
-	embeddings embeddingsGenerator
+	embeddings embedder.Registry
 	hasura     autoEmbeddingsConfigurationGetter
 }
 
@@ -94,14 +122,15 @@ type autoEmbeddingsConfigurationWebhookEvent struct {
 }
 
 type generateEmbeddingsWebhookRequest struct {
-	Query string `json:"query"`
-	Model string `json:"model"`
+	Query           string          `json:"query"`
+	Model           json.RawMessage `json:"model"`
+	ConfigurationID string          `json:"configuration_id"`
 }
 
 func getRouter(
 	cCtx *cli.Context,
 	autoAI *autoai.AutoAI,
-	embeddings *openai.Client,
+	embeddings embedder.Registry,
 	hasuraClient *hasura.Client,
 	agentService agentHandlers,
 	logger *slog.Logger,
@@ -189,17 +218,27 @@ func (h *webhookHandler) handleAutoEmbeddingsConfiguration(c *gin.Context) {
 		return
 	}
 
+	if config == nil {
+		loggerFromContext(
+			c.Request.Context(),
+		).InfoContext(c.Request.Context(), "ignoring stale auto-embeddings event")
+		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+
+		return
+	}
+
 	if err := h.autoAI.SynchAutoEmbeddingsConfiguration(
 		c.Request.Context(),
 		config,
 		remove,
 		loggerFromContext(c.Request.Context()),
 	); err != nil {
-		webhookFail(
-			c,
-			http.StatusInternalServerError,
-			fmt.Errorf("synchronizing auto embeddings configuration: %w", err),
-		)
+		status := http.StatusInternalServerError
+		if errors.Is(err, autoai.ErrInvalidConfiguration) {
+			status = http.StatusUnprocessableEntity
+		}
+
+		webhookFail(c, status, err)
 
 		return
 	}
@@ -218,7 +257,7 @@ func (h *webhookHandler) resolveAutoEmbeddingsConfiguration(
 			event.Event.Data.New.ID,
 		)
 		if err != nil {
-			return nil, false, fmt.Errorf("getting auto embeddings configuration: %w", err)
+			return nil, false, errConfigurationLookup
 		}
 
 		return response.GetAiAutoEmbeddingsConfiguration(), false, nil
@@ -227,6 +266,9 @@ func (h *webhookHandler) resolveAutoEmbeddingsConfiguration(
 
 		return &hasura.AiAutoEmbeddingsConfigurationFragment{
 			ID:         old.ID,
+			Provider:   "",
+			Dimensions: 0,
+			LastError:  nil,
 			Name:       old.Name,
 			Model:      old.Model,
 			SchemaName: old.SchemaName,
@@ -248,26 +290,114 @@ func (h *webhookHandler) resolveAutoEmbeddingsConfiguration(
 func (h *webhookHandler) handleGenerateEmbeddings(c *gin.Context) {
 	var request generateEmbeddingsWebhookRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		webhookFail(c, http.StatusBadRequest, err)
+		webhookFail(c, http.StatusBadRequest, errInvalidSearchJSON)
 		return
 	}
 
-	embeddings, err := h.embeddings.EmbeddingsGenerate(
-		c.Request.Context(),
-		request.Query,
-		request.Model,
-	)
-	if err != nil {
+	if request.ConfigurationID == "" && len(request.Model) > 0 {
+		loggerFromContext(
+			c.Request.Context(),
+		).WarnContext(
+			c.Request.Context(),
+			"old search function contract; restart the ai service to redeploy and check last_error",
+		)
 		webhookFail(
 			c,
-			http.StatusInternalServerError,
-			fmt.Errorf("generating embeddings: %w", err),
+			http.StatusBadRequest,
+			errOldSearchContract,
 		)
 
 		return
 	}
 
+	if _, err := uuid.Parse(request.ConfigurationID); err != nil {
+		webhookFail(c, http.StatusBadRequest, errInvalidConfigurationID)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), searchRequestTimeout)
+	defer cancel()
+
+	response, err := h.hasura.GetAiAutoEmbeddingsConfiguration(ctx, request.ConfigurationID)
+	if err != nil {
+		loggerFromContext(ctx).WarnContext(ctx, "search configuration lookup failed",
+			slog.String("configuration_id", request.ConfigurationID),
+			slog.String("error", errConfigurationLookup.Error()))
+		webhookFail(c, http.StatusBadGateway, errConfigurationLookup)
+
+		return
+	}
+
+	if response == nil || response.AiAutoEmbeddingsConfiguration == nil {
+		webhookFail(c, http.StatusNotFound, errConfigurationNotFound)
+		return
+	}
+
+	config := response.AiAutoEmbeddingsConfiguration
+
+	provider, ok := h.embeddings[config.Provider]
+	if !ok {
+		webhookFail(
+			c,
+			http.StatusUnprocessableEntity,
+			errEmbeddingProviderUndeclared,
+		)
+
+		return
+	}
+
+	embeddings, err := generateSearchEmbedding(ctx, provider, config, request.Query)
+	if err != nil {
+		webhookFail(c, http.StatusBadGateway, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"embeddings": embeddings})
+}
+
+func generateSearchEmbedding(
+	ctx context.Context,
+	provider embedder.Embedder,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
+	query string,
+) ([]float32, error) {
+	req := embedder.Request{
+		Model:      config.Model,
+		Inputs:     []string{query},
+		Dimensions: int(config.Dimensions),
+		Kind:       embedder.Query,
+	}
+
+	// Embed validates the response itself: on success it returns one vector of
+	// the requested size.
+	var vectors [][]float32
+
+	err := embedder.WithRetry(ctx, searchRetry(), func() error {
+		var embedErr error
+
+		vectors, embedErr = provider.Embed(ctx, req)
+
+		return embedErr //nolint:wrapcheck // WithRetry classifies provider errors.
+	})
+	if err != nil {
+		fields := []slog.Attr{slog.String("configuration_id", config.ID)}
+		if classified, ok := errors.AsType[*embedder.StatusError](err); ok {
+			fields = append(
+				fields,
+				slog.String("error", classified.Error()),
+				slog.String("class", string(classified.Class)),
+				slog.Int("status", classified.StatusCode),
+			)
+		} else {
+			fields = append(fields, slog.String("error", errEmbeddingProviderRequest.Error()))
+		}
+
+		loggerFromContext(ctx).LogAttrs(ctx, slog.LevelWarn, "search embedding failed", fields...)
+
+		return nil, errEmbeddingProviderRequest
+	}
+
+	return vectors[0], nil
 }
 
 func needsWebhookSecret(webhookSecret string) gin.HandlerFunc {

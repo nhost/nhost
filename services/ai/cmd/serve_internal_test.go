@@ -443,7 +443,7 @@ func TestLogAgentProviderSummaryIsSafeAndSorted(t *testing.T) {
 	var output bytes.Buffer
 
 	logger := slog.New(slog.NewJSONHandler(&output, nil))
-	logAgentProviderSummary(t.Context(), logger, map[string]string{
+	logProviderSummary(t.Context(), logger, "configured agent providers", map[string]string{
 		"zeta":   "google_gemini",
 		"alpha":  "anthropic_messages",
 		"middle": "openai_chat_completions",
@@ -496,5 +496,82 @@ func TestAgentToolEnvironmentBindings(t *testing.T) {
 	app.Commands = []*cli.Command{command}
 	if err := app.Run([]string{"ai", "serve"}); err != nil {
 		t.Fatalf("app.Run() error = %v", err)
+	}
+}
+
+func TestEmbeddingProviderFlags(t *testing.T) {
+	tests := []struct{ name, environment, flagValue, key, want, warning string }{
+		{
+			"environment",
+			`[{"name":"env","type":"openai_embeddings","configuration":{"base_url":"http://embedding-private-marker/v1"}}]`,
+			"",
+			"",
+			"env",
+			"",
+		},
+		{
+			"flag precedence",
+			`invalid-json`,
+			`[{"name":"flag","type":"voyage_embeddings","configuration":{"base_url":"http://embedding-private-marker"}}]`,
+			"",
+			"flag",
+			"",
+		},
+		{"legacy synthesized", "[]", "", "legacy-secret-marker", "openai", "deprecated"},
+		{
+			"legacy ignored",
+			`[{"name":"openai","type":"openai_embeddings","configuration":{"base_url":"http://embedding-private-marker/v1"}}]`,
+			"",
+			"legacy-secret-marker",
+			"openai",
+			"ignored",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("EMBEDDING_PROVIDERS", tt.environment)
+			t.Setenv("OPENAI_API_KEY", tt.key)
+			t.Setenv("OPENAI_ORG", "")
+
+			var output bytes.Buffer
+
+			logger := slog.New(slog.NewTextHandler(&output, nil))
+			command := CommandServe()
+			command.Action = func(cCtx *cli.Context) error {
+				registry, err := buildEmbeddingProviders(cCtx.Context, cCtx, logger)
+				if err != nil {
+					return fmt.Errorf("building test registry: %w", err)
+				}
+
+				if len(registry) != 1 || registry[tt.want] == nil {
+					t.Error("provider selection differs")
+				}
+
+				logFlags(logger, cCtx)
+
+				return nil
+			}
+			app := cli.NewApp()
+			app.Commands = []*cli.Command{command}
+
+			args := []string{"ai", "serve"}
+			if tt.flagValue != "" {
+				args = append(args, "--embedding-providers", tt.flagValue)
+			}
+
+			if err := app.RunContext(t.Context(), args); err != nil {
+				t.Fatal(err)
+			}
+
+			logged := output.String()
+			if strings.Contains(logged, "legacy-secret-marker") ||
+				strings.Contains(logged, "embedding-private-marker") {
+				t.Fatal("embedding configuration leaked")
+			}
+
+			if tt.warning != "" && !strings.Contains(logged, tt.warning) {
+				t.Error("missing legacy warning")
+			}
+		})
 	}
 }

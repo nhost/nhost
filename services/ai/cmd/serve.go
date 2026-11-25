@@ -15,10 +15,10 @@ import (
 	"github.com/nhost/nhost/services/ai/agents"
 	agentprovider "github.com/nhost/nhost/services/ai/agents/provider"
 	"github.com/nhost/nhost/services/ai/autoai"
+	"github.com/nhost/nhost/services/ai/autoai/embedder"
 	"github.com/nhost/nhost/services/ai/autoai/embeddings"
 	"github.com/nhost/nhost/services/ai/hasura"
 	"github.com/nhost/nhost/services/ai/migrations"
-	"github.com/nhost/nhost/services/ai/openai"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,6 +36,7 @@ const (
 	flagAIWebhookSecret          = "ai-webhook-secret" //nolint:gosec // CLI flag name, not a credential.
 	flagAIBaseURL                = "ai-base-url"
 	flagSynchPeriod              = "synch-period"
+	flagEmbeddingProviders       = "embedding-providers"
 	flagAgentProviders           = "agent-providers"
 	flagBraveKey                 = "brave-key"
 	flagTavilyKey                = "tavily-key"
@@ -52,6 +53,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 		Name:  "serve",
 		Usage: "Serve the application",
 		Flags: []cli.Flag{
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagEmbeddingProviders,
+				Usage:    "JSON array of configured embedding provider declarations",
+				Value:    "[]",
+				Category: "auto-embeddings",
+				EnvVars:  []string{"EMBEDDING_PROVIDERS"},
+			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagPathPrefix,
 				Usage:    "prefix for all routes",
@@ -97,14 +105,14 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOpenAIKey,
-				Usage:    "OpenAI API key for auto-embeddings only",
+				Usage:    "Deprecated: OpenAI API key for auto-embeddings only; use embedding-providers",
 				Value:    "",
 				Category: "auto-embeddings",
 				EnvVars:  []string{"OPENAI_API_KEY"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOpenAIOrg,
-				Usage:    "OpenAI organization for auto-embeddings only",
+				Usage:    "Deprecated: OpenAI organization for auto-embeddings only; use embedding-providers",
 				Value:    "",
 				Category: "auto-embeddings",
 				EnvVars:  []string{"OPENAI_ORG"},
@@ -234,21 +242,28 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 		return err
 	}
 
-	logAgentProviderSummary(cCtx.Context, logger, providerTypes)
+	logProviderSummary(cCtx.Context, logger, "configured agent providers", providerTypes)
+
+	embeddingProviders, err := buildEmbeddingProviders(cCtx.Context, cCtx, logger)
+	if err != nil {
+		return err
+	}
 
 	hc := getHasuraClient(cCtx)
-	autoAI := autoai.NewAutoAI(
-		hc,
-		cCtx.String(flagAIBaseURL),
-		cCtx.String(flagAIWebhookSecret),
-	)
-	oai := openai.New(cCtx.String(flagOpenAIKey), cCtx.String(flagOpenAIOrg))
 
 	db, err := openPostgres(cCtx.String(flagPostgresConnection))
 	if err != nil {
 		return err
 	}
 	defer db.Close()
+
+	autoAI := autoai.NewAutoAI(
+		hc,
+		autoai.NewSQLCatalog(db),
+		embeddingProviders,
+		cCtx.String(flagAIBaseURL),
+		cCtx.String(flagAIWebhookSecret),
+	)
 
 	agentService := agents.NewService(
 		hc,
@@ -278,7 +293,7 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 		router := getRouter( //nolint:contextcheck
 			cCtx,
 			autoAI,
-			oai,
+			embeddingProviders,
 			hc,
 			agentService,
 			logger,
@@ -298,7 +313,8 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 	pool := embeddings.New(
 		cCtx.Duration(flagSynchPeriod),
 		hc,
-		oai,
+		embeddingProviders,
+		autoAI,
 		logger.With("component", "autoai.auto_embeddings_process"),
 	)
 
@@ -329,21 +345,23 @@ func buildAgentProviders(
 	return registry, typesByName, nil
 }
 
-type configuredAgentProviderSummary struct {
+type configuredProviderSummary struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
 }
 
-func logAgentProviderSummary(
+// logProviderSummary logs configured provider names and types, never their configuration.
+func logProviderSummary(
 	ctx context.Context,
 	logger *slog.Logger,
+	message string,
 	typesByName map[string]string,
 ) {
 	names := slices.Sorted(maps.Keys(typesByName))
 
-	summary := make([]configuredAgentProviderSummary, 0, len(names))
+	summary := make([]configuredProviderSummary, 0, len(names))
 	for _, name := range names {
-		summary = append(summary, configuredAgentProviderSummary{
+		summary = append(summary, configuredProviderSummary{
 			Name: name,
 			Type: typesByName[name],
 		})
@@ -351,7 +369,7 @@ func logAgentProviderSummary(
 
 	logger.InfoContext(
 		ctx,
-		"configured agent providers",
+		message,
 		slog.Int("count", len(summary)),
 		slog.Any("providers", summary),
 	)
@@ -362,4 +380,39 @@ func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
 		BraveKey:  cCtx.String(flagBraveKey),
 		TavilyKey: cCtx.String(flagTavilyKey),
 	}
+}
+
+func buildEmbeddingProviders(
+	ctx context.Context,
+	cCtx *cli.Context,
+	logger *slog.Logger,
+) (embedder.Registry, error) {
+	result, err := embedder.BuildConfiguredEmbedders(
+		cCtx.String(flagEmbeddingProviders),
+		&embedder.LegacyOpenAI{
+			APIKey:       cCtx.String(flagOpenAIKey),
+			Organization: cCtx.String(flagOpenAIOrg),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("configure embedding providers: %w", err)
+	}
+
+	logProviderSummary(ctx, logger, "configured embedding providers", result.Types)
+
+	if result.LegacySynthesized {
+		logger.WarnContext(
+			ctx,
+			"legacy OpenAI embedding credentials are deprecated; use EMBEDDING_PROVIDERS",
+		)
+	}
+
+	if result.LegacyIgnored {
+		logger.WarnContext(
+			ctx,
+			"legacy OpenAI embedding key ignored because openai is explicitly declared",
+		)
+	}
+
+	return result.Registry, nil
 }

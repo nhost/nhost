@@ -9,6 +9,8 @@ configuration:
       custom_name: createdAt
     id:
       custom_name: id
+    last_error:
+      custom_name: lastError
     last_run:
       custom_name: lastRun
     mutation:
@@ -27,6 +29,7 @@ configuration:
     column_name: columnName
     created_at: createdAt
     id: id
+    last_error: lastError
     last_run: lastRun
     mutation: mutation
     name: name
@@ -58,7 +61,17 @@ event_triggers:
         columns: "*"
         payload: "*"
       update:
-        columns: "*"
+        columns:
+          - id
+          - name
+          - model
+          - provider
+          - dimensions
+          - schema_name
+          - table_name
+          - column_name
+          - query
+          - mutation
         payload: "*"
     retry_conf:
       interval_sec: 30

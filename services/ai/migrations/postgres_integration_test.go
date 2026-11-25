@@ -36,8 +36,8 @@ func TestPostgresMigrationIntegration(t *testing.T) {
 		}
 
 		assertAISchemaExists(t, database)
-		assertAIMigrationState(t, database, 7)
-		assertAICatalogRows(t, database, 7)
+		assertAIMigrationState(t, database, 8)
+		assertAICatalogRows(t, database, 8)
 		assertExtensionsInstalled(t, database, "vector", "http", "pg_jsonschema")
 		assertExactAIMigrationLockAvailable(t, database)
 	})

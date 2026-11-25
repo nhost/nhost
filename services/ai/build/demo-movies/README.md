@@ -23,6 +23,8 @@ To configure AI auto-embeddings you need the following information:
 3. `column` - The column where embeddings are stored.
 4. GraphQL `query` - Fetches movies that need updating and receives `lastRun`, the last time embeddings were generated.
 5. GraphQL `mutation` - Updates a movie's embeddings and receives `id`, `embeddings`, and `updatedAt`.
+6. `provider` - The name of a declared embedding provider (see [Auto-embeddings configuration](../../README.md#auto-embeddings-configuration)).
+7. `dimensions` - The size of the target `vector(N)` column.
 
 For our particular demo this will be our data:
 
@@ -30,7 +32,9 @@ For our particular demo this will be our data:
 2. `schemaName`: `public`
 3. `tableName`: `movies`
 4. `columnName`: `embeddings_search`
-5. A GraphQL `query` that fetches 20 movies at a time when embeddings are missing or outdated:
+5. `provider`: `openai`, created from `OPENAI_API_KEY`
+6. `dimensions`: `1536`
+7. A GraphQL `query` that fetches 20 movies at a time when embeddings are missing or outdated:
 
    ``` graphql
    query GetMovies($lastRun: timestamptz!) {
@@ -49,7 +53,7 @@ For our particular demo this will be our data:
    }
    ```
 
-6. A GraphQL `mutation` that sets `embeddingsSearch` and `embeddingsSearchUpdatedAt`:
+8. A GraphQL `mutation` that sets `embeddingsSearch` and `embeddingsSearchUpdatedAt`:
 
 ``` graphql
 mutation updateMovie(
