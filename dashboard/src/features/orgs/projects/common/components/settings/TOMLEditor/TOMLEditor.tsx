@@ -2,12 +2,17 @@ import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
 import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
-import CodeMirror, { EditorView, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsDocsLink } from '@/components/layout/SettingsCard';
+import {
+  StickyHeaderCard,
+  StickyHeaderCardContent,
+  StickyHeaderCardHeader,
+} from '@/components/layout/StickyHeaderCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -17,8 +22,10 @@ import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
-import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
-import { cn } from '@/lib/utils';
+import {
+  codeMirrorAppBackground,
+  codeMirrorConsoleBackground,
+} from '@/lib/codeMirrorAppTheme';
 import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -26,18 +33,6 @@ const removeTOMLIndentation = (tomlStr: string) => {
   const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
   return trimmedLines.join('\n');
 };
-
-// In dark mode the code sits a step darker than the page, on the console
-// background, so it reads as its own surface under the header. Listed before
-// codeMirrorAppBackground so it wins over it: at the same precedence, earlier
-// wins, because EditorView mounts theme styles in reverse order.
-const darkEditorBackground = Prec.highest(
-  EditorView.theme({
-    '&, .cm-scroller, .cm-gutters': {
-      backgroundColor: 'hsl(var(--console-background))',
-    },
-  }),
-);
 
 export default function TOMLEditor() {
   const { resolvedTheme } = useThemePreference();
@@ -60,20 +55,6 @@ export default function TOMLEditor() {
       })),
     [],
   );
-
-  const stickSentinelRef = useRef<HTMLDivElement>(null);
-  const [isStuck, setIsStuck] = useState(false);
-  useEffect(() => {
-    const sentinel = stickSentinelRef.current;
-    if (!sentinel) {
-      return undefined;
-    }
-    const observer = new IntersectionObserver(([entry]) =>
-      setIsStuck(!entry.isIntersecting),
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
 
   const { project } = useProject();
 
@@ -180,20 +161,8 @@ export default function TOMLEditor() {
   };
 
   return (
-    // Not a SettingsCard: that is for settings forms and clips its content,
-    // which would stop the header from sticking. Same border, radius and
-    // spacing, so it reads like the other settings cards.
-    // min-w-0: a very long line scrolls inside the editor instead of
-    // stretching the page and pushing Revert and Save off screen.
-    <section className="min-w-0 rounded-lg border">
-      <div ref={stickSentinelRef} aria-hidden />
-      <div
-        ref={headerRef}
-        className={cn(
-          'sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background/60 px-6 py-6 backdrop-blur-md backdrop-saturate-150 transition-shadow duration-200 before:pointer-events-none before:absolute before:inset-x-0 before:-bottom-1 before:h-2 before:bg-gradient-to-r before:from-transparent before:via-foreground/10 before:to-transparent before:opacity-0 before:blur-sm before:transition-opacity before:duration-200 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-gradient-to-r after:from-transparent after:via-foreground/30 after:to-transparent after:opacity-0 after:transition-opacity after:duration-200 motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between',
-          isStuck && 'shadow-sticky before:opacity-100 after:opacity-100',
-        )}
-      >
+    <StickyHeaderCard>
+      <StickyHeaderCardHeader ref={headerRef}>
         <p className="min-w-0 text-muted-foreground sm:max-w-lg">
           Edit your project&apos;s configuration directly in TOML. Use it for
           settings that don&apos;t have their own page yet.{' '}
@@ -222,11 +191,9 @@ export default function TOMLEditor() {
             Save
           </ButtonWithLoading>
         </div>
-      </div>
+      </StickyHeaderCardHeader>
 
-      {/* Clips the corners without becoming a scroll container, so the
-          search panel (Cmd+F) can stick to the bottom of the window. */}
-      <div className="overflow-clip rounded-b-lg">
+      <StickyHeaderCardContent>
         {loading ? (
           <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
@@ -237,14 +204,16 @@ export default function TOMLEditor() {
             theme={resolvedTheme === 'light' ? vscodeLight : vscodeDark}
             extensions={[
               StreamLanguage.define(toml),
-              ...(resolvedTheme === 'light' ? [] : [darkEditorBackground]),
+              ...(resolvedTheme === 'light'
+                ? []
+                : [codeMirrorConsoleBackground]),
               codeMirrorAppBackground,
               stickyHeaderMargin,
             ]}
             onChange={onChange}
           />
         )}
-      </div>
-    </section>
+      </StickyHeaderCardContent>
+    </StickyHeaderCard>
   );
 }
