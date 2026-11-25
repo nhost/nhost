@@ -36,7 +36,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
-import { SupportError } from '@/features/support/components/SupportArea';
+import { SupportBreadcrumb, SupportError } from '@/features/support/components/SupportArea';
 import {
   TicketSeverity,
   TicketStatus,
@@ -44,7 +44,6 @@ import {
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
   PAGE_SIZE,
-  readSeenTickets,
   STATUSES,
   supportInitials,
   type TicketSearch,
@@ -55,7 +54,6 @@ import {
   DashboardSupportTicketsDocument,
   type DashboardSupportTicketsQuery,
 } from '@/generated/graphql';
-import { cn } from '@/lib/utils';
 
 const SUGGESTION_LIMIT = 8;
 
@@ -180,7 +178,6 @@ export default function TicketList() {
     waitingForQueues ||
     (!tickets.isSuccess && !tickets.isError);
   const rows = tickets.data?.supportTickets ?? [];
-  const seenTickets = user ? readSeenTickets(user.id) : {};
   const emptyQueue =
     tickets.isSuccess &&
     !loadingTickets &&
@@ -193,7 +190,7 @@ export default function TicketList() {
     search.queue === 'all';
   function changeSearch(changes: Partial<TicketSearch>) {
     void router.replace(
-      { pathname: '/support', query: { ...urlSearch, page: 0, ...changes } },
+      { pathname: router.pathname, query: { ...urlSearch, page: 0, ...changes } },
       undefined,
       { shallow: true },
     );
@@ -201,17 +198,11 @@ export default function TicketList() {
 
   return (
     <div className="space-y-6 p-5 sm:p-8">
+      {router.pathname === '/support/tickets' && <SupportBreadcrumb currentPage="All tickets" isTicketList />}
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h1 className="font-semibold text-2xl">Support</h1>
-            {isAgent && <Badge variant="outline">Agent</Badge>}
-          </div>
-          {!isAgent && (
-            <p className="text-muted-foreground text-sm">
-              Talk to the Nhost team about anything in your projects.
-            </p>
-          )}
+        <div className="flex items-center gap-2">
+          <h1 className="font-semibold text-2xl">{router.pathname === '/support' ? 'Support' : 'Tickets'}</h1>
+          {isAgent && <Badge variant="outline">Agent</Badge>}
         </div>
         {(isAgent || (!loadingTickets && !emptyQueue)) && (
           <Button asChild>
@@ -417,16 +408,7 @@ export default function TicketList() {
           </TableHeader>
           <TableBody>
             {rows.slice(0, pageSize).map((ticket) => {
-              const yourTurn = isAgent
-                ? ticket.status === 'new' ||
-                  ticket.status === 'waiting_for_support'
-                : ticket.status === 'waiting_for_customer';
               const replies = ticket.comments_aggregate?.aggregate?.count ?? 0;
-              const lastReply = ticket.lastReply?.[0]?.createdAt;
-              const readAt = seenTickets[ticket.id];
-              const newReply =
-                !!lastReply &&
-                (!readAt || Date.parse(lastReply) > Date.parse(readAt));
               const updated = new Intl.DateTimeFormat(undefined, {
                 month: 'short',
                 day: 'numeric',
@@ -436,11 +418,7 @@ export default function TicketList() {
               return (
                 <TableRow
                   key={ticket.id}
-                  className={cn(
-                    'group relative cursor-pointer hover:bg-muted/20',
-                    newReply &&
-                      'bg-primary/5 shadow-[inset_2px_0_0_hsl(var(--primary))] hover:bg-primary/10',
-                  )}
+                  className="group relative cursor-pointer hover:bg-muted/20"
                 >
                   <TableCell className="max-w-md px-2 py-3">
                     <Link
@@ -449,21 +427,6 @@ export default function TicketList() {
                     >
                       {ticket.title}
                     </Link>
-                    {newReply ? (
-                      <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-primary/40 px-1.5 py-px align-middle font-medium text-[0.625rem] text-primary">
-                        <span
-                          aria-hidden="true"
-                          className="size-1.5 rounded-full bg-primary"
-                        />
-                        New reply
-                      </span>
-                    ) : (
-                      yourTurn && (
-                        <span className="ml-2 inline-flex items-center rounded-full border border-primary/40 px-1.5 py-px align-middle text-[0.625rem] text-primary">
-                          Needs reply
-                        </span>
-                      )
-                    )}
                     <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
                       <span className="font-mono">#{ticket.number}</span>
                       <span>
@@ -553,18 +516,11 @@ export default function TicketList() {
           </Button>
         </div>
       )}
-      <section aria-labelledby="support-help-heading" hidden={loadingTickets}>
-        <h2 id="support-help-heading" className="sr-only">
+      <section className="mt-10" aria-labelledby="support-help-heading" hidden={loadingTickets}>
+        <h2 id="support-help-heading" className="mb-3 font-medium text-muted-foreground text-sm">
           Other ways to get help
         </h2>
-        <div
-          className={cn(
-            'grid gap-4 sm:grid-cols-3',
-            !tickets.isError && !loadingTickets && rows.length > 0
-              ? 'mt-10'
-              : 'mt-4',
-          )}
-        >
+        <div className="grid gap-4 sm:grid-cols-3">
           <Link
             href="https://docs.nhost.io"
             target="_blank"

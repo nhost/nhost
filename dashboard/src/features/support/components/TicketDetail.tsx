@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Check, UserMinus, UserPlus } from 'lucide-react';
-import Link from 'next/link';
+import { Check, UserMinus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { z } from 'zod';
@@ -178,13 +177,7 @@ export default function TicketDetail() {
   return (
     <div key={`${user?.id}:${role}:${ticketId}`}>
       <header className="space-y-5 p-5 sm:p-8">
-        <Link
-          href="/support"
-          className="inline-flex items-center gap-2 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          All tickets
-        </Link>
+        <SupportBreadcrumb currentPage={ticket.title} />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             <h1 className="break-words font-semibold text-3xl">

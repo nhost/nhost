@@ -56,7 +56,7 @@ export function SupportError({
   );
 }
 
-export function SupportBreadcrumb({ currentPage }: { currentPage: string }) {
+export function SupportBreadcrumb({ currentPage, isTicketList = false }: { currentPage: string; isTicketList?: boolean }) {
   const linkClassName =
     'rounded-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
   return (
@@ -70,6 +70,12 @@ export function SupportBreadcrumb({ currentPage }: { currentPage: string }) {
         <li aria-hidden="true" className="shrink-0">
           <ChevronRight className="size-3.5 text-muted-foreground" />
         </li>
+        {!isTicketList && (
+          <>
+            <li className="shrink-0"><Link href="/support/tickets" className={linkClassName}>All tickets</Link></li>
+            <li aria-hidden="true" className="shrink-0"><ChevronRight className="size-3.5 text-muted-foreground" /></li>
+          </>
+        )}
         <li aria-current="page" className="min-w-0 truncate text-foreground">
           {currentPage}
         </li>
