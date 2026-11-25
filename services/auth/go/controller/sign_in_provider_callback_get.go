@@ -232,10 +232,9 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 		)
 	}
 
-	signupIntent := state.Flow == providers.FlowSignup
 	if codeChallenge := deptr(state.CodeChallenge); codeChallenge != "" {
 		userID, apiErr := ctrl.providerResolveUser(
-			ctx, profile, providerID, state.Options, signupIntent, logger,
+			ctx, profile, providerID, state, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr
@@ -255,7 +254,7 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 		apiErr  *APIError
 	)
 
-	if signupIntent {
+	if state.Flow == providers.FlowSignup {
 		session, apiErr = ctrl.providerSignUpFlow(ctx, profile, providerID, state.Options, logger)
 	} else {
 		session, apiErr = ctrl.providerSignInFlow(ctx, profile, providerID, state.Options, logger)

@@ -579,25 +579,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
+				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(),
+					sql.InsertUserProviderByEmailParams{
 						UserID:         userID,
 						ProviderID:     "fake",
 						ProviderUserID: "1234567890",
 					},
-				).Return(
-					sql.AuthUserProvider{
-						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "106964149809169421082",
-					}, nil,
-				)
+				).Return(userID, nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
@@ -1955,25 +1943,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				)
 
 				// Provider not found by ID, so it should be linked
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
+				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(),
+					sql.InsertUserProviderByEmailParams{
 						UserID:         userID,
 						ProviderID:     "fake",
 						ProviderUserID: "1234567890",
 					},
-				).Return(
-					sql.AuthUserProvider{
-						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					}, nil,
-				)
+				).Return(userID, nil)
 
 				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
 				mock.EXPECT().InsertPKCEAuthorizationCode(

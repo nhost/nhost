@@ -1523,18 +1523,8 @@ func (wf *Workflows) InsertUserProvider(
 			ProviderUserID: providerUserID,
 		},
 	)
-	if err != nil {
-		if sqlIsDuplcateError(err, "user_providers_provider_id_provider_user_id_key") {
-			logger.ErrorContext(ctx, "user provider id already in use", logError(err))
-			return sql.AuthUserProvider{}, ErrProviderAccountAlreadyLinked
-		}
 
-		logger.ErrorContext(ctx, "error inserting user provider", logError(err))
-
-		return sql.AuthUserProvider{}, ErrInternalServerError
-	}
-
-	return userP, nil
+	return userP, providerInsertError(ctx, err, logger)
 }
 
 func (wf *Workflows) UpdateUserConfirmChangeEmail(

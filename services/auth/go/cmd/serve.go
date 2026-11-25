@@ -20,6 +20,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
@@ -186,6 +187,7 @@ const (
 	flagTwitterConsumerKey                       = "twitter-consumer-key"
 	flagTwitterConsumerSecret                    = "twitter-consumer-secret"
 	flagDisableAutoSignup                        = "disable-auto-signup"
+	flagOIDCProviders                            = "provider-oidc"
 	flagOAuth2ProviderEnabled                    = "oauth2-provider-enabled"
 	flagOAuth2ProviderLoginURL                   = "oauth2-provider-login-url"
 	flagOAuth2ProviderAccessTokenTTL             = "oauth2-provider-access-token-ttl"  //nolint:gosec
@@ -1323,6 +1325,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "signup",
 				Sources:  cli.EnvVars("AUTH_DISABLE_AUTO_SIGNUP"),
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOIDCProviders,
+				Usage:    "JSON array of custom OpenID Connect providers",
+				Category: "providers",
+				Sources:  cli.EnvVars("AUTH_PROVIDER_OIDC"),
+			},
 			// OAuth2 Identity Provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagOAuth2ProviderEnabled,
@@ -1489,6 +1497,8 @@ func getGoServer(
 		return nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
+	router.Use(middleware.OIDCRequests(cmd.String(flagAPIPrefix)))
+
 	if cmd.String(flagTurnstileSecret) != "" {
 		router.Use(middleware.Turnstile( //nolint:contextcheck
 			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
@@ -1523,13 +1533,11 @@ func getGoServer(
 		})
 	}
 
-	server := &http.Server{ //nolint:exhaustruct
+	return &http.Server{ //nolint:exhaustruct
 		Addr:              ":" + cmd.String(flagPort),
 		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	return server, nil
+	}, nil
 }
 
 func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGetter) error {
@@ -1589,6 +1597,18 @@ func getController(
 		return nil, nil, err
 	}
 
+	customProviders, err := oidc.NewOIDCRegistry(
+		cmd.String(flagOIDCProviders), config.ServerURL, safehttp.New(safehttp.Config{
+			Timeout:              0,
+			MaxRedirects:         0,
+			MaxResponseBodyBytes: oidcResponseBodyLimit,
+			PublicIPsOnly:        true,
+		}),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("configuring custom providers: %w", err)
+	}
+
 	ctrl, err := controller.New(
 		db,
 		config,
@@ -1597,6 +1617,7 @@ func getController(
 		smsClient,
 		hibp.NewClient(),
 		oauthProviders,
+		customProviders,
 		idTokenValidator,
 		controller.NewTotp(cmd.String(flagTOTPIssuer), time.Now),
 		encrypter,
@@ -1604,6 +1625,10 @@ func getController(
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create controller: %w", err)
+	}
+
+	if err := registerOIDCProviders(ctx, db, customProviders); err != nil {
+		return nil, nil, err
 	}
 
 	return ctrl, jwtGetter, nil

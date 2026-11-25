@@ -57,6 +57,10 @@ func turnstileCases() []struct {
 
 		// Signup — OAuth: same GET-redirect reasoning as signin.
 		{"/signup/provider/google", false},
+		{"/signup/oidc/authentik", false},
+		{"/signin/oidc/authentik/callback", false},
+		{"/signin/oidc/authentik/idtoken", false},
+		{"/signup/oidc/authentik/idtoken", true},
 
 		// Password reset.
 		{"/user/password/reset", true},

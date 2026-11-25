@@ -486,6 +486,142 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /signin/oidc/{provider}:
+    get:
+      summary: Sign In with a custom OIDC provider
+      description: Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+      operationId: signInOidc
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OIDCProvider"
+        - $ref: "#/components/parameters/OIDCCodeChallenge"
+        - $ref: "#/components/parameters/OIDCRedirectTo"
+        - $ref: "#/components/parameters/OIDCState"
+        - name: allowedRoles
+          in: query
+          description: Allowed roles for a new user
+          style: form
+          explode: false
+          schema:
+            type: array
+            maxItems: 16
+            items:
+              type: string
+              maxLength: 64
+        - $ref: "#/components/parameters/OIDCDefaultRole"
+        - $ref: "#/components/parameters/OIDCDisplayName"
+        - $ref: "#/components/parameters/OIDCLocale"
+        - name: metadata
+          in: query
+          description: JSON-encoded metadata for a new user
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      responses:
+        "302":
+          description: Redirect to the configured identity provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Short-lived browser binding for the OIDC callback
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signin/oidc/{provider}/callback:
+    get:
+      summary: Custom OIDC browser callback
+      description: Verify the signed authorization response and redirect to the allowed application URL with an Auth authorization code.
+      operationId: signInOidcCallback
+      tags:
+        - authentication
+        - excludeme
+      parameters:
+        - $ref: "#/components/parameters/OIDCProvider"
+        - name: state
+          in: query
+          required: true
+          description: Signed Auth flow state
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 4096
+        - name: code
+          in: query
+          description: Authorization code returned by the identity provider
+          schema:
+            type: string
+            maxLength: 4096
+        - name: iss
+          in: query
+          description: Issuer in the authorization response
+          schema:
+            type: string
+            maxLength: 2048
+        - name: error
+          in: query
+          description: Error returned by the identity provider
+          schema:
+            type: string
+            maxLength: 256
+      responses:
+        "302":
+          description: Redirect to the application with an authorization code or an authentication error
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Expiration of the short-lived browser binding
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signin/oidc/{provider}/idtoken:
+    post:
+      summary: Sign In with a custom OIDC ID token
+      description: Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+      operationId: signInOidcIdToken
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OIDCProvider"
+      requestBody:
+        required: true
+        description: The signed ID token and original nonce
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OIDCIdTokenRequest"
+      responses:
+        "200":
+          description: Authentication processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /signin/mfa/totp:
     post:
       summary: Verify TOTP for MFA
@@ -1290,6 +1426,88 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
+
+  /signup/oidc/{provider}:
+    get:
+      summary: Sign Up with a custom OIDC provider
+      description: Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+      operationId: signUpOidc
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OIDCProvider"
+        - $ref: "#/components/parameters/OIDCCodeChallenge"
+        - $ref: "#/components/parameters/OIDCRedirectTo"
+        - $ref: "#/components/parameters/OIDCState"
+        - name: allowedRoles
+          in: query
+          description: Allowed roles for a new user
+          style: form
+          explode: false
+          schema:
+            type: array
+            maxItems: 16
+            items:
+              type: string
+              maxLength: 64
+        - $ref: "#/components/parameters/OIDCDefaultRole"
+        - $ref: "#/components/parameters/OIDCDisplayName"
+        - $ref: "#/components/parameters/OIDCLocale"
+        - name: metadata
+          in: query
+          description: JSON-encoded metadata for a new user
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      responses:
+        "302":
+          description: Redirect to the configured identity provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Short-lived browser binding for the OIDC callback
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signup/oidc/{provider}/idtoken:
+    post:
+      summary: Sign Up with a custom OIDC ID token
+      description: Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+      operationId: signUpOidcIdToken
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OIDCProvider"
+      requestBody:
+        required: true
+        description: The signed ID token and original nonce
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OIDCIdTokenRequest"
+      responses:
+        "200":
+          description: Authentication processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /signup/provider/{provider}:
     get:
@@ -3067,6 +3285,26 @@ components:
         mfa:
           $ref: "#/components/schemas/MFAChallengePayload"
 
+    OIDCIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        idToken:
+          type: string
+          description: Signed ID token issued by the configured OIDC provider
+          minLength: 1
+          maxLength: 16384
+        nonce:
+          type: string
+          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider
+          minLength: 1
+          maxLength: 256
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - idToken
+        - nonce
+
     SignInIdTokenRequest:
       type: object
       additionalProperties: false
@@ -4112,6 +4350,68 @@ components:
         type: string
         format: uri
         example: https://my-app.com/catch-redirection
+
+    OIDCProvider:
+      in: path
+      name: provider
+      required: true
+      description: Name of a custom OIDC provider configured in Auth
+      schema:
+        type: string
+        pattern: '^[a-z0-9][a-z0-9-]{0,62}$'
+        example: authentik
+
+    OIDCCodeChallenge:
+      in: query
+      name: codeChallenge
+      required: true
+      description: Base64url-encoded S256 challenge for the Auth authorization code
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{43}$'
+        example: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+
+    OIDCRedirectTo:
+      in: query
+      name: redirectTo
+      description: Allowed application URL to receive the Auth authorization code
+      schema:
+        type: string
+        maxLength: 512
+        example: https://app.example.com/auth/callback
+
+    OIDCState:
+      in: query
+      name: state
+      description: Application state to include in the callback redirect
+      schema:
+        type: string
+        maxLength: 256
+
+    OIDCDefaultRole:
+      in: query
+      name: defaultRole
+      description: Default role for a new user
+      schema:
+        type: string
+        maxLength: 64
+
+    OIDCDisplayName:
+      in: query
+      name: displayName
+      description: Display name for a new user
+      schema:
+        type: string
+        maxLength: 32
+
+    OIDCLocale:
+      in: query
+      name: locale
+      description: Locale for a new user
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 3
 
     SignInProvider:
       in: path

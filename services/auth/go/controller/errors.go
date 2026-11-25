@@ -120,6 +120,32 @@ func (response ErrorResponse) VisitSignInProviderResponse(w http.ResponseWriter)
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitSignInOidcResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpOidcResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignInOidcCallbackResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+//nolint:revive // The generated interface uses IdToken.
+func (response ErrorResponse) VisitSignInOidcIdTokenResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+//nolint:revive // The generated interface uses IdToken.
+func (response ErrorResponse) VisitSignUpOidcIdTokenResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitSignInProviderCallbackGetResponse(
 	w http.ResponseWriter,
 ) error {

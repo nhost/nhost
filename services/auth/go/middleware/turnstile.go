@@ -98,6 +98,11 @@ func requiresTurnstile(path, prefix string) bool {
 		return false
 	}
 
+	if slug, ok := strings.CutPrefix(path, prefix+"/signup/oidc/"); ok &&
+		slug != "" && !strings.Contains(slug, "/") {
+		return false
+	}
+
 	return strings.HasPrefix(path, prefix+"/signup/") ||
 		strings.HasPrefix(path, prefix+"/signin/passwordless/") ||
 		strings.HasPrefix(path, prefix+"/signin/otp/") ||

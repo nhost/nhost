@@ -670,25 +670,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
+				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(),
+					sql.InsertUserProviderByEmailParams{
 						UserID:         userID,
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(
-					sql.AuthUserProvider{
-						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "106964149809169421082",
-					}, nil,
-				)
+				).Return(userID, nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,

@@ -1280,6 +1280,16 @@ type OAuth2UserinfoResponse struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
+// OIDCIdTokenRequest defines model for OIDCIdTokenRequest.
+type OIDCIdTokenRequest struct {
+	// IdToken Signed ID token issued by the configured OIDC provider
+	IdToken string `json:"idToken"`
+
+	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider
+	Nonce   string         `json:"nonce"`
+	Options *SignUpOptions `json:"options,omitempty"`
+}
+
 // OKResponse defines model for OKResponse.
 type OKResponse string
 
@@ -1799,6 +1809,27 @@ type VerifyTokenRequest struct {
 	Token *string `json:"token,omitempty"`
 }
 
+// OIDCCodeChallenge defines model for OIDCCodeChallenge.
+type OIDCCodeChallenge = string
+
+// OIDCDefaultRole defines model for OIDCDefaultRole.
+type OIDCDefaultRole = string
+
+// OIDCDisplayName defines model for OIDCDisplayName.
+type OIDCDisplayName = string
+
+// OIDCLocale defines model for OIDCLocale.
+type OIDCLocale = string
+
+// OIDCProvider defines model for OIDCProvider.
+type OIDCProvider = string
+
+// OIDCRedirectTo defines model for OIDCRedirectTo.
+type OIDCRedirectTo = string
+
+// OIDCState defines model for OIDCState.
+type OIDCState = string
+
 // RedirectToQuery Target URL for the redirect
 type RedirectToQuery = string
 
@@ -1873,6 +1904,48 @@ type Oauth2AuthorizePostFormdataBody struct {
 type Oauth2LoginGetParams struct {
 	// RequestId The pending authorization request identifier.
 	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
+// SignInOidcParams defines parameters for SignInOidc.
+type SignInOidcParams struct {
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code
+	CodeChallenge OIDCCodeChallenge `form:"codeChallenge" json:"codeChallenge"`
+
+	// RedirectTo Allowed application URL to receive the Auth authorization code
+	RedirectTo *OIDCRedirectTo `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Application state to include in the callback redirect
+	State *OIDCState `form:"state,omitempty" json:"state,omitempty"`
+
+	// AllowedRoles Allowed roles for a new user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for a new user
+	DefaultRole *OIDCDefaultRole `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for a new user
+	DisplayName *OIDCDisplayName `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale Locale for a new user
+	Locale *OIDCLocale `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata JSON-encoded metadata for a new user
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+}
+
+// SignInOidcCallbackParams defines parameters for SignInOidcCallback.
+type SignInOidcCallbackParams struct {
+	// State Signed Auth flow state
+	State string `form:"state" json:"state"`
+
+	// Code Authorization code returned by the identity provider
+	Code *string `form:"code,omitempty" json:"code,omitempty"`
+
+	// Iss Issuer in the authorization response
+	Iss *string `form:"iss,omitempty" json:"iss,omitempty"`
+
+	// Error Error returned by the identity provider
+	Error *string `form:"error,omitempty" json:"error,omitempty"`
 }
 
 // SignInProviderParams defines parameters for SignInProvider.
@@ -1974,6 +2047,33 @@ type SignInProviderCallbackPostParamsProvider string
 
 // GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
 type GetProviderTokensParamsProvider string
+
+// SignUpOidcParams defines parameters for SignUpOidc.
+type SignUpOidcParams struct {
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code
+	CodeChallenge OIDCCodeChallenge `form:"codeChallenge" json:"codeChallenge"`
+
+	// RedirectTo Allowed application URL to receive the Auth authorization code
+	RedirectTo *OIDCRedirectTo `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Application state to include in the callback redirect
+	State *OIDCState `form:"state,omitempty" json:"state,omitempty"`
+
+	// AllowedRoles Allowed roles for a new user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for a new user
+	DefaultRole *OIDCDefaultRole `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for a new user
+	DisplayName *OIDCDisplayName `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale Locale for a new user
+	Locale *OIDCLocale `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata JSON-encoded metadata for a new user
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+}
 
 // SignUpProviderParams defines parameters for SignUpProvider.
 type SignUpProviderParams struct {
@@ -2077,6 +2177,9 @@ type SignInIdTokenJSONRequestBody = SignInIdTokenRequest
 // VerifySignInMfaTotpJSONRequestBody defines body for VerifySignInMfaTotp for application/json ContentType.
 type VerifySignInMfaTotpJSONRequestBody = SignInMfaTotpRequest
 
+// SignInOidcIdTokenJSONRequestBody defines body for SignInOidcIdToken for application/json ContentType.
+type SignInOidcIdTokenJSONRequestBody = OIDCIdTokenRequest
+
 // SignInOTPEmailJSONRequestBody defines body for SignInOTPEmail for application/json ContentType.
 type SignInOTPEmailJSONRequestBody = SignInOTPEmailRequest
 
@@ -2112,6 +2215,9 @@ type SignUpEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
 // SignUpIdTokenJSONRequestBody defines body for SignUpIdToken for application/json ContentType.
 type SignUpIdTokenJSONRequestBody = SignUpIdTokenRequest
+
+// SignUpOidcIdTokenJSONRequestBody defines body for SignUpOidcIdToken for application/json ContentType.
+type SignUpOidcIdTokenJSONRequestBody = OIDCIdTokenRequest
 
 // SignUpOTPEmailJSONRequestBody defines body for SignUpOTPEmail for application/json ContentType.
 type SignUpOTPEmailJSONRequestBody = SignUpOTPEmailRequest
