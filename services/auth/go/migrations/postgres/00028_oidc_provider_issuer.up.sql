@@ -1,4 +1,4 @@
-ALTER TABLE auth.providers ADD COLUMN oidc_issuer text;
+ALTER TABLE auth.providers ADD COLUMN IF NOT EXISTS oidc_issuer text;
 
 ALTER TABLE auth.providers
     ADD CONSTRAINT providers_oidc_issuer_check CHECK (

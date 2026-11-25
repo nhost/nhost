@@ -126,21 +126,24 @@ func TestPostgresOIDCIssuerBinding(t *testing.T) {
 	assertOIDCIdentityLookup(t, queries, userID, identity)
 	assertOIDCIdentityWrites(t, queries, userID, identity)
 
-	if err := run(previous); err != nil {
-		t.Fatal(err)
+	for _, version := range []uint{28, 27} {
+		if err := run(authMigrationBundleThrough(t, version)); err != nil {
+			t.Fatalf("rollback to version %d: %v", version, err)
+		}
+
+		assertAuthMigrationState(t, database, int(version))
+
+		if err := run(postgresMigrations); err != nil {
+			t.Fatalf("re-upgrade from version %d: %v", version, err)
+		}
+
+		assertAuthMigrationState(t, database, 29)
+		assertOIDCIdentityLookup(t, queries, userID, identity)
+
+		if err := queries.RegisterOIDCProviders(t.Context(), params); err != nil {
+			t.Fatal(err)
+		}
 	}
-
-	assertAuthMigrationState(t, database, 28)
-
-	if err := run(postgresMigrations); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := queries.RegisterOIDCProviders(t.Context(), params); err != nil {
-		t.Fatal(err)
-	}
-
-	assertOIDCIdentityLookup(t, queries, userID, identity)
 }
 
 func assertOIDCRegistration(
