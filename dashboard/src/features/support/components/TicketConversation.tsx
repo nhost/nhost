@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form } from '@/components/form/Form';
+import UserAvatar from '@/components/layout/AccountMenu/UserAvatar';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -44,6 +45,7 @@ const replySchema = z.object({
   body: z.string().trim().min(1, 'Write a reply').max(50000),
 });
 interface TimelineMessage {
+  authorID?: string;
   authorName: string;
   createdAt: string;
   body: string;
@@ -204,16 +206,23 @@ export default function TicketConversation({
                         </span>
                       </div>
                     )}
-                    <Avatar
-                      className="h-9 w-9"
-                      aria-hidden="true"
-                      fallback={supportInitials(message.authorName)}
-                      fallbackClassName={
-                        teamReply
-                          ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground'
-                          : undefined
-                      }
-                    />
+                    <div aria-hidden="true">
+                      {teamReply ? (
+                        message.authorID && message.authorID === user?.id ? (
+                          <UserAvatar className="h-9 w-9" />
+                        ) : (
+                          <Avatar
+                            className="h-9 w-9"
+                            name={message.authorName}
+                          />
+                        )
+                      ) : (
+                        <Avatar
+                          className="h-9 w-9"
+                          fallback={supportInitials(message.authorName)}
+                        />
+                      )}
+                    </div>
                     <article className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="font-medium text-sm">
@@ -279,16 +288,16 @@ export default function TicketConversation({
               </p>
             ) : (
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
-                <Avatar
-                  className="h-9 w-9"
-                  aria-hidden="true"
-                  fallback={supportInitials(user?.displayName || 'You')}
-                  fallbackClassName={
-                    role === 'support'
-                      ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground'
-                      : undefined
-                  }
-                />
+                <div aria-hidden="true">
+                  {role === 'support' ? (
+                    <UserAvatar className="h-9 w-9" />
+                  ) : (
+                    <Avatar
+                      className="h-9 w-9"
+                      fallback={supportInitials(user?.displayName || 'You')}
+                    />
+                  )}
+                </div>
                 <FormProvider {...form}>
                   <Form
                     onSubmit={async ({ body }: z.infer<typeof replySchema>) => {
