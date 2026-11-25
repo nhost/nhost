@@ -142,9 +142,11 @@ An assistant will typically use `get-schema` to understand the available data an
 
 You do not need to manually expose individual tables or operations as separate MCP tools. What the assistant can actually access is determined by the GraphQL schema and permissions available to the authenticated user.
 
-`storage-download` takes a stored file ID, not a local path or source URL. It returns complete images as MCP image content and other file bytes as base64. To enable it, configure the [storage URL](/products/ai/mcp/configuration#storage) and grant the role only the [file and bucket access](/products/ai/mcp/permissions#storage-permissions) the assistant needs.
+### File downloads and image previews
 
-[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) clients can open an inline panel for any `storage-download` call. The panel previews complete AVIF, GIF, JPEG, PNG, and WebP images that the client's browser can decode. If there is no previewable image, for example when downloading a PDF or a byte range, the panel shows a short status message instead. The panel uses the existing tool result and does not need a public URL or a second download.
+An assistant can use a stored file ID to download a file, such as a product photo attached to an order. The [Nhost Run installer](/products/ai/mcp/deployment#deploy-to-nhost-run) enables `storage-download`. The assistant can only download files allowed by the signed-in user's [Storage permissions](/products/ai/mcp/permissions#storage-permissions).
+
+Clients that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) can show downloaded images inline without making the files public. The panel previews complete AVIF, GIF, JPEG, PNG, and WebP images when the client can decode them. For downloads it can't preview, such as a PDF or a byte range, the panel shows a status message instead.
 
 ## Access control
 

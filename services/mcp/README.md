@@ -1,6 +1,6 @@
 # Nhost MCP Service
 
-The Nhost MCP service adds an agentic interface to any Nhost project. It exposes your project's GraphQL API and file storage as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, allowing AI assistants like Claude, Cursor, or any MCP-compatible client to query and mutate your data.
+The Nhost MCP service exposes your project's GraphQL API and optional file downloads over the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). AI assistants such as Claude and Cursor can query or modify data and download files with the signed-in user's permissions.
 
 If you're building on Nhost, this service lets your users interact with their project data through AI assistants — no custom integration code required. Deploy it alongside your project and any MCP-compatible client can connect, authenticate on behalf of your users via your existing Nhost Auth setup, and work with your data within the permissions defined.
 
@@ -65,17 +65,11 @@ All flags can be set via environment variables.
 | `--enforce-role` | `MCP_ENFORCE_ROLE` | Enforce that the JWT's default Hasura role matches this value |
 | `--browser-html` | `MCP_BROWSER_HTML` | HTML content to serve when a browser visits the service URL |
 
-## Storage Tools
+## Storage Downloads
 
-Set `MCP_STORAGE_URL` to the storage service belonging to the **same backend** as your GraphQL and Auth URLs, including its API prefix (normally `/v1`). It is explicitly configured, not inferred from GraphQL, so custom domains and internal service addresses work too. Without this setting, only the three GraphQL tools are registered. Tool arguments cannot override the service URL, authorization, or arbitrary headers; upstream redirects are not followed.
+Set `MCP_STORAGE_URL` to the Storage API URL for the same project as your GraphQL and Auth endpoints, including `/v1`. Without this setting, `storage-download` is not listed. Storage applies the caller's file permissions.
 
-`MCP_STORAGE_MAX_TRANSFER_BYTES` limits each upstream download response, including error bodies, to **50 MB (50,000,000 bytes)** by default. Set it to a positive integer less than `9223372036854775807` to change the limit. Storage still enforces the bucket's settings and the caller's permissions. The MCP server does not read local files or fetch arbitrary source URLs.
-
-Successful downloads encode directly into a base64 buffer without retaining a separate raw-file buffer. **MCP responses are still buffered**. As a starting memory estimate, allow about 7 times the file bytes per concurrent image download and about 15 times per concurrent non-image download, plus headroom for baseline memory and other calls. Measure with your workload; the transfer limit is not a process-memory guarantee. Client, model provider, or proxy limits may be smaller.
-
-### Download (`GET /files/{id}`)
-
-`id` is required. All download options are exposed:
+`storage-download` requires a stored file `id`, not a local path or source URL. It supports the following options from the Storage download endpoint (`GET /files/{id}`):
 
 | Arguments | Storage behavior |
 |-----------|------------------|
@@ -88,87 +82,21 @@ Successful downloads encode directly into a base64 buffer without retaining a se
 | `ifMatch`, `ifNoneMatch` | ETag conditions |
 | `ifModifiedSince`, `ifUnmodifiedSince` | HTTP-date conditions |
 
-Storage enforces its configured transformation limits and supported formats. As with the REST endpoint, ranges are ignored when transformations are requested. Responses include the HTTP status and all response headers, including caching, ETag, last-modified and content-range information. Complete, nonempty image downloads carry their bytes only in MCP image content; the structured response and its JSON text summary omit `data`. Other downloads, including partial and non-image responses and errors, return base64 `data` without image content. A `304` is a successful empty-body result; `412` is an error result with the response details preserved.
+The result includes the Storage HTTP status and response headers. Complete, nonempty image downloads include the bytes only in the MCP image block; read `structuredContent.data` for base64 bytes from other downloads, including byte ranges. A `304` response has no file bytes.
 
-[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) clients can open an inline panel for any `storage-download` call. The panel previews complete AVIF, GIF, JPEG, PNG, and WebP images that the client's browser can decode. If there is no previewable image, for example when downloading a PDF or a byte range, the panel shows a short status message instead. The panel uses the existing tool result and does not fetch from Storage or need a public URL. Clients without MCP Apps receive the same download result.
+Clients that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) can show the download in a panel without another request to Storage. The panel previews complete AVIF, GIF, JPEG, PNG, and WebP images if the client can decode them. When it can't show a preview, it displays a status message. The tool result is the same for clients without MCP Apps.
 
-Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the upstream `statusCode` and headers (including `Content-Length`, `Accept-Ranges`, and `ETag` when supplied), but no partial `data`. Raise the configured budget or retry with `range`, for example `{ "id": "large-file", "range": "bytes=0-1048575" }`, then request subsequent chunks within the budget and use `Content-Range` to determine the total size. If a transformation exceeds the limit, reduce its output size or omit transformation arguments and download the original in ranges: storage ignores ranges when transformations are requested.
+A download over `MCP_STORAGE_MAX_TRANSFER_BYTES` returns an error with the Storage status and headers but no file bytes. Retry with a smaller range, for example `{ "id": "large-file", "range": "bytes=0-1048575" }`, or request a smaller image. Storage ignores byte ranges when transforming an image. See [Transfer limits](https://docs.nhost.io/products/ai/mcp/configuration#transfer-limits) before raising the limit.
 
 ## Deploying to Nhost
 
-To deploy to Nhost Run you can use the one-click install link below:
+[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV0sImhlYWx0aENoZWNrIjpudWxsfQ==)
 
-https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV0sImhlYWx0aENoZWNrIjpudWxsfQ==
+Set `MCP_AUTH_URL` to your project's Auth URL and `MCP_REALM` to your public MCP URL. Set `MCP_ENFORCE_ROLE` to your dedicated MCP role, or remove it to use each signed-in user's default role. Replace the sample `MCP_INSTRUCTIONS` with a description of your application.
 
-Set `MCP_AUTH_URL` to your project's Auth URL and `MCP_REALM` to your public MCP URL. Adjust `MCP_INSTRUCTIONS` and `MCP_ENFORCE_ROLE` as needed.
+The installer uses the project's internal GraphQL and Storage endpoints and sets a 10 MB download limit for a 256 MiB instance. Grant [Download permission](https://docs.nhost.io/products/ai/mcp/permissions#storage-permissions) only for the files the assistant should read, or remove `MCP_STORAGE_URL` to turn off downloads.
 
-Both examples use `nhost/mcp:0.4.0` and enable `storage-download`. Check the [releases](https://github.com/nhost/nhost/releases) page before deploying; the image tag must be published.
-
-Alternatively, add a `run-mcp.toml` to your project directory:
-
-```toml
-name = 'mcp'
-command = ['mcp']
-
-[image]
-image = 'nhost/mcp:0.4.0'
-
-[[environment]]
-name = 'MCP_AUTH_URL'
-value = 'https://local.auth.local.nhost.run/v1'
-
-[[environment]]
-name = 'MCP_REALM'
-value = 'https://myapp.example.com'
-
-[[environment]]
-name = 'MCP_GRAPHQL_ENDPOINT'
-value = 'http://hasura-service:8080/v1/graphql'
-
-[[environment]]
-name = 'MCP_STORAGE_URL'
-value = 'http://hasura-storage-service:5000/v1'
-
-[[environment]]
-name = 'MCP_STORAGE_MAX_TRANSFER_BYTES'
-value = '10000000'
-
-[[environment]]
-name = 'MCP_INSTRUCTIONS'
-value = 'This MCP server interacts with my application'
-
-[[environment]]
-name = 'MCP_ENFORCE_ROLE'
-value = 'user_mcp'
-
-[[ports]]
-port = 3000
-type = 'http'
-publish = true
-
-[resources]
-replicas = 1
-
-[resources.compute]
-cpu = 125
-memory = 256
-```
-
-Then deploy your project as usual. The MCP server will be available at the published port and any MCP-compatible client can connect to it.
-
-You can also try locally with:
-
-```
-nhost up --run-service run-mcp.toml
-```
-
-### Storage downloads on Nhost Run
-
-Both examples use the internal Storage endpoint, `http://hasura-storage-service:5000/v1`. If the service can't reach that hostname, use the Storage URL for the same backend, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`).
-
-The examples set a 10 MB download response limit for the 256 MiB service. This is a starting point for one download at a time, not a concurrency limit. The 50 MB server default can exhaust that much memory on a single call. Increase memory as needed before raising the limit or allowing concurrent downloads.
-
-Grant only Download (`select`) on the files the caller's role should be able to read. Remove `MCP_STORAGE_URL` to disable `storage-download`.
+See the [deployment guide](https://docs.nhost.io/products/ai/mcp/deployment) for the OAuth2 prerequisites, manual TOML configuration, and local development.
 
 ## Connecting an MCP Client
 

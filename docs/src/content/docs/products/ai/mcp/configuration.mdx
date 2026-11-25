@@ -34,9 +34,9 @@ Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
 |------|----------------------|-------------|
 | `--storage-url` | `MCP_STORAGE_URL` | **Optional.** The storage service URL for the **same backend** as the GraphQL and Auth endpoints, including its API prefix (normally `/v1`), for example `https://SUBDOMAIN.storage.REGION.nhost.run/v1`. Enables the read-only `storage-download` tool when set. |
 
-The storage URL must be configured explicitly; it is not inferred from the GraphQL endpoint. If omitted, `storage-download` is not registered. It must be an absolute HTTP(S) URL without embedded credentials, a query, or a fragment; invalid values make startup fail.
+On Nhost Run, use `http://hasura-storage-service:5000/v1`. For other deployments, use an absolute HTTP or HTTPS URL reachable from the MCP server. Do not include credentials, a query string, or a fragment. The server rejects invalid URLs at startup. Leave this setting unset to disable the tool.
 
-The tool forwards the caller's JWT, so configure [Storage permissions](/products/ai/mcp/permissions#storage-permissions) for the role before enabling file access.
+Setting the URL does not grant [Storage permissions](/products/ai/mcp/permissions#storage-permissions). Downloads run with the signed-in user's role.
 
 ### Transfer limits
 
@@ -46,9 +46,9 @@ The tool forwards the caller's JWT, so configure [Storage permissions](/products
 
 The limit must be a positive integer below `9223372036854775807`; invalid values make startup fail when storage is enabled. Storage still enforces bucket limits and permissions.
 
-Successful downloads encode directly into a base64 buffer, but MCP responses are still buffered. As a starting estimate, allow about 7 times the file bytes per concurrent image download and about 15 times per concurrent non-image download, plus headroom for the server and other calls. Measure with your workload; the transfer limit is not a process-memory guarantee. Client, model provider, or proxy limits may be smaller. See [the 256 MiB storage configuration](/products/ai/mcp/deployment#enable-storage-downloads-optional) for an example.
+This limit is per download, not a cap on server memory. The server buffers and encodes each response, so large or concurrent downloads can use much more memory than the file size suggests. The [Nhost Run examples](/products/ai/mcp/deployment#file-downloads) set a 10 MB limit for a 256 MiB service. Test with your expected file sizes and concurrency before raising the limit. Your MCP client, model provider, or proxy may impose a smaller limit.
 
-If a download exceeds the limit, the error preserves the upstream status and headers without returning truncated file data. Increase the limit or retry with byte ranges within it. Omit image transformations when requesting ranges: Storage ignores ranges when transforming images.
+If a file exceeds the limit, retry with smaller byte ranges or request a smaller image. Storage ignores byte ranges when you request an image transformation.
 
 ## Authentication
 

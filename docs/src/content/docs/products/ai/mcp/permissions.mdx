@@ -9,17 +9,13 @@ head:
     content: "Control AI Access with Roles & Permissions | Nhost Docs"
 ---
 
-The Backend MCP Server does not invent its own permission system. It rides on the one you already have: every request runs as the authenticated user, and GraphQL enforces the same row-level and column-level permissions that apply to that user everywhere else. When `storage-download` is enabled, Storage also enforces file permissions for that user's role, including bucket and ownership restrictions. The assistant can only read and write what the user is allowed to.
-
-This page explains how to narrow that further, and the practices we recommend when connecting an LLM to your data.
+Each request runs with the signed-in user's existing permissions. GraphQL enforces row and column restrictions, and Storage enforces file download permissions. Use a dedicated role to give assistants less access than users have in the rest of your application.
 
 ## How access is scoped
 
 The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Backend MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's [Hasura claims](/products/graphql/permissions/permission-variables) — so the effective boundary is the role the token carries.
 
-`storage-download` forwards the same JWT as the GraphQL tools, without adding administrative credentials. The storage service checks permissions on `storage.files`, including any rules restricting access to particular buckets or owners.
-
-That makes the token's role the main lever for controlling AI access.
+Storage uses the same token to check [download permissions](#storage-permissions).
 
 ## Enforce a dedicated role
 
@@ -35,7 +31,7 @@ Pair this with a role you define in your GraphQL permissions specifically for AI
 
 1. Create a role — for example `user_mcp` — in your GraphQL permissions.
 2. Grant it only what the assistant needs: read-only on some tables, a subset of columns, row filters tied to the user, and no more.
-3. If you enable `storage-download`, explicitly configure [Storage permissions](#storage-permissions) for `user_mcp`, or deliberately leave them unset to deny file access. GraphQL access to your application tables does not automatically grant file access.
+3. If the assistant needs to read files, grant [Download permission](#storage-permissions) to `user_mcp`. Access to your application tables doesn't grant file access.
 4. Deploy Backend MCP with `--enforce-role=user_mcp`.
 
 Now the assistant is boxed into that role regardless of what broader permissions the user has in the rest of your app. When enforcement is on, Backend MCP also advertises the scope `graphql:role:user_mcp` in its discovery metadata, so clients request a token with that default role.
@@ -48,11 +44,13 @@ This lets you:
 
 ## Storage permissions
 
-Setting `MCP_STORAGE_URL` registers the read-only `storage-download` tool. Registration does not grant file access: the tool is listed even if the token's role has no Storage permissions, and Storage denies unauthorized downloads.
+Seeing `storage-download` in the client doesn't mean the user can download files. To grant access:
 
-In the dashboard, open **Storage → Permissions** and grant **Download** (`select`) on `storage.files` for the token's role. With `MCP_ENFORCE_ROLE=user_mcp`, configure the permission for `user_mcp`, not your application's usual `user` role. The tool does not need Upload, Replace, or Delete permissions.
+1. In the dashboard, open **Storage → Permissions**.
+2. Select **Download** for the MCP user's role. If you set `MCP_ENFORCE_ROLE=user_mcp`, configure `user_mcp`, not your application's usual `user` role.
+3. Add checks for the files the assistant needs. For example, match `bucket_id` to the intended bucket and `uploaded_by_user_id` to `X-Hasura-User-Id` to allow users to read only their own uploads there.
 
-Restrict downloads to the intended buckets with `bucket_id` checks and to the intended users with ownership checks such as `uploaded_by_user_id` equals `X-Hasura-User-Id`. See [Storage permissions](/products/storage/permissions) for required columns and configuration examples. If the assistant needs no file access, leave `MCP_STORAGE_URL` unset or withhold Download permission from its role.
+You don't need to grant Upload, Replace, or Delete. See [Storage permissions](/products/storage/permissions) for required columns and more examples. To hide the tool entirely, remove `MCP_STORAGE_URL` from the MCP service configuration.
 
 ## Security best practices
 
