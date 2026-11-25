@@ -1924,7 +1924,7 @@ type SignInOidcParams struct {
 	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
 	CodeChallenge *OIDCSignInCodeChallenge `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 
-	// Connect Auth access token for the account to link to this provider
+	// Connect Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
 	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
 
 	// RedirectTo Allowed application URL to receive the Auth authorization code

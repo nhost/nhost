@@ -498,7 +498,7 @@ paths:
         - $ref: "#/components/parameters/OIDCSignInCodeChallenge"
         - name: connect
           in: query
-          description: Auth access token for the account to link to this provider
+          description: Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
           schema:
             type: string
             minLength: 1

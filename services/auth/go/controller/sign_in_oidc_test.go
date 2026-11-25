@@ -563,7 +563,7 @@ func TestOIDCBrowserConnect(t *testing.T) {
 	fixture := newOIDCRouteFixture(t, true)
 	registry := fixture.registry(t, false)
 	db := mock.NewMockDBClient(gomock.NewController(t))
-	handler, signer := fixture.router(t, registry, db)
+	handler, signer := fixture.router(t, registry, db, withElevationMode("disabled"))
 
 	connectURL := "/v1/signin/oidc/authentik?connect="
 
@@ -700,6 +700,83 @@ func TestOIDCBrowserConnectRejectsNonSessionTokens(t *testing.T) {
 			if res.Code != http.StatusBadRequest || res.Header().Get("Location") != "" ||
 				res.Header().Get("Set-Cookie") != "" {
 				t.Fatalf("expected rejection before starting a browser flow, got HTTP %d", res.Code)
+			}
+		})
+	}
+}
+
+func TestOIDCBrowserConnectElevation(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	registry := fixture.registry(t, false)
+	userID := uuid.New()
+
+	for _, tt := range []struct {
+		name       string
+		mode       string
+		elevated   string
+		hasMethod  bool
+		lookupErr  error
+		wantStatus int
+	}{
+		{name: "required rejects plain session", mode: "required", elevated: "", hasMethod: false, lookupErr: nil, wantStatus: http.StatusBadRequest},
+		{name: "required accepts elevated session", mode: "required", elevated: userID.String(), hasMethod: false, lookupErr: nil, wantStatus: http.StatusFound},
+		{name: "required rejects mismatched elevation", mode: "required", elevated: uuid.NewString(), hasMethod: false, lookupErr: nil, wantStatus: http.StatusBadRequest},
+		{name: "disabled accepts plain session", mode: "disabled", elevated: "", hasMethod: false, lookupErr: nil, wantStatus: http.StatusFound},
+		{name: "recommended rejects plain session with method", mode: "recommended", elevated: "", hasMethod: true, lookupErr: nil, wantStatus: http.StatusBadRequest},
+		{name: "recommended accepts plain session without method", mode: "recommended", elevated: "", hasMethod: false, lookupErr: nil, wantStatus: http.StatusFound},
+		{name: "recommended accepts elevated session", mode: "recommended", elevated: userID.String(), hasMethod: true, lookupErr: nil, wantStatus: http.StatusFound},
+		{name: "recommended fails closed on method lookup error", mode: "recommended", elevated: "", hasMethod: false, lookupErr: pgx.ErrNoRows, wantStatus: http.StatusBadRequest},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := mock.NewMockDBClient(gomock.NewController(t))
+			if tt.mode == "recommended" && tt.elevated == "" {
+				db.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{HasSecurityKey: tt.hasMethod}, tt.lookupErr,
+				)
+			}
+
+			handler, signer := fixture.router(t, registry, db, withElevationMode(tt.mode))
+
+			namespace, claims, err := signer.GraphQLClaims(
+				t.Context(),
+				userID,
+				false,
+				[]string{"user"},
+				"user",
+				nil,
+				slog.New(slog.DiscardHandler),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if tt.elevated != "" {
+				claims["x-hasura-auth-elevated"] = tt.elevated
+			}
+
+			token, err := signer.SignTokenWithClaims(jwt.MapClaims{
+				"sub": userID.String(), namespace: claims,
+			}, time.Now().Add(time.Minute))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			res := oidcRouteRequest(t, handler, http.MethodGet,
+				"/v1/signin/oidc/authentik?connect="+url.QueryEscape(token), nil)
+			if res.Code != tt.wantStatus {
+				t.Fatalf("expected HTTP %d, got %d", tt.wantStatus, res.Code)
+			}
+
+			if tt.wantStatus == http.StatusFound {
+				if res.Header().Get("Location") == "" || res.Header().Get("Set-Cookie") == "" {
+					t.Fatal("authorized link did not start a browser flow")
+				}
+			} else if res.Header().Get("Location") != "" || res.Header().Get("Set-Cookie") != "" {
+				t.Fatal("rejected link started a browser flow")
 			}
 		})
 	}

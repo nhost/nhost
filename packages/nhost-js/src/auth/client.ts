@@ -2454,7 +2454,7 @@ export interface Oauth2AuthorizePostBody {
  * Parameters for the signInOidc method.
     @property codeChallenge? (OIDCSignInCodeChallenge) - Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
   
-    @property connect? (string) - Auth access token for the account to link to this provider
+    @property connect? (string) - Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
   
     @property redirectTo? (OIDCRedirectTo) - Allowed application URL to receive the Auth authorization code
   
@@ -2477,7 +2477,7 @@ export interface SignInOidcParams {
    */
   codeChallenge?: OIDCSignInCodeChallenge;
   /**
-   * Auth access token for the account to link to this provider
+   * Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
   
    */
   connect?: string;

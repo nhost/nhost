@@ -106,6 +106,7 @@ func (ctrl *Controller) startOIDC( //nolint:funlen // Browser authorization keep
 	}
 
 	connectUser, expiresAt, apiErr := ctrl.oidcConnectUser(
+		ctx,
 		params.Connect,
 		time.Now().Add(In5Minutes),
 	)
@@ -147,7 +148,7 @@ func (ctrl *Controller) startOIDC( //nolint:funlen // Browser authorization keep
 
 // Authorize the link before redirecting so the IdP never sees the access token.
 func (ctrl *Controller) oidcConnectUser(
-	connect *string, expiresAt time.Time,
+	ctx context.Context, connect *string, expiresAt time.Time,
 ) (*uuid.UUID, time.Time, *APIError) {
 	if connect == nil {
 		return nil, expiresAt, nil
@@ -171,6 +172,12 @@ func (ctrl *Controller) oidcConnectUser(
 	userID, err := ctrl.wf.jwtGetter.GetUserID(token)
 	if err != nil || userID == uuid.Nil ||
 		ctrl.wf.jwtGetter.GetCustomClaim(token, "x-hasura-user-id") != userID.String() {
+		return nil, time.Time{}, ErrInvalidRequest
+	}
+
+	// Browser linking must enforce the same elevation policy as the native link API.
+	elevated, err := ctrl.wf.jwtGetter.verifyElevatedClaim(ctx, token, "/link/idtoken")
+	if err != nil || !elevated {
 		return nil, time.Time{}, ErrInvalidRequest
 	}
 
