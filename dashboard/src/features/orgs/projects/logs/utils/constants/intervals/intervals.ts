@@ -1,4 +1,4 @@
-export type LogsCustomInterval = {
+export interface LogsCustomInterval {
   /**
    * Label to be displayed in the UI.
    */
@@ -7,7 +7,7 @@ export type LogsCustomInterval = {
    * Value in minutes to decrease from the fetching query.
    */
   minutesToDecreaseFromCurrentDate: number;
-};
+}
 
 export const LOGS_AVAILABLE_INTERVALS: LogsCustomInterval[] = [
   {

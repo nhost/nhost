@@ -33,21 +33,21 @@ import {
 
 type ServiceKey = 'database' | 'hasura' | 'auth' | 'storage';
 
-type ServiceValueShape = {
+interface ServiceValueShape {
   vcpu?: number;
   memory?: number;
   replicas?: number;
   autoscale?: boolean;
   maxReplicas?: number;
   lockRatio?: boolean;
-};
+}
 
-type ServiceErrorShape = {
+interface ServiceErrorShape {
   vcpu?: FieldError;
   memory?: FieldError;
   replicas?: FieldError;
   maxReplicas?: FieldError;
-};
+}
 
 const MAX_SERVICE_VCPU_LABEL = MAX_SERVICE_VCPU / RESOURCE_VCPU_MULTIPLIER;
 const MAX_SERVICE_MEMORY_LABEL = Math.floor(

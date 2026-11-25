@@ -18,7 +18,9 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatSelectList } from '@/features/orgs/projects/database/dataGrid/utils/formatSelectList';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import { isSpatialType } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
 import { filtersToWhere } from './filtersToWhere';
 
@@ -230,6 +232,13 @@ export default async function fetchTable({
     orderByClause = buildDefaultOrderByClause(columns, tableType);
   }
 
+  const selectList = formatSelectList(
+    columns.map((column) => ({
+      name: column.column_name,
+      isSpatial: isSpatialType(column.udt_name),
+    })),
+  );
+
   const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -237,9 +246,13 @@ export default async function fetchTable({
     },
     body: JSON.stringify({
       args: [
+        // Filtering and ordering run on the table's own columns in the inner
+        // query; the outer query only converts PostGIS values to GeoJSON, so
+        // sorting by a spatial column keeps using the geometry itself.
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
+          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT %s FROM (SELECT * FROM %I.%I %s %s %s) SOURCE_ROWS) TABLE_DATA`,
+          selectList,
           schema,
           table,
           whereClause,

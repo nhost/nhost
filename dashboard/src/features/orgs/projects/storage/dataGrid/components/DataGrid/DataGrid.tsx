@@ -1,6 +1,6 @@
 import type { OnChangeFn, Row, SortingState } from '@tanstack/react-table';
-import type { ForwardedRef, ReactNode } from 'react';
-import { forwardRef, useRef } from 'react';
+import type { ReactNode, Ref } from 'react';
+import { useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
@@ -69,26 +69,24 @@ export interface DataGridProps<
   isRowDisabled?: (row: Row<TColumnData>) => boolean;
 }
 
-function DataGrid<TColumnData extends UnknownDataGridRow>(
-  {
-    columns,
-    data,
-    allowSelection,
-    allowSort,
-    allowResize,
-    enableRowSelection,
-    emptyStateMessage,
-    options = {},
-    headerProps,
-    controls,
-    sorting,
-    onSortingChange,
-    loading,
-    className,
-    isRowDisabled,
-  }: DataGridProps<TColumnData>,
-  ref: ForwardedRef<HTMLDivElement>,
-) {
+function DataGrid<TColumnData extends UnknownDataGridRow>({
+  columns,
+  data,
+  allowSelection,
+  allowSort,
+  allowResize,
+  enableRowSelection,
+  emptyStateMessage,
+  options = {},
+  headerProps,
+  controls,
+  sorting,
+  onSortingChange,
+  loading,
+  className,
+  isRowDisabled,
+  ref,
+}: DataGridProps<TColumnData> & { ref?: Ref<HTMLDivElement> }) {
   const tableRef = useRef<HTMLDivElement | null>(null);
   const dataGridProps = useDataGrid<TColumnData>({
     columns: columns || [],
@@ -145,6 +143,4 @@ function DataGrid<TColumnData extends UnknownDataGridRow>(
   );
 }
 
-export default forwardRef(DataGrid) as <TColumnData extends UnknownDataGridRow>(
-  props: DataGridProps<TColumnData> & { ref?: ForwardedRef<HTMLDivElement> },
-) => ReturnType<typeof DataGrid>;
+export default DataGrid;

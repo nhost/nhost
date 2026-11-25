@@ -1,7 +1,7 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
 import { createContext } from 'react';
 
-export type AuthContextType = {
+export interface AuthContextType {
   user: NonNullable<StoredSession['user']> | null;
   session: StoredSession | null;
   isAuthenticated: boolean;
@@ -10,7 +10,7 @@ export type AuthContextType = {
   isSigningOut: boolean;
   updateSession: (newSession: StoredSession | null) => void;
   clearIsSigningOut: () => void;
-};
+}
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,

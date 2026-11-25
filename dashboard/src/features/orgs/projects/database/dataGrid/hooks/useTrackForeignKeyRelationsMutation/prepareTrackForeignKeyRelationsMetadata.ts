@@ -8,13 +8,13 @@ import type {
 import { isNotEmptyValue } from '@/lib/utils';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
-type CreateRelationshipOperation = {
+interface CreateRelationshipOperation {
   type: 'pg_create_object_relationship' | 'pg_create_array_relationship';
   args: HasuraMetadataRelationship & {
     source: string;
     table: { name: string; schema: string };
   };
-};
+}
 
 export interface PrepareTrackForeignKeyRelationsMetadataVariables
   extends MutationOrQueryBaseOptions {

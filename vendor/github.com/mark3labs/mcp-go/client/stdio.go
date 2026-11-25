@@ -46,13 +46,23 @@ func NewStdioMCPClientWithOptions(
 
 // GetStderr returns a reader for the stderr output of the subprocess.
 // This can be used to capture error messages or logs from the subprocess.
+//
+// The stdio transport drains the subprocess's stderr into a bounded buffer so
+// the OS pipe never fills up and deadlocks the child. The returned reader
+// yields the most recent output; older output is dropped once the buffer is
+// full. To capture the full, real-time stream, use
+// transport.WithCommandStderrWriter instead.
+//
+// It works with any transport that exposes a Stderr() io.Reader method,
+// including *transport.Stdio and *transport.CommandTransport.
 func GetStderr(c *Client) (io.Reader, bool) {
 	t := c.GetTransport()
 
-	stdio, ok := t.(*transport.Stdio)
-	if !ok {
-		return nil, false
+	type stderrer interface {
+		Stderr() io.Reader
 	}
-
-	return stdio.Stderr(), true
+	if s, ok := t.(stderrer); ok {
+		return s.Stderr(), true
+	}
+	return nil, false
 }

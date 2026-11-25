@@ -8,13 +8,13 @@ type FetchBlob = (
   size?: { width?: number; height?: number },
 ) => Promise<Blob | null>;
 
-export type ImageThumbnailProps = {
+export interface ImageThumbnailProps {
   fetchBlob: FetchBlob;
   blob?: Blob;
   mimeType: string;
   id: string;
   alt?: string;
-};
+}
 
 export default function ImageThumbnail({
   fetchBlob,

@@ -1,11 +1,13 @@
-import { type ForwardedRef, forwardRef, type PropsWithChildren } from 'react';
+import type { PropsWithChildren, Ref } from 'react';
 import { cn } from '@/lib/utils';
 import NavLink, { type NavLinkProps } from './NavLink';
 
-function ListNavLink(
-  { className, children, ...props }: PropsWithChildren<NavLinkProps>,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
+function ListNavLink({
+  className,
+  children,
+  ref,
+  ...props
+}: PropsWithChildren<NavLinkProps> & { ref?: Ref<HTMLButtonElement> }) {
   return (
     <NavLink
       ref={ref}
@@ -18,4 +20,4 @@ function ListNavLink(
   );
 }
 
-export default forwardRef(ListNavLink);
+export default ListNavLink;
