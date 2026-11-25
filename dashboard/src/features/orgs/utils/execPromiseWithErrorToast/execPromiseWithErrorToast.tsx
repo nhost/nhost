@@ -3,9 +3,9 @@ import { type Toast, toast } from 'react-hot-toast';
 import ErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
-type ErrorExtensions = {
+interface ErrorExtensions {
   internal?: { error?: { message?: string } };
-};
+}
 
 const getInternalErrorMessage = (
   error: Error | ApolloError | undefined,

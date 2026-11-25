@@ -38,6 +38,7 @@
           }
         },
         "noUselessElse": "error",
+        "useConsistentTypeDefinitions": "error",
         "noParameterAssign": {
           "level": "error",
           "options": {

@@ -65,14 +65,14 @@ export type QueryFieldNamePath =
   `queryAndSubscription.${QueryFieldName}.fieldName`;
 export type MutationFieldNamePath = `mutation.${MutationFieldName}.fieldName`;
 
-type SectionConfig<TSection extends 'queryAndSubscription' | 'mutation'> = {
+interface SectionConfig<TSection extends 'queryAndSubscription' | 'mutation'> {
   key: TSection extends 'queryAndSubscription'
     ? QueryFieldName
     : MutationFieldName;
   label: string;
   getDefaultFieldValue: (tableName: string) => string;
   getCommentPlaceholder: (tableName: string) => string;
-};
+}
 
 export const getFieldPlaceholder = (
   fieldConfig: SectionConfig<'queryAndSubscription' | 'mutation'>,

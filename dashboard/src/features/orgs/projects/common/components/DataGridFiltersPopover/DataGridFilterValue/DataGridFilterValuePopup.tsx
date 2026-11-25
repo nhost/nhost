@@ -8,10 +8,10 @@ import {
 } from '@/components/ui/v3/popover';
 import { Textarea } from '@/components/ui/v3/textarea';
 
-type DataGridFilterValuePopupProps = {
+interface DataGridFilterValuePopupProps {
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
-};
+}
 
 function DataGridFilterValuePopup({
   value,

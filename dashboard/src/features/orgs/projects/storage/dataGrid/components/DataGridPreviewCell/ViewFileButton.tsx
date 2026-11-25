@@ -14,7 +14,7 @@ type FetchBlob = (
   size?: { width?: number; height?: number },
 ) => Promise<Blob | null>;
 
-export type ViewFileButtonProps = {
+export interface ViewFileButtonProps {
   fetchBlob: FetchBlob;
   blob?: Blob;
   mimeType?: string;
@@ -23,7 +23,7 @@ export type ViewFileButtonProps = {
   fallbackPreview?: ReactNode;
   isDisabled: boolean;
   onClick: () => void;
-};
+}
 
 export default function ViewFileButton({
   fetchBlob,
