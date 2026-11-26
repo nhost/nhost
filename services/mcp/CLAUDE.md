@@ -106,11 +106,13 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 5. The validated JWT (and its Authorization header) are propagated to tool handlers via context
 6. Tool handlers forward the Authorization header to downstream GraphQL requests via `authorizationInterceptor`, so Hasura enforces permissions based on the JWT's Hasura claims
 
+**Session variables**: `graphql-query` and `graphql-mutation` accept an optional `session_variables` string map. Keys omit the `x-hasura-` prefix; `sessionVariablesInterceptor` adds the prefix and sets headers only on that call's upstream request. GraphQL `variables` remain in the JSON body, and Authorization forwarding is unchanged. The upstream GraphQL server validates requested roles and session variables.
+
 **Discovery endpoints** served by the MCP server:
 - `/.well-known/oauth-authorization-server` - authorization server metadata (issuer, token endpoint, supported grants/scopes)
 - `/.well-known/oauth-protected-resource` - resource metadata (resource URI, authorized servers, supported scopes)
 
-**Role enforcement**: The `--enforce-role` flag checks that the JWT's `x-hasura-default-role` Hasura claim matches the specified role. When set, requests whose token carries a different default role receive a 403 Forbidden response. OAuth2 scopes (`openid`, `graphql`) are always advertised in the well-known endpoints.
+**Role enforcement**: The `--enforce-role` flag checks that the JWT's `x-hasura-default-role` Hasura claim matches the specified role. When set, requests whose token carries a different default role receive a 403 Forbidden response. This validates the token's default role only; a `role` session variable can select another role allowed by the upstream GraphQL server. OAuth2 scopes (`openid`, `graphql`) are always advertised in the well-known endpoints.
 
 ## GraphQL Query Validation
 

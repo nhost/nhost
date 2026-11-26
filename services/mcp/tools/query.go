@@ -30,6 +30,18 @@ func authorizationInterceptor(ctx context.Context, req *http.Request) error {
 	return nil
 }
 
+func sessionVariablesInterceptor(
+	sessionVariables map[string]string,
+) func(context.Context, *http.Request) error {
+	return func(_ context.Context, req *http.Request) error {
+		for key, value := range sessionVariables {
+			req.Header.Set("x-hasura-"+key, value)
+		}
+
+		return nil
+	}
+}
+
 const (
 	ToolGraphqlQueryName = "graphql-query"
 	//nolint:lll
@@ -62,8 +74,9 @@ func NewTool(
 }
 
 type GraphqlQueryRequest struct {
-	Query     string         `json:"query"`
-	Variables map[string]any `json:"variables,omitempty"`
+	Query            string            `json:"query"`
+	Variables        map[string]any    `json:"variables,omitempty"`
+	SessionVariables map[string]string `json:"session_variables,omitempty"`
 }
 
 func (t *Tool) RegisterQuery(mcpServer *mcpserver.MCPServer) {
@@ -93,6 +106,13 @@ func (t *Tool) RegisterQuery(mcpServer *mcpserver.MCPServer) {
 			"variables",
 			mcp.Description("variables to use in the query"),
 		),
+		mcp.WithObject(
+			"session_variables",
+			mcp.Description(
+				"Session variables (string values, keys without x-hasura- prefix, e.g. role: facilitator)",
+			),
+			mcp.AdditionalProperties(map[string]any{"type": "string"}),
+		),
 	)
 	mcpServer.AddTool(queryTool, mcp.NewTypedToolHandler(t.handleGraphqlQuery))
 }
@@ -114,6 +134,7 @@ func (t *Tool) handleGraphqlQuery(
 		[]string{"*"},
 		nil,
 		authorizationInterceptor,
+		sessionVariablesInterceptor(args.SessionVariables),
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to query graphql endpoint", err), nil
 	}
@@ -153,6 +174,13 @@ func (t *Tool) RegisterMutation(mcpServer *mcpserver.MCPServer) {
 			"variables",
 			mcp.Description("variables to use in the mutation"),
 		),
+		mcp.WithObject(
+			"session_variables",
+			mcp.Description(
+				"Session variables (string values, keys without x-hasura- prefix, e.g. role: facilitator)",
+			),
+			mcp.AdditionalProperties(map[string]any{"type": "string"}),
+		),
 	)
 	mcpServer.AddTool(mutationTool, mcp.NewTypedToolHandler(t.handleGraphqlMutation))
 }
@@ -174,6 +202,7 @@ func (t *Tool) handleGraphqlMutation(
 		nil,
 		[]string{"*"},
 		authorizationInterceptor,
+		sessionVariablesInterceptor(args.SessionVariables),
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to execute graphql mutation", err), nil
 	}
