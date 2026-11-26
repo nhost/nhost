@@ -93,7 +93,7 @@ func (wf *Workflows) linkProviderByEmail(
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "refusing to link provider to OIDC account by email")
-		return ErrProviderAccountAlreadyLinked
+		return ErrInvalidEmailPassword
 	}
 
 	return providerInsertError(ctx, err, logger)
