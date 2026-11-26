@@ -92,7 +92,7 @@ sequenceDiagram
 3. The user logs in and approves the request on your consent page.
 4. The client exchanges the authorization code for a JWT access token.
 5. Every subsequent MCP request carries the JWT as a `Bearer` token.
-6. Backend MCP validates the JWT and forwards it to GraphQL, which enforces permissions based on the token's claims.
+6. Backend MCP validates the JWT and forwards it to the service that handles the request: GraphQL or, for file downloads, Storage.
 
 </Steps>
 
@@ -155,7 +155,7 @@ On each request Backend MCP:
 1. Reads the `Authorization: Bearer <token>` header. A missing or malformed header results in `401 Unauthorized`.
 2. Fetches the signing keys from `<auth-url>/.well-known/jwks.json` (JWKS) and validates the token's signature.
 3. Checks that the token's issuer matches the configured auth URL, that it has not expired, and that it carries an issued-at claim.
-4. Forwards the same `Authorization` header to every downstream GraphQL request, so Hasura enforces permissions from the token's claims.
+4. Forwards the same `Authorization` header to GraphQL or Storage. The receiving service applies the user's [permissions](/products/ai/mcp/permissions).
 
 </Steps>
 

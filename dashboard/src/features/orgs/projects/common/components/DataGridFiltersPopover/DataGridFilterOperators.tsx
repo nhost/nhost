@@ -10,11 +10,11 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 
-type DataFilterProps = {
+interface DataFilterProps {
   value: DataGridFilterOperator;
   index: number;
   columnSpecificType?: string;
-};
+}
 
 function DataGridOperators({
   value,

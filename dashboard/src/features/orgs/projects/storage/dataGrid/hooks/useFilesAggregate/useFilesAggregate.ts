@@ -5,7 +5,7 @@ import type {
 } from '@/generated/graphql';
 import { useGetFilesAggregateQuery } from '@/generated/graphql';
 
-export type UseFilesAggregateOptions = {
+export interface UseFilesAggregateOptions {
   /**
    * Hasura where clause to filter files.
    */
@@ -14,7 +14,7 @@ export type UseFilesAggregateOptions = {
    * Custom options for the query.
    */
   options?: QueryHookOptions<GetFilesAggregateQuery>;
-};
+}
 
 export default function useFilesAggregate({
   where,

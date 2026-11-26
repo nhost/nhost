@@ -1,4 +1,4 @@
-import { forwardRef, type ReactNode, useState } from 'react';
+import { type ReactNode, type Ref, useState } from 'react';
 import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
 import { CommandCreateItem } from '@/components/ui/v3/command';
 
@@ -68,47 +68,49 @@ export interface FreeComboboxProps {
  * `footerSlot`. The `onChange` `meta.source` tells callers whether the
  * committed value was picked from the list (`'option'`) or typed (`'custom'`).
  */
-const FreeCombobox = forwardRef<HTMLButtonElement, FreeComboboxProps>(
-  function FreeComboboxComponent(
-    { value, onChange, customValueLabel, customValueActions, ...comboboxProps },
-    ref,
-  ) {
-    const [open, setOpen] = useState(false);
+const FreeCombobox = function FreeComboboxComponent({
+  value,
+  onChange,
+  customValueLabel,
+  customValueActions,
+  ref,
+  ...comboboxProps
+}: FreeComboboxProps & { ref?: Ref<HTMLButtonElement> }) {
+  const [open, setOpen] = useState(false);
 
-    const footerSlot = customValueActions ? (
-      customValueActions.map((action) => (
-        <CommandCreateItem
-          key={action.key}
-          value={`create-${action.key}`}
-          onCreate={(input) => {
-            onChange(input, { source: 'custom', actionKey: action.key });
-            setOpen(false);
-          }}
-          label={action.label}
-        />
-      ))
-    ) : (
+  const footerSlot = customValueActions ? (
+    customValueActions.map((action) => (
       <CommandCreateItem
+        key={action.key}
+        value={`create-${action.key}`}
         onCreate={(input) => {
-          onChange(input, { source: 'custom' });
+          onChange(input, { source: 'custom', actionKey: action.key });
           setOpen(false);
         }}
-        label={customValueLabel}
+        label={action.label}
       />
-    );
+    ))
+  ) : (
+    <CommandCreateItem
+      onCreate={(input) => {
+        onChange(input, { source: 'custom' });
+        setOpen(false);
+      }}
+      label={customValueLabel}
+    />
+  );
 
-    return (
-      <Combobox
-        {...comboboxProps}
-        ref={ref}
-        value={value}
-        open={open}
-        onOpenChange={setOpen}
-        onChange={(next) => onChange(next, { source: 'option' })}
-        footerSlot={footerSlot}
-      />
-    );
-  },
-);
+  return (
+    <Combobox
+      {...comboboxProps}
+      ref={ref}
+      value={value}
+      open={open}
+      onOpenChange={setOpen}
+      onChange={(next) => onChange(next, { source: 'option' })}
+      footerSlot={footerSlot}
+    />
+  );
+};
 
 export { FreeCombobox };

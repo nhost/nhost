@@ -8,6 +8,7 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
+import { formatSpatialValue } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 
 export interface CreateRecordVariables<TData extends object = {}> {
   /**
@@ -34,7 +35,8 @@ export default async function createRecord<TData extends object = {}>({
 
   const values = columnIds
     .map((columnId) => {
-      const { value, fallbackValue, isArray } = columnValues[columnId];
+      const { value, fallbackValue, isArray, spatialType } =
+        columnValues[columnId];
 
       if (!value && fallbackValue) {
         return fallbackValue;
@@ -48,6 +50,10 @@ export default async function createRecord<TData extends object = {}>({
             `Invalid array value for column "${columnId}". Use JSON array format, e.g. [1, 2, 3].`,
           );
         }
+      }
+
+      if (spatialType) {
+        return formatSpatialValue(value, spatialType);
       }
 
       return format('%L', value);

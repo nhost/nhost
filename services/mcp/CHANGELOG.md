@@ -1,3 +1,14 @@
+## [mcp@0.4.0] - 2026-11-26
+
+### 🚀 Features
+
+- *(mcp)* Add read-only storage downloads (#5329)
+
+
+### Chore
+
+- *(deps)* Bump mcp-go and otel (#5449)
+
 ## [mcp@0.3.1] - 2026-11-11
 
 ### 🐛 Bug Fixes

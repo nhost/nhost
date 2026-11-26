@@ -1,3 +1,4 @@
+import { resetCookieConsent } from '@/components/analytics/useCookieConsent';
 import Image from 'next/image';
 import { PropsWithChildren } from 'react';
 import { Container } from '../Container';
@@ -145,6 +146,15 @@ export default function Footer() {
         </li>
         <li>
           <Link href="/security">Security</Link>
+        </li>
+        <li>
+          <button
+            type="button"
+            onClick={resetCookieConsent}
+            className="text-left text-white text-opacity-65 hover:underline"
+          >
+            Cookie settings
+          </button>
         </li>
       </List>
 

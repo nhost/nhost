@@ -30,12 +30,12 @@ import { useSubmitState } from '@/hooks/useSubmitState';
 import { analytics } from '@/lib/segment';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 
-type NewAppPageProps = {
+interface NewAppPageProps {
   regions: PrefetchNewAppRegionsFragment[];
   orgs: GetOrganizationsQuery['organizations'];
   preSelectedOrg: GetOrganizationsQuery['organizations'][0];
   preSelectedRegion: PrefetchNewAppRegionsFragment;
-};
+}
 
 type OpenSelect = 'organization' | 'region' | null;
 
