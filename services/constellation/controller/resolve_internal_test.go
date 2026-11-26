@@ -70,6 +70,7 @@ func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
 			fieldsByConnector, _, resp := groupFieldsByConnector(
 				&controllerState{fieldToConnector: tt.fieldToConnector},
 				&ast.OperationDefinition{Operation: tt.operation, SelectionSet: selectionSet},
+				false,
 			)
 			if tt.wantResponse {
 				if resp == nil {

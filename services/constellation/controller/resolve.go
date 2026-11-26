@@ -195,17 +195,16 @@ func (c *Controller) execute(
 		return errorsResponse(nil, c.classifyConnectorError(ctx, logger, err))
 	}
 
-	// Partition the normalized root fields into introspection meta-fields
-	// (__schema/__type/__typename), resolved locally, and connector-backed data
-	// fields, routed to their owning connector.
-	dataByConnector, metaSelections, resp := groupFieldsByConnector(state, operation)
+	dataByConnector, localSelections, resp := groupFieldsByConnector(
+		state, operation, state.emptyQueryRoots[role],
+	)
 	if resp != nil {
 		return resp
 	}
 
-	if len(metaSelections) > 0 {
-		return c.executeWithMeta(
-			ctx, state, schema, query, operation, metaSelections,
+	if len(localSelections) > 0 {
+		return c.executeWithLocalFields(
+			ctx, state, schema, query, operation, localSelections,
 			dataByConnector, fragments, variables, role, sessionVariables, logger,
 		)
 	}
@@ -222,18 +221,16 @@ func (c *Controller) execute(
 	)
 }
 
-// executeWithMeta resolves introspection meta-fields locally and, for mixed
-// operations, merges the connector-backed data into the same payload.
-// Introspection produces Go maps, so the response is always marshalled (no raw
-// fast path); raw jsontext.Value data values still marshal correctly inside the
-// merged map.
-func (c *Controller) executeWithMeta(
+// executeWithLocalFields resolves introspection and the empty-query fallback.
+// Mixed operations merge connector results into the same map, which is always
+// marshalled rather than using the raw response fast path.
+func (c *Controller) executeWithLocalFields(
 	ctx context.Context,
 	state *controllerState,
 	schema *ast.Schema,
 	query *ast.QueryDocument,
 	operation *ast.OperationDefinition,
-	metaSelections []ast.Selection,
+	localSelections []ast.Selection,
 	dataByConnector map[string][]ast.Selection,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
@@ -241,10 +238,21 @@ func (c *Controller) executeWithMeta(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
-	metaOp := transform.BuildSubOperation(operation, metaSelections)
-	metaQuery := *query
-	metaQuery.Fragments = fragments
-	results := introspection.Execute(schema, metaOp, &metaQuery)
+	localOp := transform.BuildSubOperation(operation, localSelections)
+	localQuery := *query
+	localQuery.Fragments = fragments
+	results := introspection.Execute(schema, localOp, &localQuery)
+
+	for _, selection := range localSelections {
+		if field, ok := selection.(*ast.Field); ok && field.Name == schemamerge.EmptyQueryField {
+			name := field.Alias
+			if name == "" {
+				name = field.Name
+			}
+
+			results[name] = schemamerge.EmptyQueryMessage
+		}
+	}
 
 	if len(dataByConnector) == 0 {
 		return &GraphQLResponse{Data: results, Errors: nil, rawResponse: nil}
@@ -412,19 +420,16 @@ func (c *Controller) resolveData(
 	return results, nil, nil
 }
 
-// groupFieldsByConnector partitions the normalized root selection set into
-// introspection meta-fields (resolved locally) and per-connector data fields.
-// It assumes normalizeRootSelections already expanded root fragments, so every
-// selection is a plain *ast.Field. Meta-fields (__schema/__type/__typename) are
-// returned separately; every other field is routed to its owning connector.
-// Returns an error response when a data field has no connector.
+// groupFieldsByConnector separates locally resolved fields from connector data.
+// It assumes normalizeRootSelections has already expanded root fragments.
 func groupFieldsByConnector(
 	state *controllerState,
 	operation *ast.OperationDefinition,
+	emptyQueryRoot bool,
 ) (map[string][]ast.Selection, []ast.Selection, *GraphQLResponse) {
 	fieldsByConnector := make(map[string][]ast.Selection)
 
-	var metaSelections []ast.Selection
+	var localSelections []ast.Selection
 
 	for _, selection := range operation.SelectionSet {
 		field, ok := selection.(*ast.Field)
@@ -432,8 +437,9 @@ func groupFieldsByConnector(
 			continue
 		}
 
-		if isMetaField(field.Name) {
-			metaSelections = append(metaSelections, selection)
+		if isMetaField(field.Name) ||
+			(emptyQueryRoot && operation.Operation == ast.Query && field.Name == schemamerge.EmptyQueryField) {
+			localSelections = append(localSelections, selection)
 
 			continue
 		}
@@ -446,7 +452,7 @@ func groupFieldsByConnector(
 		fieldsByConnector[connName] = append(fieldsByConnector[connName], selection)
 	}
 
-	return fieldsByConnector, metaSelections, nil
+	return fieldsByConnector, localSelections, nil
 }
 
 // validateConnectors runs each owning connector's pre-execution validation over
