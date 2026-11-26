@@ -3371,7 +3371,9 @@ components:
         all:
           type: boolean
           default: false
-          description: Sign out from all connected devices
+          description: >-
+            Sign out from all connected devices
+            (personal access tokens stay valid)
 
     SignUpEmailPasswordRequest:
       type: object

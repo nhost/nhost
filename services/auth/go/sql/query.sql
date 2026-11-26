@@ -751,7 +751,8 @@ WHERE id = @id::uuid;
 
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
-WHERE user_id = $1;
+WHERE user_id = $1
+AND type = 'regular';
 
 -- name: DeleteRefreshToken :exec
 DELETE FROM auth.refresh_tokens

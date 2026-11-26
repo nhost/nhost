@@ -220,6 +220,7 @@ func (q *Queries) DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtyp
 const deleteRefreshTokens = `-- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE user_id = $1
+AND type = 'regular'
 `
 
 func (q *Queries) DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error {

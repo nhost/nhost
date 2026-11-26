@@ -103,6 +103,63 @@ describe('personal access token', () => {
     expect(patSignInResponse.body?.session?.accessToken).toBeDefined();
   });
 
+  test('should keep personal access tokens when signing out from all sessions', async () => {
+    const response = await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(StatusCodes.OK);
+
+    const { accessToken, refreshToken, user } = response.body.session;
+
+    const patResponse = await request
+      .post('/pat')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      })
+      .expect(StatusCodes.OK);
+
+    const { personalAccessToken } = patResponse.body;
+
+    const tokensBeforeSignOut = await client.query(
+      'SELECT type FROM auth.refresh_tokens WHERE user_id = $1;',
+      [user.id]
+    );
+    const tokenTypes = tokensBeforeSignOut.rows.map(({ type }) => type);
+
+    expect(tokenTypes).toContain('regular');
+    expect(tokenTypes).toContain('pat');
+
+    await request
+      .post('/signout')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ all: true })
+      .expect(StatusCodes.OK);
+
+    const tokensAfterSignOut = await client.query(
+      'SELECT type, refresh_token_hash FROM auth.refresh_tokens WHERE user_id = $1;',
+      [user.id]
+    );
+
+    expect(tokensAfterSignOut.rows.map(({ type }) => type)).toEqual(['pat']);
+    expect(tokensAfterSignOut.rows[0]?.refresh_token_hash).toBe(
+      hash(personalAccessToken)
+    );
+
+    await request
+      .post('/token')
+      .send({ refreshToken })
+      .expect(StatusCodes.UNAUTHORIZED);
+
+    const patSignInResponse = await request
+      .post('/signin/pat')
+      .send({ personalAccessToken })
+      .expect(StatusCodes.OK);
+
+    expect(patSignInResponse.body?.session?.user?.id).toBe(user.id);
+    expect(patSignInResponse.body?.session?.accessToken).toBeDefined();
+  });
+
   test('should not be able to authenticate with a valid refresh token that is not a PAT', async () => {
     const response = await request.post('/signin/email-password').send({
       email,
