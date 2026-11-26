@@ -773,15 +773,19 @@ string & strings.MinRunes(2) & strings.MaxRunes(3)
 
 ### OIDCProvider
 
+OpenID Connect provider configuration. `issuer` and non-empty `discoveryUrl` values must use HTTPS without user info or a fragment. `issuer` must also have no query string. Omit `discoveryUrl` to derive the discovery endpoint from the issuer.
+
+`clientId` and each entry in `scopes` and `audiences` must be non-empty printable ASCII without spaces, double quotes, or backslashes. A non-empty `scopes` list must include `openid`; an empty list is allowed. `clientSecret` must not be empty or contain only whitespace.
+
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `slug` | `=~"^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$"` |  | Unique provider identifier used in the Auth callback URL. |
-| `issuer` | `string & httpsURL & !~"\\?"` |  | Issuer URL configured in the identity provider. |
-| `discoveryUrl?` | `string & httpsURL` \| `""` |  | Optional discovery endpoint. Auth derives it from the issuer by default. |
-| `clientId` | `string & oauthValue` |  | OAuth client ID registered with the identity provider. |
+| `issuer` | HTTPS URL |  | Issuer URL configured in the identity provider. |
+| `discoveryUrl?` | HTTPS URL or empty string |  | Optional discovery endpoint. Auth derives it from the issuer by default. |
+| `clientId` | OAuth token string |  | OAuth client ID registered with the identity provider. |
 | `clientSecret` | `string` |  | OAuth client secret. Supports references to project secrets. |
-| `scopes?` | list of `string & oauthValue` |  | Requested OAuth scopes. Auth defaults to openid, email, and profile. |
-| `audiences?` | list of `string & oauthValue` |  | Additional allowed audiences for ID tokens. Auth always allows the client ID. |
+| `scopes?` | list of OAuth token strings |  | Requested OAuth scopes. Auth defaults to openid, email, and profile. |
+| `audiences?` | list of OAuth token strings |  | Additional allowed audiences for ID tokens. Auth always allows the client ID. |
 | `disableNonce?` | `bool` |  | Skip ID-token nonce verification for this provider. |
 
 ### StandardOauthProvider
