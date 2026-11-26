@@ -3,6 +3,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Spinner } from '@/components/ui/v3/spinner';
 import { AccountMfaSettings } from '@/features/account/settings/components/AccountMfaSettings';
 import { AccountSettingsLayout } from '@/features/account/settings/components/AccountSettingsLayout';
+import { CookieSettings } from '@/features/account/settings/components/CookieSettings';
 import { DeleteAccount } from '@/features/account/settings/components/DeleteAccount';
 import { DisplayNameSetting } from '@/features/account/settings/components/DisplayNameSetting';
 import { EmailSetting } from '@/features/account/settings/components/EmailSetting';
@@ -61,6 +62,10 @@ export default function AccountSettingsPage() {
 
         <RetryableErrorBoundary>
           <PATSettings />
+        </RetryableErrorBoundary>
+
+        <RetryableErrorBoundary>
+          <CookieSettings />
         </RetryableErrorBoundary>
 
         <DeleteAccount />

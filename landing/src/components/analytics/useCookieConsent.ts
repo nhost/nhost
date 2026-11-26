@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  deleteConsentCookie,
-  readConsentCookie,
-  writeConsentCookie,
-} from '@/lib/cookieConsent'
+import { readConsentCookie, writeConsentCookie } from '@/lib/cookieConsent'
 import { clearAnalyticsStorage, resetAnalytics } from '@/lib/segment'
 
 // `true` accepted, `false` rejected, `null` no choice yet.
@@ -37,14 +33,25 @@ export function useCookieConsent() {
   return [consent, setConsent] as const
 }
 
-/** Forgets the visitor's choice and reloads, so the banner is shown again. */
-export function resetCookieConsent() {
+/**
+ * Saves a rejection made after Segment loaded. Segment, and the Google Ads tag
+ * it loads, keep running until the page is reloaded, so this also clears their
+ * identifiers and reloads.
+ */
+export function withdrawCookieConsent() {
   try {
     resetAnalytics()
   } catch (error: unknown) {
     console.error('Failed to reset analytics:', error)
   } finally {
-    deleteConsentCookie()
+    writeConsentCookie(false)
     window.location.reload()
   }
+}
+
+export const OPEN_COOKIE_SETTINGS_EVENT = 'nhost-cookie-settings-open'
+
+/** Shows the cookie banner again, so the visitor can review or change their choice. */
+export function openCookieSettings() {
+  window.dispatchEvent(new Event(OPEN_COOKIE_SETTINGS_EVENT))
 }

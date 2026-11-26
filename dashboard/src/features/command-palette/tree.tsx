@@ -640,7 +640,7 @@ const rawTree: CommandNode = {
       icon: <CircleUserIcon className={iconClassName} />,
       kind: 'page',
       path: '/account',
-      keywords: ['account', 'profile', 'settings'],
+      keywords: ['account', 'profile', 'settings', 'cookies'],
       gate: 'platform',
     },
     {
