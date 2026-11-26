@@ -255,6 +255,7 @@ func TestSignOutAllWithoutTokenDoesNotLogError(t *testing.T) {
 	})
 
 	var logs bytes.Buffer
+
 	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	ctx := oapimw.LoggerToContext(t.Context(), logger)
 
@@ -263,6 +264,7 @@ func TestSignOutAllWithoutTokenDoesNotLogError(t *testing.T) {
 		Message: "Authentication is required to sign out from all sessions",
 		Status:  http.StatusUnauthorized,
 	}
+
 	assertRequest(
 		ctx, t, c.SignOut,
 		api.SignOutRequestObject{Body: &api.SignOutRequest{All: new(true)}},
