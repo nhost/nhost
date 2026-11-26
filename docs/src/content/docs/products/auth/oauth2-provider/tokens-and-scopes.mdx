@@ -20,7 +20,7 @@ sidebar:
 
 ## Access Token
 
-Access tokens are RSA-signed JWTs. With a [configured project audience](/products/auth/jwt#configuring-the-audience), an access token contains:
+Access tokens are RSA-signed JWTs. The following example shows their claims:
 
 ```json
 {
@@ -148,7 +148,7 @@ The ID token is issued when the `openid` scope is requested. It contains identit
 
 The `nonce` claim is included in the ID token if a `nonce` parameter was provided in the authorization request. It is **not** included on refresh.
 
-The ID token's JWT header includes `typ: JWT`. ID tokens are unchanged by the project-audience setting: `aud` remains the client ID, and they do not receive `client_id`, `sid`, or `jti`. The ID token identifies the signed-in user to the OAuth2 client; it must not be used as a bearer access token for resource APIs.
+The ID token's JWT header includes `typ: JWT`, and its `aud` claim identifies the OAuth2 client. ID tokens do not include `client_id`, `sid`, or `jti`. The ID token identifies the signed-in user to that client; it must not be used as a bearer access token for resource APIs.
 
 ## UserInfo Endpoint
 
