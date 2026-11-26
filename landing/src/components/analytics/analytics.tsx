@@ -1,6 +1,6 @@
-import { analytics, loadAnalytics } from '@/lib/segment';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { analytics, loadAnalytics } from '@/lib/segment';
 import CookieConsent from './CookieConsent';
 import { useCookieConsent } from './useCookieConsent';
 
@@ -19,7 +19,10 @@ export default function Analytics() {
 
     // Shallow route changes include the blog search syncing each keystroke
     // into `?q=`; tracking those would stream the search term to Segment.
-    const handleRouteChange = (_url: string, { shallow }: { shallow: boolean }) => {
+    const handleRouteChange = (
+      _url: string,
+      { shallow }: { shallow: boolean },
+    ) => {
       if (!shallow) {
         analytics.page();
       }
