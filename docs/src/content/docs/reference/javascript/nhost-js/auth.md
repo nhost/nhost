@@ -2749,7 +2749,7 @@ active: boolean;
 #### aud?
 
 ```ts
-optional aud?: string[];
+aud?: string[];
 ```
 
 Audiences of an active access token, when present in the token.
@@ -2781,7 +2781,7 @@ iss?: string;
 #### jti?
 
 ```ts
-optional jti?: string;
+jti?: string;
 ```
 
 Unique identifier of an active access token, when present in the token.
@@ -2795,7 +2795,7 @@ scope?: string;
 #### sid?
 
 ```ts
-optional sid?: string;
+sid?: string;
 ```
 
 Nhost extension identifying the session backing an active access or refresh token.
