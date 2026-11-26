@@ -1,8 +1,8 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
@@ -78,16 +78,7 @@ export default function FileStoresPage() {
         className="grid max-w-5xl grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="ai-file-stores"
-          title="Upgrade to Nhost Pro."
-          description={
-            <p>
-              Graphite is an addon to the Pro plan. To unlock it, please upgrade
-              to Pro first.
-            </p>
-          }
-        />
+        <UpgradeBanner section="ai-file-stores" icon={SparklesIcon} />
       </Container>
     );
   }

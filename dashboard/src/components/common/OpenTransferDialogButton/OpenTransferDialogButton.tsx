@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/v3/button';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 
 interface Props {
+  variant?: 'outline' | 'default';
   buttonText?: string;
   onClick: () => void;
   // Fires on every click regardless of ownership; onClick only fires for owners.
   onInteract?: (meta: { isOwner: boolean }) => void;
 }
 
-function OpenTransferDialogButton({ buttonText, onClick, onInteract }: Props) {
+function OpenTransferDialogButton({ buttonText, variant, onClick, onInteract }: Props) {
   const text = buttonText ?? 'Transfer Project';
   const isOwner = useIsCurrentUserOwner();
   const { openAlertDialog } = useDialog();
@@ -31,7 +32,7 @@ function OpenTransferDialogButton({ buttonText, onClick, onInteract }: Props) {
     }
   };
   return (
-    <Button className="max-w-xs lg:w-auto" onClick={handleClick}>
+    <Button variant={variant} className="max-w-xs lg:w-auto" onClick={handleClick}>
       {text}
     </Button>
   );

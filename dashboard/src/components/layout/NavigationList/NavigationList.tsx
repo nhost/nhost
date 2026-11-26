@@ -36,6 +36,7 @@ interface NavigationListItemProps {
   label: string;
   href: string;
   icon: ReactElement;
+  tag?: ReactNode;
   /**
    * The path whose pages mark the item active, for items that link deeper
    * than the section they stand for. Defaults to `href`.
@@ -83,6 +84,7 @@ function NavigationListItem({
   label,
   href,
   icon,
+  tag,
   activePath,
   exact = false,
   disabled,
@@ -118,6 +120,7 @@ function NavigationListItem({
           >
             {label}
           </span>
+          {!collapsed && tag}
         </SidebarItem>
       </SidebarTooltip>
     </li>

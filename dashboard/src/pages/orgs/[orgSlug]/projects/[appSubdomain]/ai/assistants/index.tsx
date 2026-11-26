@@ -1,8 +1,8 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
@@ -108,11 +108,7 @@ export default function AssistantsPage() {
         className="grid max-w-5xl grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="ai-assistants"
-          title="To unlock Nhost Assistants, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="ai-assistants" icon={SparklesIcon} />
       </Container>
     );
   }

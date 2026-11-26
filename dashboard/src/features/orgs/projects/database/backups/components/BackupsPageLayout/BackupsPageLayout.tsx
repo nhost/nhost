@@ -1,5 +1,6 @@
+import { DatabaseIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -26,11 +27,7 @@ export default function BackupsPageLayout({
         className="grid grid-flow-row gap-6 bg-transparent py-0"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="backups"
-          title="To unlock Database Backups, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="backups" icon={DatabaseIcon} />
       </Container>
     );
   }
