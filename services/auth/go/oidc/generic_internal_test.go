@@ -316,6 +316,7 @@ func TestOIDCNativeClaims(t *testing.T) {
 		{name: "missing subject", mutate: func(c jwt.MapClaims) { delete(c, "sub") }},
 		{name: "missing issue time", mutate: func(c jwt.MapClaims) { delete(c, "iat") }},
 		{name: "future issue time", mutate: func(c jwt.MapClaims) { c["iat"] = time.Now().Add(time.Minute).Unix() }},
+		{name: "future not before", mutate: func(c jwt.MapClaims) { c["nbf"] = time.Now().Add(time.Minute).Unix() }},
 		{name: "missing expiration", mutate: func(c jwt.MapClaims) { delete(c, "exp") }},
 		{name: "expired", mutate: func(c jwt.MapClaims) {
 			c["iat"] = time.Now().Add(-time.Hour).Unix()
@@ -372,6 +373,31 @@ func TestOIDCNativeClaims(t *testing.T) {
 
 	if _, err := p.VerifyNative(t.Context(), signed, nonce); err == nil {
 		t.Error("accepted a symmetric signature advertised in discovery")
+	}
+}
+
+func TestOIDCNativeClockSkew(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCFixture(t, false)
+	provider := fixture.provider(t)
+
+	for _, claim := range []string{"iat", "nbf"} {
+		t.Run(claim, func(t *testing.T) {
+			t.Parallel()
+
+			claims := fixture.claims("mobile", hashNonce(fixtureNonce))
+			claims[claim] = time.Now().Add(5 * time.Second).Unix()
+
+			token, err := fixture.sign(claims, "key-1")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if _, err := provider.VerifyNative(t.Context(), token, fixtureNonce); err != nil {
+				t.Fatalf("valid token with small clock skew rejected: %v", err)
+			}
+		})
 	}
 }
 

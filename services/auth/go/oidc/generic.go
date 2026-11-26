@@ -10,12 +10,14 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 )
 
 const (
+	idTokenClockSkew = 30 * time.Second
 	maxIDTokenLength = 16 << 10
 	maxNonceLength   = 256
 	maxSubjectLength = 255
@@ -252,6 +254,7 @@ func (p *CustomProvider) verify(
 		jwt.WithIssuer(p.config.Issuer),
 		jwt.WithAudience(audiences...),
 		jwt.WithIssuedAt(),
+		jwt.WithLeeway(idTokenClockSkew),
 		jwt.WithExpirationRequired(),
 		jwt.WithStrictDecoding(),
 	)
