@@ -11,6 +11,8 @@ sidebar:
 
 With the provider connect feature, users can link configured providers with their account, regardless of the initial sign-up method. It enables users to link different providers to their accounts, even if the email addresses do not match (e.g., linking a GitHub profile to an account registered with a different email). This feature offers flexibility, allowing users to streamline their login process by connecting multiple authentication methods.
 
+For custom OpenID Connect providers, follow the [OIDC account linking steps](/products/auth/providers/sign-in-oidc#account-linking).
+
 To add a provider authentication method to an existing user you need to call the url `https://${subdomain}.auth.${region}.nhost.run/v1/signin/provider/${provider}?connect=${jwt}`. This is very easy to achieve with our SDK:
 
 ``` js
