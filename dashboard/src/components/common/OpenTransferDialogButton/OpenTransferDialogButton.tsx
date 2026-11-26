@@ -10,7 +10,12 @@ interface Props {
   onInteract?: (meta: { isOwner: boolean }) => void;
 }
 
-function OpenTransferDialogButton({ buttonText, variant, onClick, onInteract }: Props) {
+function OpenTransferDialogButton({
+  buttonText,
+  variant,
+  onClick,
+  onInteract,
+}: Props) {
   const text = buttonText ?? 'Transfer Project';
   const isOwner = useIsCurrentUserOwner();
   const { openAlertDialog } = useDialog();
@@ -32,7 +37,11 @@ function OpenTransferDialogButton({ buttonText, variant, onClick, onInteract }: 
     }
   };
   return (
-    <Button variant={variant} className="max-w-xs lg:w-auto" onClick={handleClick}>
+    <Button
+      variant={variant}
+      className="max-w-xs lg:w-auto"
+      onClick={handleClick}
+    >
       {text}
     </Button>
   );

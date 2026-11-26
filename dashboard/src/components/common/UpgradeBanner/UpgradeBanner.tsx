@@ -30,7 +30,10 @@ export default function UpgradeBanner({ section, icon }: UpgradeBannerProps) {
     <section className="pro-feature-banner relative overflow-hidden rounded-lg border border-primary/20 bg-primary/[0.04]">
       <span aria-hidden="true" className="pro-banner-blob pro-banner-blob-a" />
       <span aria-hidden="true" className="pro-banner-blob pro-banner-blob-b" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 text-primary lg:block">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none mt-4 ml-6 h-20 w-32 text-primary sm:ml-8 lg:absolute lg:inset-y-0 lg:right-0 lg:m-0 lg:h-auto lg:w-1/2"
+      >
         <ProIllustration className="h-full w-full opacity-90" icon={icon} />
       </div>
 
@@ -46,7 +49,12 @@ export default function UpgradeBanner({ section, icon }: UpgradeBannerProps) {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {href && (
             <Button asChild>
-              <Link href={href} onClick={() => track('Upgrade Prompt Clicked', { section, cta: 'upgrade' })}>
+              <Link
+                href={href}
+                onClick={() =>
+                  track('Upgrade Prompt Clicked', { section, cta: 'upgrade' })
+                }
+              >
                 Upgrade to Pro
               </Link>
             </Button>
@@ -71,7 +79,12 @@ export default function UpgradeBanner({ section, icon }: UpgradeBannerProps) {
         <TextLink
           href="https://nhost.io/pricing"
           external
-          onClick={() => track('Upgrade Prompt Clicked', { section, cta: 'see_all_features' })}
+          onClick={() =>
+            track('Upgrade Prompt Clicked', {
+              section,
+              cta: 'see_all_features',
+            })
+          }
           className="mt-3 justify-center font-medium"
         >
           See all features

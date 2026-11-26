@@ -7,7 +7,12 @@ const NHOST_MARK =
 function NhostMark({ className }: { className?: string }) {
   const gradientId = useId();
   return (
-    <svg viewBox="0 0 30 32" className={className} aria-hidden="true" fill="none">
+    <svg
+      viewBox="0 0 30 32"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+    >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="currentColor" stopOpacity="0.9" />
@@ -28,7 +33,9 @@ export default function ProIllustration({
 }) {
   const glowId = useId();
   return (
-    <div className={cn('flex h-full w-full items-center justify-end', className)}>
+    <div
+      className={cn('flex h-full w-full items-center justify-end', className)}
+    >
       <div className="relative aspect-[3/2] h-full max-w-full">
         <svg
           viewBox="0 0 240 160"
@@ -55,7 +62,13 @@ export default function ProIllustration({
             fill="none"
             opacity="0.25"
           >
-            <circle cx="120" cy="80" r="44" strokeWidth="1" strokeDasharray="3 6" />
+            <circle
+              cx="120"
+              cy="80"
+              r="44"
+              strokeWidth="1"
+              strokeDasharray="3 6"
+            />
           </g>
           <g
             className="pro-orbit pro-orbit-outer"
@@ -63,11 +76,21 @@ export default function ProIllustration({
             fill="none"
             opacity="0.25"
           >
-            <circle cx="120" cy="80" r="60" strokeWidth="1" strokeDasharray="2 10" />
+            <circle
+              cx="120"
+              cy="80"
+              r="60"
+              strokeWidth="1"
+              strokeDasharray="2 10"
+            />
           </g>
         </svg>
-        <div className="pro-illustration-icon -translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2">
-          {Icon ? <Icon className="h-12 w-12" /> : <NhostMark className="h-12 w-12" />}
+        <div className="pro-illustration-icon absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          {Icon ? (
+            <Icon className="h-12 w-12" />
+          ) : (
+            <NhostMark className="h-12 w-12" />
+          )}
         </div>
       </div>
     </div>

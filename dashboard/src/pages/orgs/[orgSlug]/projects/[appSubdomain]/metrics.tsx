@@ -1,4 +1,7 @@
-import { ExternalLink as ArrowSquareOutIcon, ChartLineIcon } from 'lucide-react';
+import {
+  ExternalLink as ArrowSquareOutIcon,
+  ChartLineIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';

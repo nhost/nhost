@@ -42,9 +42,7 @@ function FunctionsCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />;
   }
 
   if (error) {

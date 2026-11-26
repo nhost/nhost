@@ -65,9 +65,7 @@ function RunCustomDomainSettings() {
   const { services, loading, error } = useAllRunServices();
 
   if (isPlatform && org?.plan?.isFree) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={SiDocker} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={SiDocker} />;
   }
 
   if (loadingProject || !project?.id || loading) {

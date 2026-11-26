@@ -66,9 +66,7 @@ function GraphQLCustomDomainSettings() {
   const { org } = useCurrentOrg();
 
   if (org?.plan?.isFree) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={SiGraphql} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={SiGraphql} />;
   }
 
   return (

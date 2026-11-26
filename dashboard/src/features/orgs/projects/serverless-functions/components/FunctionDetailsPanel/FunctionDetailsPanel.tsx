@@ -185,7 +185,10 @@ export default function FunctionDetailsPanel({
               className="grid grid-flow-row gap-6 bg-transparent"
               rootClassName="bg-transparent"
             >
-              <UpgradeBanner section="serverless-functions-metrics" icon={CodeIcon} />
+              <UpgradeBanner
+                section="serverless-functions-metrics"
+                icon={CodeIcon}
+              />
             </Container>
           ) : (
             <MetricsTab fn={fn} />

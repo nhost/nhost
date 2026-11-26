@@ -375,9 +375,7 @@ function AuthCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />;
   }
 
   if (error) {
