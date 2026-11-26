@@ -77,7 +77,12 @@ func auth( //nolint:funlen
 		if err != nil || callbackBase.Scheme != "https" || callbackBase.Hostname() == "" ||
 			callbackBase.User != nil || callbackBase.ForceQuery || callbackBase.RawQuery != "" ||
 			callbackBase.Fragment != "" {
-			return nil, errOIDCRequiresHTTPS
+			return nil, fmt.Errorf(
+				"%w: got %q; keep TLS enabled and do not set --auth-port, "+
+					"or set a clean HTTPS AUTH_SERVER_URL in global.environment "+
+					"through a TLS-terminating proxy (no userinfo, query, or fragment)",
+				errOIDCRequiresHTTPS, env["AUTH_SERVER_URL"],
+			)
 		}
 	}
 

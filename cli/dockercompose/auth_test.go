@@ -2,6 +2,7 @@ package dockercompose //nolint:testpackage
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -25,11 +26,11 @@ func TestAuthOIDC(t *testing.T) {
 		},
 		{
 			name: "disabled TLS", useTLS: false, exposePort: 0, serverURL: "",
-			wantURL: "", wantErr: errOIDCRequiresHTTPS,
+			wantURL: "http://dev.auth.local.nhost.run:1336/v1", wantErr: errOIDCRequiresHTTPS,
 		},
 		{
 			name: "direct Auth port", useTLS: true, exposePort: 8080, serverURL: "",
-			wantURL: "", wantErr: errOIDCRequiresHTTPS,
+			wantURL: "http://dev.auth.local.nhost.run:8080/v1", wantErr: errOIDCRequiresHTTPS,
 		},
 		{
 			name:       "HTTPS through an external proxy",
@@ -76,6 +77,12 @@ func TestAuthOIDC(t *testing.T) {
 			}
 
 			if tc.wantErr != nil {
+				for _, text := range []string{tc.wantURL, "keep TLS enabled", "do not set --auth-port", "HTTPS AUTH_SERVER_URL in global.environment"} {
+					if !strings.Contains(err.Error(), text) {
+						t.Errorf("auth() error = %q, want it to contain %q", err, text)
+					}
+				}
+
 				return
 			}
 
