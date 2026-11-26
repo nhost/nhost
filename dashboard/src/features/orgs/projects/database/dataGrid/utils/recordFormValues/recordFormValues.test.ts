@@ -60,6 +60,41 @@ describe('recordFormValues', () => {
         JSON.stringify({ nested: { enabled: true } }, null, 2),
       );
     });
+
+    it.each([
+      {
+        type: 'text[]',
+        baseType: 'text',
+        value: ['low', 'normal'],
+        expected: '["low","normal"]',
+      },
+      { type: 'int4[]', baseType: 'int4', value: [1, 2], expected: '[1,2]' },
+      { type: 'text[]', baseType: 'text', value: [], expected: '[]' },
+      {
+        type: 'jsonb[]',
+        baseType: 'jsonb',
+        value: [{ a: 1 }],
+        expected: '[{"a":1}]',
+      },
+    ])(
+      'stringifies $type values as JSON arrays',
+      ({ type, baseType, value, expected }) => {
+        const column = makeColumn({
+          specificType: type,
+          baseType,
+          isArray: true,
+          displayType: type,
+        });
+
+        expect(getRecordFormValue(column, value)).toBe(expected);
+      },
+    );
+
+    it('leaves null array values untouched', () => {
+      const column = makeColumn({ specificType: 'text[]', isArray: true });
+
+      expect(getRecordFormValue(column, null)).toBeNull();
+    });
   });
 
   describe('getCreateRecordFormDefaultValues', () => {
@@ -78,6 +113,16 @@ describe('recordFormValues', () => {
         enabled: 'true',
         metadata: JSON.stringify({ role: 'admin' }, null, 2),
       });
+    });
+
+    it('stringifies cloned array values as JSON arrays', () => {
+      const columns = [
+        makeColumn({ id: 'tags', specificType: 'text[]', isArray: true }),
+      ];
+
+      expect(
+        getCreateRecordFormDefaultValues(columns, { tags: ['a', 'b'] }),
+      ).toEqual({ tags: '["a","b"]' });
     });
 
     it('uses the default placeholder for defaulted columns', () => {
@@ -184,6 +229,12 @@ describe('getColumnUpdateOptions', () => {
   const geometry = makeColumn({ baseType: 'geometry' });
   const jsonb = makeColumn({ baseType: 'jsonb' });
   const text = makeColumn();
+  const textArray = makeColumn({ specificType: 'text[]', isArray: true });
+  const jsonbArray = makeColumn({
+    specificType: 'jsonb[]',
+    baseType: 'jsonb',
+    isArray: true,
+  });
 
   it.each([
     {
@@ -227,6 +278,27 @@ describe('getColumnUpdateOptions', () => {
       value: '{"a":2}',
       original: { a: 1 },
       expected: { value: { a: 2 } },
+    },
+    {
+      name: 'unchanged array is skipped',
+      column: textArray,
+      value: '["low","normal"]',
+      original: ['low', 'normal'],
+      expected: null,
+    },
+    {
+      name: 'edited array is sent as text',
+      column: textArray,
+      value: '["low","high"]',
+      original: ['low', 'normal'],
+      expected: { value: '["low","high"]' },
+    },
+    {
+      name: 'edited JSON array is sent as text',
+      column: jsonbArray,
+      value: '[{"a":2}]',
+      original: [{ a: 1 }],
+      expected: { value: '[{"a":2}]' },
     },
     {
       name: 'unchanged text is skipped',
