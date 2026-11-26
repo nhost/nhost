@@ -1,8 +1,17 @@
 import { PLAN_TONES } from '@/components/layout/Header/OrganizationPlanBadge';
 import { Badge } from '@/components/ui/v3/badge';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { cn } from '@/lib/utils';
 
 export default function ProTag() {
+  const isPlatform = useIsPlatform();
+  const { org } = useCurrentOrg();
+
+  if (!isPlatform || !org?.plan?.isFree) {
+    return null;
+  }
+
   return (
     <Badge
       variant="outline"

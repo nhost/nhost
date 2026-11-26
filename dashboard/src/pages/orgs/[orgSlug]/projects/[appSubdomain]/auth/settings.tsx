@@ -1,6 +1,7 @@
 import { UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
@@ -445,7 +446,8 @@ function AuthSettingsSidebar() {
             OAuth2 Provider
           </AreaSidebarLink>
           <AreaSidebarLink href={`${settingsPath}?tab=smtp`} exact shallow>
-            SMTP
+            <span>SMTP</span>
+            <ProTag />
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Users and access">
@@ -473,7 +475,8 @@ function AuthSettingsSidebar() {
             exact
             shallow
           >
-            Custom Domain
+            <span>Custom Domain</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${settingsPath}?tab=rate-limiting`}

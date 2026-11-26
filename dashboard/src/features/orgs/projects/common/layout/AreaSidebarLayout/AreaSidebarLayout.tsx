@@ -24,7 +24,7 @@ export default function AreaSidebarLayout({
   children,
 }: AreaSidebarLayoutProps) {
   return (
-    <div className="flex h-full flex-col md:grid md:grid-cols-[1fr_14rem_minmax(0,58rem)_1fr] md:grid-rows-[minmax(0,1fr)]">
+    <div className="flex h-full flex-col md:grid md:grid-cols-[1fr_14rem_minmax(0,58rem)_1fr] md:grid-rows-[minmax(0,1fr)] md:has-[[data-wide-sidebar]]:grid-cols-[1fr_18rem_minmax(0,58rem)_1fr]">
       <div className="shrink-0 py-4 md:col-span-2 md:flex md:min-h-0 md:justify-end md:py-8">
         {sidebar}
       </div>

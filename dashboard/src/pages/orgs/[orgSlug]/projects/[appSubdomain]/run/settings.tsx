@@ -1,6 +1,7 @@
 import { SiDocker } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
@@ -169,7 +170,8 @@ function RunSettingsSidebar() {
             shallow
             scroll={false}
           >
-            Custom Domain
+            <span>Custom Domain</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${settingsPath}?tab=rate-limiting`}

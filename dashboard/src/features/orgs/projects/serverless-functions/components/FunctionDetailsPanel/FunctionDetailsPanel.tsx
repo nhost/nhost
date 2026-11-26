@@ -2,6 +2,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Clock, CodeIcon, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
@@ -151,7 +152,8 @@ export default function FunctionDetailsPanel({
             <TabsTrigger value="execute">Execute</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
             <TabsTrigger value="metrics" disabled={!isPlatform}>
-              Metrics
+              <span>Metrics</span>
+              <ProTag />
             </TabsTrigger>
           </TabsList>
         </Tabs>

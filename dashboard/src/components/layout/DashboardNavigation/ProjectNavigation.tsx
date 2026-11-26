@@ -19,7 +19,6 @@ import { ProTag } from '@/components/common/ProTag';
 import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
 import { NavigationList } from '@/components/layout/NavigationList';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
 const iconClassName = 'size-4';
@@ -33,8 +32,6 @@ function useProjectBaseHref() {
 export default function ProjectNavigation() {
   const baseHref = useProjectBaseHref();
   const isPlatform = useIsPlatform();
-  const { org } = useCurrentOrg();
-  const proTag = isPlatform && org?.plan?.isFree ? <ProTag /> : null;
   const settingsDisabled = useSettingsDisabled();
 
   return (
@@ -80,7 +77,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="AI"
-          tag={proTag}
+          tag={<ProTag />}
           href={`${baseHref}/ai/assistants`}
           icon={<SparklesIcon className={iconClassName} />}
           activePath={`${baseHref}/ai`}
@@ -97,7 +94,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="Run"
-          tag={proTag}
+          tag={<ProTag />}
           href={`${baseHref}/run`}
           icon={<ServicesIcon className={iconClassName} />}
         />
@@ -123,7 +120,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="Metrics"
-          tag={proTag}
+          tag={<ProTag />}
           href={
             isPlatform ? `${baseHref}/metrics` : `${baseHref}/metrics/settings`
           }

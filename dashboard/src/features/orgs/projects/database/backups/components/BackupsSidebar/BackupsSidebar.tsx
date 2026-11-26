@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { ProTag } from '@/components/common/ProTag';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -23,15 +24,18 @@ export default function BackupsSidebar() {
       <AreaSidebarNav ariaLabel="Backups navigation">
         <AreaSidebarGroup label="Backups">
           <AreaSidebarLink href={backupsPath} exact>
-            Scheduled backups
+            <span>Scheduled backups</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink href={`${backupsPath}/point-in-time`}>
-            Point-in-Time
+            <span>Point-in-Time</span>
+            <ProTag />
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Transfer">
           <AreaSidebarLink href={`${backupsPath}/import`}>
-            Import backup
+            <span>Import backup</span>
+            <ProTag />
           </AreaSidebarLink>
         </AreaSidebarGroup>
       </AreaSidebarNav>
