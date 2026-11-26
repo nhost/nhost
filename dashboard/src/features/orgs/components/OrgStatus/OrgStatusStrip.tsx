@@ -25,7 +25,7 @@ function Strip({
   return (
     <section
       aria-label="Organization status"
-      className="shrink-0 bg-[hsl(var(--destructive-gradient-active-from))] text-destructive-foreground"
+      className="shrink-0 bg-[hsl(var(--destructive-strip))] text-destructive-foreground"
     >
       <div
         role="status"
