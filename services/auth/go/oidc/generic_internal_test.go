@@ -665,16 +665,18 @@ func TestOIDCSigningKeyCandidates(t *testing.T) {
 			keys := signingKeyCandidates(jwk, tc.validKeys, tc.badKeys, tc.badFirst, tc.duplicate)
 
 			transport := f.client.Transport
-			f.client.Transport = oidcMetadataTransport(func(req *http.Request) (*http.Response, error) {
-				if !strings.HasSuffix(req.URL.Path, "/jwks/") {
-					return transport.RoundTrip(req)
-				}
+			f.client.Transport = oidcMetadataTransport(
+				func(req *http.Request) (*http.Response, error) {
+					if !strings.HasSuffix(req.URL.Path, "/jwks/") {
+						return transport.RoundTrip(req)
+					}
 
-				response := httptest.NewRecorder()
-				writeFixtureJSON(t, response, jwkset.JWKSMarshal{Keys: keys})
+					response := httptest.NewRecorder()
+					writeFixtureJSON(t, response, jwkset.JWKSMarshal{Keys: keys})
 
-				return response.Result(), nil
-			})
+					return response.Result(), nil
+				},
+			)
 
 			p := f.provider(t)
 
@@ -701,7 +703,11 @@ func TestOIDCSigningKeyCandidates(t *testing.T) {
 	}
 }
 
-func signingKeyCandidates(jwk jwkset.JWK, validKeys, badKeys int, badFirst, duplicate bool) []jwkset.JWKMarshal {
+func signingKeyCandidates(
+	jwk jwkset.JWK,
+	validKeys, badKeys int,
+	badFirst, duplicate bool,
+) []jwkset.JWKMarshal {
 	unsupported := jwk.Marshal()
 	unsupported.KTY = jwkset.KtyEC
 	unsupported.CRV = "secp256k1"

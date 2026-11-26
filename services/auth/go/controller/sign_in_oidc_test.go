@@ -277,7 +277,12 @@ func (f *oidcRouteFixture) registry(t *testing.T, disableSecondNonce bool) *prov
 			"disableNonce":` + strconv.FormatBool(disableSecondNonce) + `}
 	}`
 
-	registry, err := providers.NewOIDCRegistry(raw, serverURL, f.server.Client(), slog.New(slog.DiscardHandler))
+	registry, err := providers.NewOIDCRegistry(
+		raw,
+		serverURL,
+		f.server.Client(),
+		slog.New(slog.DiscardHandler),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,7 +333,12 @@ func TestOIDCBrowserStartLogsDiscoveryError(t *testing.T) {
 	}
 
 	registry, err := providers.NewOIDCRegistry(
-		string(raw), getConfig().ServerURL.JoinPath("v1"), fixture.server.Client(), slog.New(slog.DiscardHandler),
+		string(
+			raw,
+		),
+		getConfig().ServerURL.JoinPath("v1"),
+		fixture.server.Client(),
+		slog.New(slog.DiscardHandler),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -344,7 +354,8 @@ func TestOIDCBrowserStartLogsDiscoveryError(t *testing.T) {
 	resp := oidcRouteRequest(t, handler, http.MethodGet,
 		"/v1/signin/oidc/authentik?codeChallenge="+challenge, nil,
 	)
-	if resp.Code != http.StatusBadRequest || !strings.Contains(resp.Body.String(), "oauth-provider-error") {
+	if resp.Code != http.StatusBadRequest ||
+		!strings.Contains(resp.Body.String(), "oauth-provider-error") {
 		t.Fatalf("expected provider error, got HTTP %d", resp.Code)
 	}
 
@@ -593,12 +604,20 @@ func TestOIDCCallbackIssuerValidation(t *testing.T) {
 
 			response := oidcRouteRequest(t, handler, http.MethodGet, target.String(), nil, cookie)
 			if response.Code != tt.wantStatus {
-				t.Fatalf("expected HTTP %d, got HTTP %d: %s", tt.wantStatus, response.Code, response.Body)
+				t.Fatalf(
+					"expected HTTP %d, got HTTP %d: %s",
+					tt.wantStatus,
+					response.Code,
+					response.Body,
+				)
 			}
 
 			if tt.wantStatus == http.StatusFound {
 				if !strings.Contains(response.Header().Get("Location"), tt.wantError) {
-					t.Fatalf("expected issuer mismatch error redirect, got %s", response.Header().Get("Location"))
+					t.Fatalf(
+						"expected issuer mismatch error redirect, got %s",
+						response.Header().Get("Location"),
+					)
 				}
 			} else if !strings.Contains(response.Body.String(), tt.wantError) ||
 				response.Header().Get("Location") != "" {
@@ -1252,7 +1271,8 @@ func assertOIDCEmailRequiredResponse(t *testing.T, response *httptest.ResponseRe
 		t.Fatalf("expected email-required error, got HTTP %d: %s", response.Code, response.Body)
 	}
 
-	if strings.Contains(response.Body.String(), "refreshToken") || strings.Contains(response.Body.String(), "accessToken") {
+	if strings.Contains(response.Body.String(), "refreshToken") ||
+		strings.Contains(response.Body.String(), "accessToken") {
 		t.Fatal("missing email produced a session")
 	}
 }
@@ -1270,6 +1290,10 @@ func assertOIDCEmailRequiredRedirect(t *testing.T, response *httptest.ResponseRe
 		query.Get("error") != string(api.OidcEmailRequired) ||
 		query.Get("errorDescription") != "An email claim is required for a new OIDC identity" ||
 		query.Has("code") || query.Has("refreshToken") || query.Has("accessToken") {
-		t.Fatalf("expected email-required redirect without a session, got HTTP %d: %s", response.Code, redirect)
+		t.Fatalf(
+			"expected email-required redirect without a session, got HTTP %d: %s",
+			response.Code,
+			redirect,
+		)
 	}
 }

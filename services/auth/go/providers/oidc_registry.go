@@ -34,7 +34,12 @@ type OIDCRegistry struct {
 }
 
 // NewOIDCRegistry builds the startup registry from AUTH_PROVIDER_OIDC.
-func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client, logger *slog.Logger) (*OIDCRegistry, error) {
+func NewOIDCRegistry(
+	raw string,
+	serverURL *url.URL,
+	client *http.Client,
+	logger *slog.Logger,
+) (*OIDCRegistry, error) {
 	registry := &OIDCRegistry{providers: make(map[string]*oidc.CustomProvider)}
 	if strings.TrimSpace(raw) == "" {
 		return registry, nil

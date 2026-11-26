@@ -69,9 +69,11 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				}).Return(sql.AuthUser{}, pgx.ErrNoRows)
 				mock.EXPECT().GetUserByEmail(gomock.Any(), sql.Text("jane@myapp.local")).
 					Return(getSigninUser(userID), nil)
-				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
-					UserID: userID, ProviderID: "fake", ProviderUserID: "106964149809169421082",
-				}).Return(uuid.Nil, pgx.ErrNoRows)
+				mock.EXPECT().
+					InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
+						UserID: userID, ProviderID: "fake", ProviderUserID: "106964149809169421082",
+					}).
+					Return(uuid.Nil, pgx.ErrNoRows)
 
 				// Refusal must not create a session or an authorization code.
 				mock.EXPECT().GetUserRoles(gomock.Any(), gomock.Any()).Times(0)
@@ -90,7 +92,9 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error: "invalid-email-password", Message: "Incorrect email or password", Status: 401,
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,

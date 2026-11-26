@@ -133,9 +133,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				}).Return(sql.AuthUser{}, pgx.ErrNoRows)
 				mock.EXPECT().GetUserByEmail(gomock.Any(), sql.Text("user1@fake.com")).
 					Return(getSigninUser(userID), nil)
-				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
-					UserID: userID, ProviderID: "fake", ProviderUserID: "1234567890",
-				}).Return(uuid.Nil, pgx.ErrNoRows)
+				mock.EXPECT().
+					InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
+						UserID: userID, ProviderID: "fake", ProviderUserID: "1234567890",
+					}).
+					Return(uuid.Nil, pgx.ErrNoRows)
 
 				// Refusal must not create a session or an authorization code.
 				mock.EXPECT().GetUserRoles(gomock.Any(), gomock.Any()).Times(0)
@@ -147,8 +149,14 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
-					Code:  new("valid-code-1"),
-					State: getStateWithPKCE(t, jwtGetter, nil, api.SignUpOptions{}, ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")),
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t,
+						jwtGetter,
+						nil,
+						api.SignUpOptions{},
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
 				},
 				Provider: "fake",
 			},
@@ -172,9 +180,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				}).Return(sql.AuthUser{}, pgx.ErrNoRows)
 				mock.EXPECT().GetUserByEmail(gomock.Any(), sql.Text("user1@fake.com")).
 					Return(getSigninUser(userID), nil)
-				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
-					UserID: userID, ProviderID: "fake", ProviderUserID: "1234567890",
-				}).Return(uuid.Nil, pgx.ErrNoRows)
+				mock.EXPECT().
+					InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
+						UserID: userID, ProviderID: "fake", ProviderUserID: "1234567890",
+					}).
+					Return(uuid.Nil, pgx.ErrNoRows)
 
 				// Refusal must not create a session or an authorization code.
 				mock.EXPECT().GetUserRoles(gomock.Any(), gomock.Any()).Times(0)

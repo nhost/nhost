@@ -22,7 +22,12 @@ func TestOIDCRegistry(t *testing.T) {
 	}`
 	serverURL := &url.URL{Scheme: "https", Host: "auth.example"}
 
-	registry, err := providers.NewOIDCRegistry(config, serverURL, http.DefaultClient, slog.New(slog.DiscardHandler))
+	registry, err := providers.NewOIDCRegistry(
+		config,
+		serverURL,
+		http.DefaultClient,
+		slog.New(slog.DiscardHandler),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,8 +144,11 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 			errorContains: `provider "idp": AUTH_PROVIDER_OIDC contains an unknown, misnamed, or mistyped field (expected issuer, discoveryUrl, clientId, clientSecret, scopes, audiences, disableNonce)`,
 		},
 		{
-			name:          "string disableNonce",
-			config:        `{"idp":` + strings.TrimSuffix(valid, "}") + `,"disableNonce":"sensitive-value"}}`,
+			name: "string disableNonce",
+			config: `{"idp":` + strings.TrimSuffix(
+				valid,
+				"}",
+			) + `,"disableNonce":"sensitive-value"}}`,
 			valid:         false,
 			errorContains: `provider "idp": AUTH_PROVIDER_OIDC contains an unknown, misnamed, or mistyped field (expected issuer, discoveryUrl, clientId, clientSecret, scopes, audiences, disableNonce)`,
 		},
@@ -176,7 +184,12 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 
 			serverURL := &url.URL{Scheme: "https", Host: "auth.example"}
 
-			_, err := providers.NewOIDCRegistry(tt.config, serverURL, http.DefaultClient, slog.New(slog.DiscardHandler))
+			_, err := providers.NewOIDCRegistry(
+				tt.config,
+				serverURL,
+				http.DefaultClient,
+				slog.New(slog.DiscardHandler),
+			)
 			if (err == nil) != tt.valid {
 				t.Fatalf("validation error = %v, want valid = %t", err, tt.valid)
 			}
@@ -245,7 +258,10 @@ func TestOIDCRegistryEmailScopeWarning(t *testing.T) {
 			}
 
 			if record.Level != "WARN" || record.Provider != "example" ||
-				!strings.Contains(record.Message, "scopes omit email; new identities require an email claim") {
+				!strings.Contains(
+					record.Message,
+					"scopes omit email; new identities require an email claim",
+				) {
 				t.Fatal("missing actionable email scope warning")
 			}
 		})

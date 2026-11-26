@@ -20,7 +20,11 @@ var errOIDCIssuerChanged = errors.New(
 	"OIDC provider slug is already registered to a different issuer",
 )
 
-func getOIDCRegistry(cmd *cli.Command, serverURL *url.URL, logger *slog.Logger) (*providers.OIDCRegistry, error) {
+func getOIDCRegistry(
+	cmd *cli.Command,
+	serverURL *url.URL,
+	logger *slog.Logger,
+) (*providers.OIDCRegistry, error) {
 	registry, err := providers.NewOIDCRegistry(
 		cmd.String(flagOIDCProviders), serverURL, safehttp.New(safehttp.Config{
 			Timeout:              0,
