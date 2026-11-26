@@ -10,7 +10,11 @@ import {
   TicketSeverity,
   TicketStatus,
 } from '@/features/support/components/TicketBadges';
-import { supportDate, supportLabel } from '@/features/support/utils/tickets';
+import {
+  EVENTS_LIMIT,
+  supportDate,
+  supportLabel,
+} from '@/features/support/utils/tickets';
 import type { DashboardSupportEventsQuery } from '@/generated/graphql';
 
 function renderChangeValue(kind: string, value: string | null | undefined) {
@@ -71,9 +75,11 @@ export default function TicketActivity({
           ))}
         </TableBody>
       </Table>
-      <p className="text-muted-foreground text-xs">
-        Showing the latest 100 events.
-      </p>
+      {events.length >= EVENTS_LIMIT && (
+        <p className="text-muted-foreground text-xs">
+          Showing the latest {EVENTS_LIMIT} events.
+        </p>
+      )}
     </section>
   );
 }

@@ -15,8 +15,14 @@ import {
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
 import type { RemoveSupportAttachmentTokens } from '@/features/support/components/SupportMarkdownEditor';
-import type { SupportAttachmentDraftController } from '@/features/support/hooks/use-support-attachment-draft';
-import type { SupportAttachmentUploaded } from '@/features/support/utils/attachments';
+import type {
+  DraftFile,
+  SupportAttachmentDraftController,
+} from '@/features/support/hooks/useSupportAttachmentDraft';
+import type {
+  SupportAttachmentFile,
+  SupportAttachmentUploaded,
+} from '@/features/support/utils/attachments';
 import { cn } from '@/lib/utils';
 
 interface DraftAttachmentsProps {
@@ -25,6 +31,8 @@ interface DraftAttachmentsProps {
   onRemoveTokens: RemoveSupportAttachmentTokens;
   focusAttach: VoidFunction;
   onRetriedUpload?: SupportAttachmentUploaded;
+  unlinked: DraftFile[];
+  onInsert: (file: SupportAttachmentFile) => void;
 }
 
 function fileSize(size: number) {
@@ -69,6 +77,8 @@ export default function DraftAttachments({
   onRemoveTokens,
   focusAttach,
   onRetriedUpload,
+  unlinked,
+  onInsert,
 }: DraftAttachmentsProps) {
   const list = useRef<HTMLUListElement>(null);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
@@ -139,7 +149,7 @@ export default function DraftAttachments({
   const showList =
     !draft.query.isError &&
     !ticketID &&
-    !!(unidentified.length || queue.length);
+    !!(unidentified.length || queue.length || unlinked.length);
 
   return (
     <section
@@ -197,6 +207,44 @@ export default function DraftAttachments({
       <div aria-live="polite">
         {showList && (
           <ul ref={list} className="grid gap-2 sm:grid-cols-2">
+            {unlinked.map((item) => (
+              <li
+                key={item.id}
+                className="flex min-w-0 items-center gap-3 rounded-md border p-3 text-sm"
+              >
+                <Paperclip aria-hidden="true" className="size-5 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{item.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    Not in the description · {fileSize(item.size ?? 0)}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={unavailable}
+                  aria-label={`Insert ${item.name} into description`}
+                  onClick={() => {
+                    onInsert(item);
+                  }}
+                >
+                  Insert
+                </Button>
+                <RemoveFile
+                  disabled={unavailable}
+                  label={`Remove ${item.name}`}
+                  onClick={(event) => {
+                    void perform(
+                      { type: 'discard', id: item.id },
+                      'Removing attachment…',
+                      'Attachment removed',
+                      event.currentTarget,
+                    );
+                  }}
+                />
+              </li>
+            ))}
             {unidentified.map((item) => (
               <li
                 key={item.id}
@@ -225,7 +273,7 @@ export default function DraftAttachments({
                 key={item.id}
                 className={cn(
                   'flex min-w-0 items-center gap-3 rounded-md border p-3 text-sm',
-                  item.status === 'failed' && 'border-destructive',
+                  item.status !== 'pending' && 'border-destructive',
                 )}
               >
                 <Paperclip aria-hidden="true" className="size-5 shrink-0" />
@@ -234,7 +282,9 @@ export default function DraftAttachments({
                   <p className="text-muted-foreground text-xs">
                     {item.status === 'failed'
                       ? 'Upload failed'
-                      : 'Ready to upload'}{' '}
+                      : item.status === 'invalid'
+                        ? "Can't be uploaded"
+                        : 'Ready to upload'}{' '}
                     · {fileSize(item.file.size)}
                   </p>
                   {item.error && (

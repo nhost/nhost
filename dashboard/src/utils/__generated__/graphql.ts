@@ -33403,16 +33403,29 @@ export type DashboardSupportInlineAttachmentQueryVariables = Exact<{
 
 export type DashboardSupportInlineAttachmentQuery = { __typename?: 'query_root', supportAttachmentUploads: Array<{ __typename?: 'supportAttachmentUploads', file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null, mimeType?: string | null } | null }> };
 
+export type DashboardSupportTicketChangesSubscriptionVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DashboardSupportTicketChangesSubscription = { __typename?: 'subscription_root', supportTicket?: { __typename?: 'supportTickets', id: any, updatedAt: any, attachments: Array<{ __typename?: 'supportAttachmentUploads', id: any }> } | null };
+
+export type DashboardSupportQueueChangesSubscriptionVariables = Exact<{
+  where: SupportTickets_Bool_Exp;
+}>;
+
+
+export type DashboardSupportQueueChangesSubscription = { __typename?: 'subscription_root', supportTicketsAggregate: { __typename?: 'supportTickets_aggregate', aggregate?: { __typename?: 'supportTickets_aggregate_fields', count: number, max?: { __typename?: 'supportTickets_max_fields', updatedAt?: any | null } | null } | null } };
+
 export type DashboardSupportTicketFragment = { __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any };
 
 export type DashboardSupportTicketsQueryVariables = Exact<{
   where: SupportTickets_Bool_Exp;
   offset: Scalars['Int'];
-  replyRole: Scalars['String'];
 }>;
 
 
-export type DashboardSupportTicketsQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, comments_aggregate: { __typename?: 'supportComments_aggregate', aggregate?: { __typename?: 'supportComments_aggregate_fields', count: number } | null }, lastReply: Array<{ __typename?: 'supportComments', createdAt: any }> }> };
+export type DashboardSupportTicketsQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, comments_aggregate: { __typename?: 'supportComments_aggregate', aggregate?: { __typename?: 'supportComments_aggregate_fields', count: number } | null } }> };
 
 export type DashboardSupportTicketQueryVariables = Exact<{
   id: Scalars['uuid'];
@@ -33441,7 +33454,7 @@ export type DashboardSupportOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', name: string, supportAllowedSeverities: Array<string> }, apps: Array<{ __typename?: 'apps', id: any, name: string }> }> };
+export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', name: string, isFree: boolean, supportAllowedSeverities: Array<string> }, apps: Array<{ __typename?: 'apps', id: any, name: string }> }>, plans: Array<{ __typename?: 'plans', id: any, name: string, supportAllowedSeverities: Array<string> }> };
 
 export type DashboardCreateSupportTicketMutationVariables = Exact<{
   input: SupportTickets_Insert_Input;
@@ -40911,8 +40924,79 @@ export type DashboardSupportInlineAttachmentQueryResult = Apollo.QueryResult<Das
 export function refetchDashboardSupportInlineAttachmentQuery(variables: DashboardSupportInlineAttachmentQueryVariables) {
       return { query: DashboardSupportInlineAttachmentDocument, variables: variables }
     }
+export const DashboardSupportTicketChangesDocument = gql`
+    subscription dashboardSupportTicketChanges($id: uuid!) {
+  supportTicket(id: $id) {
+    id
+    updatedAt
+    attachments(
+      where: {discardedAt: {_is_null: true}, file: {bucketId: {_eq: "support_tickets_attachments"}, isUploaded: {_eq: true}}}
+    ) {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportTicketChangesSubscription__
+ *
+ * To run a query within a React component, call `useDashboardSupportTicketChangesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportTicketChangesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportTicketChangesSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDashboardSupportTicketChangesSubscription(baseOptions: Apollo.SubscriptionHookOptions<DashboardSupportTicketChangesSubscription, DashboardSupportTicketChangesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<DashboardSupportTicketChangesSubscription, DashboardSupportTicketChangesSubscriptionVariables>(DashboardSupportTicketChangesDocument, options);
+      }
+export type DashboardSupportTicketChangesSubscriptionHookResult = ReturnType<typeof useDashboardSupportTicketChangesSubscription>;
+export type DashboardSupportTicketChangesSubscriptionResult = Apollo.SubscriptionResult<DashboardSupportTicketChangesSubscription>;
+export const DashboardSupportQueueChangesDocument = gql`
+    subscription dashboardSupportQueueChanges($where: supportTickets_bool_exp!) {
+  supportTicketsAggregate(where: $where) {
+    aggregate {
+      count
+      max {
+        updatedAt
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportQueueChangesSubscription__
+ *
+ * To run a query within a React component, call `useDashboardSupportQueueChangesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportQueueChangesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportQueueChangesSubscription({
+ *   variables: {
+ *      where: // value for 'where'
+ *   },
+ * });
+ */
+export function useDashboardSupportQueueChangesSubscription(baseOptions: Apollo.SubscriptionHookOptions<DashboardSupportQueueChangesSubscription, DashboardSupportQueueChangesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<DashboardSupportQueueChangesSubscription, DashboardSupportQueueChangesSubscriptionVariables>(DashboardSupportQueueChangesDocument, options);
+      }
+export type DashboardSupportQueueChangesSubscriptionHookResult = ReturnType<typeof useDashboardSupportQueueChangesSubscription>;
+export type DashboardSupportQueueChangesSubscriptionResult = Apollo.SubscriptionResult<DashboardSupportQueueChangesSubscription>;
 export const DashboardSupportTicketsDocument = gql`
-    query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!, $replyRole: String!) {
+    query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!) {
   supportTickets(
     where: $where
     order_by: [{updatedAt: desc}, {id: desc}]
@@ -40924,13 +41008,6 @@ export const DashboardSupportTicketsDocument = gql`
       aggregate {
         count
       }
-    }
-    lastReply: comments(
-      where: {authorRole: {_eq: $replyRole}}
-      order_by: [{createdAt: desc}, {id: desc}]
-      limit: 1
-    ) {
-      createdAt
     }
   }
 }
@@ -41121,12 +41198,21 @@ export const DashboardSupportOrganizationsDocument = gql`
     slug
     plan {
       name
+      isFree
       supportAllowedSeverities
     }
     apps(order_by: {name: asc}) {
       id
       name
     }
+  }
+  plans(
+    order_by: {sort: asc}
+    where: {deprecated: {_eq: false}, isPublic: {_eq: true}}
+  ) {
+    id
+    name
+    supportAllowedSeverities
   }
 }
     `;

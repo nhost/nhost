@@ -30,11 +30,10 @@ import {
   type SupportAttachmentFile,
   type SupportAttachmentScope,
   type SupportAttachmentUploaded,
-  supportAttachmentId,
   supportAttachmentMarkdown,
 } from '@/features/support/utils/attachments';
 
-export type RemoveSupportAttachmentTokens = (target?: {
+export type RemoveSupportAttachmentTokens = (target: {
   id?: string;
   file?: File;
 }) => void;
@@ -57,7 +56,6 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
   attachmentScope?: SupportAttachmentScope;
   attachments?: (
     insert: (file: SupportAttachmentFile) => void,
-    uploadFiles: (files: File[]) => Promise<void>,
     remove: RemoveSupportAttachmentTokens,
     focusAttach: VoidFunction,
   ) => ReactNode;
@@ -67,6 +65,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
   control,
   name,
   label,
+  placeholder,
   disabled,
   filesDisabled,
   organizationRequired = false,
@@ -149,18 +148,14 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
             return;
           }
           const pendingID =
-            target?.file && activeMarkers.current.get(target.file);
+            target.file && activeMarkers.current.get(target.file);
           const changes = Array.from(
             view.state.doc
               .toString()
               .matchAll(SUPPORT_ATTACHMENT_TOKEN_PATTERN),
           ).flatMap((match) => {
             const id = match[3];
-            const shouldRemove = target
-              ? id === target.id || id === pendingID
-              : id.startsWith(uploadPrefix) ||
-                !!supportAttachmentId(`attachment:${id}`);
-            return shouldRemove
+            return id === target.id || id === pendingID
               ? [{ from: match.index, to: match.index + match[0].length }]
               : [];
           });
@@ -365,6 +360,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 label={label}
+                placeholder={placeholder}
                 disabled={disabled}
                 dragging={dragging}
                 scope={attachmentScope}
@@ -407,7 +403,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
               />
             </FormControl>
             <FormMessage />
-            {attachments?.(insertAttachment, uploadDroppedFiles, remove, () => {
+            {attachments?.(insertAttachment, remove, () => {
               attachButton.current?.focus();
             })}
           </FormItem>

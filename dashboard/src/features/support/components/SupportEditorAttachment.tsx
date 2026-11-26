@@ -11,9 +11,10 @@ import {
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import SupportImageViewer from '@/features/support/components/SupportImageViewer';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
 import {
   isSupportImage,
+  type SupportAttachmentFile,
   type SupportAttachmentScope,
   saveSupportAttachment,
 } from '@/features/support/utils/attachments';
@@ -34,6 +35,8 @@ interface SupportEditorAttachmentProps {
   reserveThumbnail?: boolean;
   draftActions?: boolean;
   removalBlocked?: boolean;
+  /** The file as found in a list the parent already loaded; skips this chip's own check. */
+  resolved?: { file?: SupportAttachmentFile; loading: boolean };
 }
 
 export default function SupportEditorAttachment({
@@ -47,6 +50,7 @@ export default function SupportEditorAttachment({
   reserveThumbnail = false,
   draftActions = false,
   removalBlocked = false,
+  resolved,
 }: SupportEditorAttachmentProps) {
   const { user, role, request, downloadAttachment } = useSupportSession();
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -84,13 +88,19 @@ export default function SupportEditorAttachment({
       }
       return { file };
     },
-    enabled: !!user && !!scope && !uploading,
+    enabled: !!user && !!scope && !uploading && !resolved,
     cacheTime: 0,
     retry: false,
-    refetchInterval: 30000,
   });
   // Only verified, retained reservations may reach the private thumbnail loader.
-  const file = !attachment.isError ? attachment.data?.file : undefined;
+  const file = resolved
+    ? resolved.file
+    : !attachment.isError
+      ? attachment.data?.file
+      : undefined;
+  const unavailable = resolved
+    ? !resolved.loading && !resolved.file
+    : attachment.isError;
   const image = !!file && isSupportImage(file.mimeType ?? '');
   const filename = file?.name ?? name;
 
@@ -146,9 +156,7 @@ export default function SupportEditorAttachment({
           file={file}
           requestRole={requestRole}
           className="size-full border-0 bg-transparent"
-          label={
-            attachment.isError ? `Attachment unavailable: ${name}` : filename
-          }
+          label={unavailable ? `Attachment unavailable: ${name}` : filename}
         />
       ) : image ? (
         <SupportAttachmentPreview
@@ -169,7 +177,7 @@ export default function SupportEditorAttachment({
             <Paperclip aria-hidden="true" className="size-4 shrink-0" />
           )}
           <span className="min-w-0 break-words">
-            {compact && attachment.isError
+            {compact && unavailable
               ? `Attachment unavailable: ${filename}`
               : filename}
           </span>

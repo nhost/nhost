@@ -14,7 +14,12 @@ import {
   SupportTicketStatuses_Enum,
 } from '@/generated/graphql';
 import { useAuth } from '@/providers/Auth';
-import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
+import {
+  mockMatchMediaValue,
+  mockOrganization,
+  mockRouter,
+  mockSession,
+} from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { expectInputValue } from '@/tests/supportEditor';
 import {
@@ -30,6 +35,25 @@ import {
 
 const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
 vi.mock('next/router', () => ({ useRouter: mocks.useRouter }));
+interface SubscriptionOptions {
+  document: { definitions: { name?: { value: string } }[] };
+  variables: Record<string, unknown>;
+  enabled?: boolean;
+  onData: (data: unknown) => void;
+  onReconnect?: VoidFunction;
+}
+const subscriptions = vi.hoisted(() => new Map<string, SubscriptionOptions>());
+vi.mock('@/features/support/hooks/useSupportSubscription', () => ({
+  useSupportSubscription: (options: SubscriptionOptions) => {
+    const name = options.document.definitions[0]?.name?.value;
+    if (name && options.enabled !== false) {
+      subscriptions.set(name, options);
+    }
+  },
+}));
+function emit(name: string, data: unknown) {
+  act(() => subscriptions.get(name)!.onData(data));
+}
 
 const ticketId = '7d442aba-6e61-4854-b354-0d5ec8d198d8';
 const organizationID = '0d9c1e17-4983-4d38-b793-1be03368bec1';
@@ -37,8 +61,8 @@ const otherOrganizationID = '28ba74e2-b51a-4875-8913-9339a6da5026';
 const projectID = '250375e1-2ac2-48ed-8ac8-eb5f30a7f01a';
 const originalClaims = structuredClone(mockSession.decodedToken);
 const originalToken = mockSession.accessToken;
-function sessionToken(roles: string[]) {
-  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + 3600, 'https://hasura.io/jwt/claims': { 'x-hasura-user-id': mockSession.user!.id, 'x-hasura-default-role': 'user', 'x-hasura-allowed-roles': roles } }))}.test-signature`;
+function sessionToken(roles: string[], expiresIn = 3600) {
+  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + expiresIn, 'https://hasura.io/jwt/claims': { 'x-hasura-user-id': mockSession.user!.id, 'x-hasura-default-role': 'user', 'x-hasura-allowed-roles': roles } }))}.test-signature`;
 }
 const initialTicket: NonNullable<DashboardSupportTicketQuery['supportTicket']> =
   {
@@ -82,6 +106,18 @@ let organizationSeverities: string[] | null = [
   'urgent',
 ];
 let otherOrganizationSeverities: string[] = ['low'];
+const allSeverities = ['low', 'normal', 'high', 'urgent'];
+const initialPlans = [
+  { id: 'plan-starter', name: 'Starter', supportAllowedSeverities: [] },
+  { id: 'plan-pro', name: 'Pro', supportAllowedSeverities: ['low'] },
+  { id: 'plan-team', name: 'Team', supportAllowedSeverities: allSeverities },
+  {
+    id: 'plan-enterprise',
+    name: 'Enterprise',
+    supportAllowedSeverities: allSeverities,
+  },
+];
+let supportPlans = structuredClone(initialPlans);
 let ticket = structuredClone(initialTicket);
 let event = structuredClone(initialEvent);
 let requests: {
@@ -154,8 +190,18 @@ const server = setupServer(
       });
     },
   ),
-  nhostGraphQLLink.query('dashboardSupportAttachments', () =>
-    HttpResponse.json({ data: { supportTicket: { attachments: [] } } }),
+  nhostGraphQLLink.query(
+    'dashboardSupportAttachments',
+    ({ request, variables }) => {
+      requests.push({
+        operation: 'attachments',
+        role: request.headers.get('x-hasura-role'),
+        variables,
+      });
+      return HttpResponse.json({
+        data: { supportTicket: { attachments: [] } },
+      });
+    },
   ),
   nhostGraphQLLink.query('dashboardSupportEvents', ({ request, variables }) => {
     requests.push({
@@ -187,6 +233,7 @@ const server = setupServer(
                   ? null
                   : {
                       name: 'Pro',
+                      isFree: false,
                       supportAllowedSeverities: organizationSeverities,
                     },
               apps: [{ id: projectID, name: 'Production' }],
@@ -197,11 +244,13 @@ const server = setupServer(
               slug: 'other-org',
               plan: {
                 name: 'Starter',
+                isFree: true,
                 supportAllowedSeverities: otherOrganizationSeverities,
               },
               apps: [],
             },
           ],
+          plans: supportPlans,
         },
       });
     },
@@ -288,8 +337,10 @@ beforeEach(() => {
   ticket = structuredClone(initialTicket);
   organizationSeverities = ['low', 'normal', 'high', 'urgent'];
   otherOrganizationSeverities = ['low'];
+  supportPlans = structuredClone(initialPlans);
   event = structuredClone(initialEvent);
   requests = [];
+  subscriptions.clear();
   mockSession.decodedToken = structuredClone(originalClaims);
   mockScrollIntoViewAndPointerCapture();
   mocks.useRouter.mockReturnValue({
@@ -299,6 +350,7 @@ beforeEach(() => {
     push,
     replace,
   });
+  vi.mocked(mockRouter.prefetch).mockResolvedValue(undefined);
 });
 afterEach(() => {
   toast.remove();
@@ -924,7 +976,9 @@ describe('native dashboard support', () => {
     render(<NewTicket />);
     await fillTicket(user);
     expect(
-      screen.queryByText(/Your Pro plan includes Low\./),
+      screen.queryByText(/Your Pro plan includes Low\./, {
+        ignore: 'script, style, [hidden]',
+      }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'See plans' }),
@@ -933,7 +987,7 @@ describe('native dashboard support', () => {
       name: 'Normal plan availability',
     });
     expect(help).toHaveAccessibleDescription(
-      'Normal. Needs Team or Enterprise plan.',
+      'Normal. Your Pro plan includes Low. Available with Team and Enterprise.',
     );
     await user.pointer({ target: help });
     const popup = await screen.findByRole('dialog', {
@@ -971,6 +1025,64 @@ describe('native dashboard support', () => {
     expect(screen.queryByText('Unlock with')).not.toBeInTheDocument();
   });
 
+  it('opens billing in a new tab to upgrade a Starter organization', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await screen.findByRole('heading', { name: 'New ticket' });
+    await select(user, 'Organization', 'Other org');
+    await user.pointer({
+      target: await screen.findByRole('button', {
+        name: 'Normal plan availability',
+      }),
+    });
+    const link = within(
+      await screen.findByRole('dialog', { name: 'Normal plan availability' }),
+    ).getByRole('link', { name: /See plans/ });
+    expect(link).toHaveAccessibleName(/opens in a new tab/);
+    expect(link).toHaveAttribute(
+      'href',
+      '/orgs/other-org/billing?openUpgradeModal=true',
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+  it('refreshes plan entitlements when the in-place upgrade dialog closes', async () => {
+    organizationSeverities = ['low'];
+    server.use(
+      nhostGraphQLLink.query('getOrganization', () =>
+        HttpResponse.json({
+          data: {
+            organizations: [
+              { ...mockOrganization, name: 'Acme', slug: 'acme' },
+            ],
+          },
+        }),
+      ),
+      nhostGraphQLLink.query('getOrganizationPlans', () =>
+        HttpResponse.json({ data: { plans: [] } }),
+      ),
+    );
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    expect(screen.getByRole('radio', { name: 'Normal' })).toBeDisabled();
+    await user.pointer({
+      target: screen.getByRole('button', { name: 'Normal plan availability' }),
+    });
+    await user.click(
+      within(
+        await screen.findByRole('dialog', { name: 'Normal plan availability' }),
+      ).getByRole('link', { name: 'See plans' }),
+    );
+    const upgrade = await screen.findByRole('dialog', {
+      name: 'Upgrade Organization Acme',
+    });
+    organizationSeverities = ['low', 'normal', 'high', 'urgent'];
+    await user.click(within(upgrade).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: 'Normal' })).toBeEnabled(),
+    );
+  });
   it('supports keyboard severity selection and clicking the whole card', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
@@ -1009,6 +1121,76 @@ describe('native dashboard support', () => {
         requests.find((request) => request.operation === 'create'),
       ).toMatchObject({ variables: { input: { severity: 'low' } } }),
     );
+  });
+
+  it('names only the plans whose entitlements include a locked severity', async () => {
+    organizationSeverities = ['normal', 'high'];
+    supportPlans = [
+      { id: 'plan-pro', name: 'Pro', supportAllowedSeverities: ['low'] },
+      {
+        id: 'plan-team',
+        name: 'Team',
+        supportAllowedSeverities: ['low', 'normal', 'high'],
+      },
+      {
+        id: 'plan-enterprise',
+        name: 'Enterprise',
+        supportAllowedSeverities: allSeverities,
+      },
+    ];
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    const card = (name: string) =>
+      within(screen.getByRole('radio', { name }).closest('label')!);
+    expect(card('Low').getByText('Pro')).toBeInTheDocument();
+    expect(card('Urgent').getByText('Enterprise')).toBeInTheDocument();
+    const help = screen.getByRole('button', {
+      name: 'Urgent plan availability',
+    });
+    expect(help).toHaveAccessibleDescription(
+      'Urgent. Your Pro plan includes Normal and High. Available with Enterprise.',
+    );
+    await user.pointer({ target: help });
+    const popup = await screen.findByRole('dialog', {
+      name: 'Urgent plan availability',
+    });
+    expect(
+      within(popup).getByText(/Your Pro plan includes Normal and High\./),
+    ).toBeInTheDocument();
+    expect(within(popup).getByText('Enterprise')).toBeInTheDocument();
+    expect(within(popup).queryByText('Team')).not.toBeInTheDocument();
+    expect(
+      within(popup).getByRole('link', { name: 'See plans' }),
+    ).toBeInTheDocument();
+  });
+
+  it('says when no plan includes a severity and offers no upgrade', async () => {
+    organizationSeverities = ['low'];
+    supportPlans = initialPlans.map((plan) => ({
+      ...plan,
+      supportAllowedSeverities: ['low'],
+    }));
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    for (const name of ['Team', 'Enterprise', 'Pro']) {
+      expect(screen.queryByText(name)).not.toBeInTheDocument();
+    }
+    const help = screen.getByRole('button', {
+      name: 'Normal plan availability',
+    });
+    expect(help).toHaveAccessibleDescription(
+      'Normal. Your Pro plan includes Low. Not included in any plan.',
+    );
+    await user.pointer({ target: help });
+    const popup = await screen.findByRole('dialog', {
+      name: 'Normal plan availability',
+    });
+    expect(
+      within(popup).getByText(/Normal isn't included in any plan\./),
+    ).toBeInTheDocument();
+    expect(within(popup).queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('selects a permitted fallback and resets disallowed severity when the organization changes', async () => {
@@ -1115,12 +1297,24 @@ describe('native dashboard support', () => {
       screen.getByRole('button', { name: 'Create ticket' }),
     ).toBeDisabled();
     await select(user, 'Organization', 'Acme');
+    const editor = screen.getByRole('group', { name: 'Description editor' });
+    expect(editor).not.toHaveClass('border-red-500');
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     expect(await screen.findByText('Add a title')).toBeInTheDocument();
     expect(screen.getByText('Pick at least one service')).toBeInTheDocument();
+    expect(screen.getByText('Describe the issue')).toBeInTheDocument();
+    expect(editor).toHaveClass('border-red-500');
+    expect(
+      screen.getByRole('textbox', { name: 'Description' }),
+    ).toHaveAttribute('aria-invalid', 'true');
     expect(requests.some((request) => request.operation === 'create')).toBe(
       false,
     );
+    await user.type(
+      screen.getByRole('textbox', { name: 'Description' }),
+      'Steps to reproduce',
+    );
+    await waitFor(() => expect(editor).not.toHaveClass('border-red-500'));
   });
   it('renders conversations safely without customer ticket-management controls', async () => {
     render(<TicketDetail />);
@@ -1143,6 +1337,16 @@ describe('native dashboard support', () => {
     expect(
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
+  });
+  it('renders tickets whose services are built-in object property names', async () => {
+    ticket.services = ['constructor', '__proto__', 'valueOf', 'hasOwnProperty'];
+    render(<TicketDetail />);
+    expect(
+      await screen.findByRole('heading', { name: ticket.title }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Constructor')).toBeInTheDocument();
+    expect(screen.getByText('ValueOf')).toBeInTheDocument();
+    expect(screen.getByText('HasOwnProperty')).toBeInTheDocument();
   });
   it('keeps the conversation without tabs when the only event is creation', async () => {
     makeAgent();
@@ -1184,8 +1388,36 @@ describe('native dashboard support', () => {
           name: new RegExp(`Customer Alice.*${label}`),
         }),
       ).toBeInTheDocument();
+      expect(
+        within(activity).queryByText(/Showing the latest/),
+      ).not.toBeInTheDocument();
     },
   );
+  it('notes when the activity list is cut at the event limit', async () => {
+    makeAgent();
+    server.use(
+      nhostGraphQLLink.query('dashboardSupportEvents', () =>
+        HttpResponse.json<{ data: DashboardSupportEventsQuery }>({
+          data: {
+            supportTicketEvents: Array.from({ length: 100 }, (_, index) => ({
+              ...initialEvent,
+              id: `event-${index}`,
+              kind: SupportTicketEventKinds_Enum.StatusChanged,
+            })),
+          },
+        }),
+      ),
+    );
+    render(<TicketDetail />);
+    await new TestUserEvent().click(
+      await screen.findByRole('tab', { name: 'Activity · 100' }),
+    );
+    expect(
+      within(screen.getByRole('region', { name: 'Ticket activity' })).getByText(
+        'Showing the latest 100 events.',
+      ),
+    ).toBeInTheDocument();
+  });
   it.each([
     SupportTicketStatuses_Enum.New,
     SupportTicketStatuses_Enum.Resolved,
@@ -1285,6 +1517,41 @@ describe('native dashboard support', () => {
     expectInputValue(reply, 'Keep this draft');
     expect(screen.queryByText('Reply sent')).not.toBeInTheDocument();
   });
+  it('keeps an unsent reply while a ticket refresh fails', async () => {
+    const user = new TestUserEvent();
+    render(<TicketDetail />);
+    const reply = await screen.findByRole('textbox', { name: 'Your reply' });
+    await user.type(reply, 'Keep this draft');
+    server.use(
+      nhostGraphQLLink.query('dashboardSupportTicket', () =>
+        HttpResponse.json({ errors: [{ message: 'Gateway timeout' }] }),
+      ),
+    );
+    await queryClient.invalidateQueries({ queryKey: ['support'] });
+    expect(
+      await screen.findByText(
+        'Unable to load this ticket. Your access may have changed.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: ticket.title }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'Your reply' }),
+    ).not.toBeInTheDocument();
+    server.resetHandlers();
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('textbox', { name: 'Your reply' })).toBe(
+      reply,
+    );
+    expectInputValue(reply, 'Keep this draft');
+  });
+  it('shows the reply placeholder while the editor is empty', async () => {
+    render(<TicketDetail />);
+    const reply = await screen.findByRole('textbox', { name: 'Your reply' });
+    expect(reply).toHaveAttribute('aria-placeholder', 'Write a reply…');
+    expect(within(reply).getByText('Write a reply…')).toBeInTheDocument();
+  });
   it('assigns a ticket to the current agent with optimistic concurrency', async () => {
     makeAgent();
     render(<TicketDetail />);
@@ -1303,6 +1570,73 @@ describe('native dashboard support', () => {
         },
       }),
     );
+  });
+  it('asks for confirmation before marking a ticket as resolved', async () => {
+    makeAgent();
+    const user = new TestUserEvent();
+    render(<TicketDetail />);
+    await user.click(
+      await screen.findByRole('button', { name: 'Mark as resolved' }),
+    );
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Cancel',
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+    );
+    expect(requests.some(({ operation }) => operation === 'update')).toBe(
+      false,
+    );
+    await user.click(screen.getByRole('button', { name: 'Mark as resolved' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Mark as resolved',
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        requests.find((request) => request.operation === 'update'),
+      ).toMatchObject({
+        role: 'support',
+        variables: {
+          id: ticketId,
+          version: 1,
+          changes: { status: 'resolved' },
+        },
+      }),
+    );
+  });
+  it('unassigns a ticket with the agent role', async () => {
+    makeAgent();
+    ticket.assigneeID = 'agent-id';
+    ticket.assigneeName = 'Support Bob';
+    render(<TicketDetail />);
+    await new TestUserEvent().click(
+      await screen.findByRole('button', { name: 'Unassign' }),
+    );
+    await waitFor(() =>
+      expect(
+        requests.find((request) => request.operation === 'update'),
+      ).toMatchObject({
+        role: 'support',
+        variables: {
+          id: ticketId,
+          version: 1,
+          changes: { assigneeID: null },
+        },
+      }),
+    );
+  });
+  it('does not offer unassigning to customers', async () => {
+    ticket.assigneeID = 'agent-id';
+    ticket.assigneeName = 'Support Bob';
+    render(<TicketDetail />);
+    await screen.findByRole('heading', { name: ticket.title });
+    expect(
+      screen.queryByRole('button', { name: 'Unassign' }),
+    ).not.toBeInTheDocument();
   });
   it('reports conflicts and reloads instead of claiming an update succeeded', async () => {
     makeAgent();
@@ -1404,6 +1738,142 @@ describe('native dashboard support', () => {
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
   });
+  it('keeps working when a request refreshes an expiring session', async () => {
+    makeAgent();
+    // Expires inside the 60-second refresh margin, so the next request refreshes.
+    mockSession.accessToken = sessionToken(['user', 'support'], 30);
+    const { decodedToken: _, ...refreshed } = mockSession;
+    server.use(
+      http.post('https://local.auth.local.nhost.run/v1/token', () =>
+        // Like the real endpoint, the refreshed session has no decodedToken.
+        HttpResponse.json({
+          ...refreshed,
+          accessToken: sessionToken(['user', 'support']),
+        }),
+      ),
+    );
+    render(<TicketDetail />);
+    expect(
+      await screen.findByRole('heading', { name: ticket.title }),
+    ).toBeInTheDocument();
+    expect(
+      requests.find((request) => request.operation === 'detail'),
+    ).toMatchObject({ role: 'support' });
+  });
+  describe('live updates', () => {
+    function count(operation: string) {
+      return requests.filter((request) => request.operation === operation)
+        .length;
+    }
+    function ticketSignal(changes: Record<string, unknown> = {}) {
+      return {
+        supportTicket: {
+          id: ticketId,
+          updatedAt: ticket.updatedAt,
+          attachments: [],
+          ...changes,
+        },
+      };
+    }
+    async function openTicket() {
+      render(<TicketDetail />);
+      await screen.findByRole('heading', { name: ticket.title });
+      await waitFor(() => {
+        expect(count('comments')).toBe(1);
+        expect(count('attachments')).toBe(1);
+        expect(subscriptions.has('dashboardSupportTicketChanges')).toBe(true);
+      });
+      expect(
+        subscriptions.get('dashboardSupportTicketChanges')!.variables,
+      ).toEqual({ id: ticketId });
+    }
+
+    it('refetches the ticket, replies and activity only when the ticket changed', async () => {
+      makeAgent();
+      await openTicket();
+      await waitFor(() => expect(count('events')).toBe(1));
+      emit('dashboardSupportTicketChanges', ticketSignal());
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect([count('detail'), count('comments'), count('events')]).toEqual([
+        1, 1, 1,
+      ]);
+
+      ticket.updatedAt = '2026-01-03T12:00:00Z';
+      emit(
+        'dashboardSupportTicketChanges',
+        ticketSignal({ updatedAt: ticket.updatedAt }),
+      );
+      await waitFor(() =>
+        expect([count('detail'), count('comments'), count('events')]).toEqual([
+          2, 2, 2,
+        ]),
+      );
+      expect(count('attachments')).toBe(1);
+    });
+
+    it('refetches the attachment list when a file is added elsewhere', async () => {
+      await openTicket();
+      emit(
+        'dashboardSupportTicketChanges',
+        ticketSignal({ attachments: [{ id: 'new-file' }] }),
+      );
+      await waitFor(() => expect(count('attachments')).toBe(2));
+      expect(count('detail')).toBe(1);
+    });
+
+    it('hides a ticket the viewer can no longer access', async () => {
+      await openTicket();
+      server.use(
+        nhostGraphQLLink.query('dashboardSupportTicket', () =>
+          HttpResponse.json({
+            data: { supportTicket: null, supportTicketTransitions: [] },
+          }),
+        ),
+      );
+      emit('dashboardSupportTicketChanges', { supportTicket: null });
+      expect(
+        await screen.findByRole('heading', { name: 'Ticket not found' }),
+      ).toBeInTheDocument();
+    });
+
+    it('refreshes everything after reconnecting', async () => {
+      await openTicket();
+      act(() =>
+        subscriptions.get('dashboardSupportTicketChanges')!.onReconnect?.(),
+      );
+      await waitFor(() => {
+        expect(count('detail')).toBe(2);
+        expect(count('comments')).toBe(2);
+      });
+    });
+
+    it('refetches the queue when its tickets change', async () => {
+      render(<TicketList />);
+      await waitFor(() => {
+        expect(count('list')).toBeGreaterThan(0);
+        expect(subscriptions.has('dashboardSupportQueueChanges')).toBe(true);
+      });
+      const listed = requests.filter(({ operation }) => operation === 'list');
+      expect(
+        subscriptions.get('dashboardSupportQueueChanges')!.variables,
+      ).toEqual({ where: listed.at(-1)!.variables.where });
+      const before = count('list');
+      emit('dashboardSupportQueueChanges', {
+        supportTicketsAggregate: {
+          aggregate: { count: 1, max: { updatedAt: ticket.updatedAt } },
+        },
+      });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(count('list')).toBe(before);
+      emit('dashboardSupportQueueChanges', {
+        supportTicketsAggregate: {
+          aggregate: { count: 2, max: { updatedAt: '2026-01-03T12:00:00Z' } },
+        },
+      });
+      await waitFor(() => expect(count('list')).toBeGreaterThan(before));
+    });
+  });
+
   it('handles invisible tickets without loading their replies', async () => {
     server.use(
       nhostGraphQLLink.query('dashboardSupportTicket', () =>

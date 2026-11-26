@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { supportAttachmentIds } from '@/features/support/utils/attachments';
 import {
   SupportSeverities_Enum,
   SupportTicketStatuses_Enum,
@@ -34,15 +35,63 @@ export const SERVICES = [
   'other',
 ] as const;
 export const PAGE_SIZE = 50;
+export const EVENTS_LIMIT = 100;
 
-export const ticketFormSchema = z.object({
-  organizationID: z.uuid('Select an organization'),
-  projectID: z.union([z.uuid(), z.literal('none')]),
-  title: z.string().trim().min(1, 'Add a title').max(200),
-  severity: z.enum(SEVERITIES),
-  services: z.array(z.enum(SERVICES)).min(1, 'Pick at least one service'),
-  description: z.string().trim().min(1, 'Describe the issue').max(50000),
+export const ticketAttachmentSchema = z.object({
+  id: z.string(),
+  status: z.enum([
+    'pending',
+    'uploading',
+    'uploaded',
+    'failed',
+    'invalid',
+    'unfinished',
+  ]),
 });
+export type TicketAttachment = z.infer<typeof ticketAttachmentSchema>;
+
+export function unlinkedAttachments<T extends TicketAttachment>(
+  attachments: readonly T[],
+  description: string,
+): T[] {
+  const linked = supportAttachmentIds(description);
+  return attachments.filter(
+    (attachment) =>
+      attachment.status === 'uploaded' && !linked.has(attachment.id),
+  );
+}
+
+export const ticketFormSchema = z
+  .object({
+    organizationID: z.uuid('Select an organization'),
+    projectID: z.union([z.uuid(), z.literal('none')]),
+    title: z.string().trim().min(1, 'Add a title').max(200),
+    severity: z.enum(SEVERITIES),
+    services: z.array(z.enum(SERVICES)).min(1, 'Pick at least one service'),
+    description: z.string().trim().min(1, 'Describe the issue').max(50000),
+    attachments: z.array(ticketAttachmentSchema),
+  })
+  .superRefine(({ attachments, description }, context) => {
+    if (
+      attachments.some(
+        ({ status }) => status !== 'uploaded' && status !== 'uploading',
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['attachments'],
+        message:
+          'Upload or remove unfinished attachments before creating the ticket.',
+      });
+    } else if (unlinkedAttachments(attachments, description).length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['attachments'],
+        message:
+          'Insert or remove attachments that are not in the description before creating the ticket.',
+      });
+    }
+  });
 export type TicketFormValues = z.infer<typeof ticketFormSchema>;
 
 export const ticketSearchSchema = z.object({
@@ -143,10 +192,11 @@ export function supportLabel(value: string): string {
     cli: 'CLI',
     run: 'Run',
   };
-  return (
-    labels[value] ??
-    value.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase())
-  );
+  return Object.hasOwn(labels, value)
+    ? labels[value]
+    : value
+        .replaceAll('_', ' ')
+        .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 export function supportDate(value: string): string {
@@ -193,33 +243,4 @@ export function supportGap(from: string, to: string): string {
   }
   const days = Math.round(hours / 24);
   return days === 1 ? '1 day' : `${days} days`;
-}
-
-// When each ticket was last opened, kept in this browser only and per user, so
-// the queue can mark replies that arrived after that visit.
-function seenKey(userId: string) {
-  return `nhost-support-seen:${userId}`;
-}
-
-export function readSeenTickets(userId: string): Record<string, string> {
-  try {
-    const value = JSON.parse(localStorage.getItem(seenKey(userId)) ?? '{}');
-    return value && typeof value === 'object' ? value : {};
-  } catch {
-    return {};
-  }
-}
-
-export function markTicketSeen(userId: string, ticketId: string) {
-  try {
-    localStorage.setItem(
-      seenKey(userId),
-      JSON.stringify({
-        ...readSeenTickets(userId),
-        [ticketId]: new Date().toISOString(),
-      }),
-    );
-  } catch {
-    // Storage can be full or blocked; the ticket then just stays highlighted.
-  }
 }

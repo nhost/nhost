@@ -12,8 +12,8 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import SupportImageViewer from '@/features/support/components/SupportImageViewer';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
+import type { SupportTicketAttachmentsController } from '@/features/support/hooks/useSupportTicketAttachments';
 import {
   isSupportImage,
   type SupportAttachmentFile,
@@ -90,7 +90,7 @@ export default function TicketAttachments({
             Attachments
             {!attachments.isError &&
               !attachments.isLoading &&
-              ` · ${files.length}${attachments.hasNextPage ? '+' : ''}`}
+              ` · ${files.length}`}
           </>
         ) : (
           <>
@@ -209,18 +209,6 @@ export default function TicketAttachments({
               </li>
             ))}
           </ul>
-          {attachments.hasNextPage && (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={attachments.isFetchingNextPage}
-              onClick={() => {
-                void attachments.fetchNextPage();
-              }}
-            >
-              Load more attachments
-            </Button>
-          )}
         </>
       )}
       {!closed && (!compact || pendingUploads.length > 0) && (

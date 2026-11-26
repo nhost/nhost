@@ -1,5 +1,5 @@
 import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpenIcon,
   ExternalLinkIcon,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -44,7 +44,8 @@ import {
   TicketSeverity,
   TicketStatus,
 } from '@/features/support/components/TicketBadges';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
+import { useSupportSubscription } from '@/features/support/hooks/useSupportSubscription';
 import {
   PAGE_SIZE,
   STATUSES,
@@ -54,6 +55,8 @@ import {
   ticketSearchSchema,
 } from '@/features/support/utils/tickets';
 import {
+  DashboardSupportQueueChangesDocument,
+  type DashboardSupportQueueChangesSubscription,
   DashboardSupportTicketsDocument,
   type DashboardSupportTicketsQuery,
 } from '@/generated/graphql';
@@ -98,7 +101,6 @@ export default function TicketList() {
                 false,
               ),
               offset: 0,
-              replyRole: 'support',
             },
             signal,
           ),
@@ -109,7 +111,6 @@ export default function TicketList() {
     enabled: !isAgent && !!user && router.isReady,
     cacheTime: 0,
     retry: false,
-    refetchInterval: 30000,
   });
   const waitingForQueues =
     !isAgent && !!user && router.isReady && queueAvailability.isLoading;
@@ -144,7 +145,6 @@ export default function TicketList() {
             isAgent,
           ),
           offset: 0,
-          replyRole: isAgent ? 'user' : 'support',
         },
         signal,
       ),
@@ -166,7 +166,6 @@ export default function TicketList() {
         {
           where: ticketFilter(search, user?.id ?? '', isAgent),
           offset: search.page * pageSize,
-          replyRole: isAgent ? 'user' : 'support',
         },
         signal,
       ),
@@ -174,7 +173,32 @@ export default function TicketList() {
     cacheTime: 0,
     retry: 1,
     retryDelay: 500,
-    refetchInterval: 30000,
+  });
+  const client = useQueryClient();
+  const queueWhere = ticketFilter(search, user?.id ?? '', isAgent);
+  const queueSignal = useRef<{ where: string; aggregate: string }>(undefined);
+  function refreshQueue() {
+    void client.invalidateQueries({ queryKey: [...queryKey, 'tickets'] });
+    void client.invalidateQueries({
+      queryKey: [...queryKey, 'customer-queue-availability'],
+    });
+  }
+  useSupportSubscription<DashboardSupportQueueChangesSubscription>({
+    document: DashboardSupportQueueChangesDocument,
+    variables: { where: queueWhere },
+    enabled: !!user && router.isReady && !waitingForQueues,
+    onData: ({ supportTicketsAggregate }) => {
+      // The first value for a filter is the baseline; later ones mean a ticket
+      // was added, updated, or left the filter.
+      const previous = queueSignal.current;
+      const where = JSON.stringify(queueWhere);
+      const aggregate = JSON.stringify(supportTicketsAggregate.aggregate);
+      queueSignal.current = { where, aggregate };
+      if (previous?.where === where && previous.aggregate !== aggregate) {
+        refreshQueue();
+      }
+    },
+    onReconnect: refreshQueue,
   });
   const loadingTickets =
     !user ||

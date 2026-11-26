@@ -11,7 +11,7 @@ interface SeverityPlanHelpProps {
   children: ReactElement;
   severity: string;
   explanation: string;
-  plansIntro: string;
+  plans: string[];
   accessibleDescription: string;
   billingHref?: string;
   onSeePlans?: VoidFunction;
@@ -24,7 +24,7 @@ export default function SeverityPlanHelp({
   children,
   severity,
   explanation,
-  plansIntro,
+  plans,
   accessibleDescription,
   billingHref,
   onSeePlans,
@@ -122,36 +122,46 @@ export default function SeverityPlanHelp({
         <p>
           {explanation}
           <br />
-          {plansIntro}
+          {plans.length > 0
+            ? 'Available with:'
+            : `${severity} isn't included in any plan.`}
         </p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1">
-            <OrganizationPlanBadge plan="Team" />
-            <OrganizationPlanBadge plan="Enterprise" />
+        {plans.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1">
+              {plans.map((plan) => (
+                <OrganizationPlanBadge key={plan} plan={plan} />
+              ))}
+            </div>
+            {billingHref && (
+              <Link
+                href={billingHref}
+                target={onSeePlans ? undefined : '_blank'}
+                rel={onSeePlans ? undefined : 'noopener noreferrer'}
+                onClick={(event) => {
+                  if (
+                    !onSeePlans ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                  ) {
+                    return;
+                  }
+                  event.preventDefault();
+                  setOpen(false);
+                  onSeePlans();
+                }}
+                className="ml-auto inline-block rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                See plans
+                {!onSeePlans && (
+                  <span className="sr-only">(opens in a new tab)</span>
+                )}
+              </Link>
+            )}
           </div>
-          {billingHref && (
-            <Link
-              href={billingHref}
-              onClick={(event) => {
-                if (
-                  !onSeePlans ||
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                setOpen(false);
-                onSeePlans();
-              }}
-              className="ml-auto inline-block rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              See plans
-            </Link>
-          )}
-        </div>
+        )}
       </PopoverContent>
     </Popover>
   );

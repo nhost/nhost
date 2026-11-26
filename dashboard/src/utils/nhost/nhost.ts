@@ -1,4 +1,4 @@
-import { createClient, createNhostClient } from '@nhost/nhost-js';
+import { createClient } from '@nhost/nhost-js';
 import type {
   SessionStorageBackend,
   StoredSession,
@@ -11,13 +11,6 @@ import {
 } from '@/utils/env';
 
 const nhost = createClient({
-  authUrl: getAuthServiceUrl(),
-  graphqlUrl: getGraphqlServiceUrl(),
-  functionsUrl: getFunctionsServiceUrl(),
-  storageUrl: getStorageServiceUrl(),
-});
-
-const nhostRoutesClient = createNhostClient({
   authUrl: getAuthServiceUrl(),
   graphqlUrl: getGraphqlServiceUrl(),
   functionsUrl: getFunctionsServiceUrl(),
@@ -51,5 +44,4 @@ export class DummySessionStorage implements SessionStorageBackend {
   }
 }
 
-export { nhostRoutesClient };
 export default nhost;

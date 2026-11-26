@@ -136,6 +136,7 @@ export function useSupportSession() {
     role,
     queryKey,
     request,
+    requestHeaders,
     uploadAttachment,
     downloadAttachment,
   };

@@ -7,6 +7,7 @@ import {
   attachmentValidationError,
   SUPPORT_ATTACHMENT_BUCKET,
   supportAttachmentId,
+  supportAttachmentIds,
   supportAttachmentMarkdown,
 } from './attachments';
 
@@ -77,6 +78,14 @@ describe('support attachment Markdown', () => {
     ]) {
       expect(supportAttachmentId(url)).toBeUndefined();
     }
+  });
+  it('collects the attachment IDs a description links to', () => {
+    const other = '7d442aba-6e61-4854-b354-0d5ec8d198d8';
+    expect(
+      supportAttachmentIds(
+        `See [logs](attachment:${id}) and ![shot](attachment:${other}), [again](attachment:${id}), [bad](attachment:invalid) and [web](https://example.com/${id}).`,
+      ),
+    ).toEqual(new Set([id, other]));
   });
 });
 

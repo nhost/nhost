@@ -1,11 +1,7 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
 import {
   attachmentValidationError,
   type SupportAttachmentUploaded,
@@ -25,6 +21,43 @@ interface AttachmentUpload {
   error?: string;
 }
 
+export type SupportTicketAttachment = NonNullable<
+  DashboardSupportAttachmentsQuery['supportTicket']
+>['attachments'][number];
+
+// Every completed attachment of the ticket, all 100-row pages. Messages resolve
+// their attachment references against this list instead of querying per file.
+export function useSupportTicketAttachmentList(
+  ticketId: string | undefined,
+  refetchOnMount = true,
+) {
+  const { user, queryKey, request } = useSupportSession();
+  return useQuery({
+    queryKey: [...queryKey, 'attachments', ticketId],
+    queryFn: async ({ signal }) => {
+      const attachments: SupportTicketAttachment[] = [];
+      for (let offset = 0; ; offset += 100) {
+        const result = await request<DashboardSupportAttachmentsQuery>(
+          DashboardSupportAttachmentsDocument,
+          { ticketId, offset },
+          signal,
+        );
+        if (!result.supportTicket) {
+          throw new Error('This ticket is no longer accessible.');
+        }
+        attachments.push(...result.supportTicket.attachments);
+        if (result.supportTicket.attachments.length < 100) {
+          return attachments;
+        }
+      }
+    },
+    enabled: !!user && !!ticketId,
+    cacheTime: 0,
+    retry: false,
+    refetchOnMount,
+  });
+}
+
 export function useSupportTicketAttachments(
   ticketId: string,
   closed: boolean,
@@ -36,27 +69,7 @@ export function useSupportTicketAttachments(
   const nextUploadId = useRef(0);
   const [uploads, setUploads] = useState<AttachmentUpload[]>([]);
   const attachmentsKey = [...queryKey, 'attachments', ticketId];
-  const attachments = useInfiniteQuery({
-    queryKey: attachmentsKey,
-    queryFn: async ({ pageParam = 0, signal }) => {
-      const result = await request<DashboardSupportAttachmentsQuery>(
-        DashboardSupportAttachmentsDocument,
-        { ticketId, offset: pageParam },
-        signal,
-      );
-      if (!result.supportTicket) {
-        throw new Error('This ticket is no longer accessible.');
-      }
-      return result.supportTicket.attachments;
-    },
-    getNextPageParam: (last, pages) =>
-      last.length === 100
-        ? pages.reduce((count, page) => count + page.length, 0)
-        : undefined,
-    cacheTime: 0,
-    retry: false,
-    refetchInterval: 30000,
-  });
+  const attachments = useSupportTicketAttachmentList(ticketId);
   function updateUpload(id: number, changes: Partial<AttachmentUpload>) {
     setUploads((current) =>
       current.map((candidate) =>
@@ -159,7 +172,7 @@ export function useSupportTicketAttachments(
       uploading ||
       attachments.isError ||
       attachments.isLoading,
-    files: attachments.data?.pages.flat() ?? [],
+    files: attachments.data ?? [],
     uploadFiles: (files?: File[], onUploaded?: SupportAttachmentUploaded) =>
       execPromiseWithErrorToast(
         () => upload.mutateAsync({ files, onUploaded }),

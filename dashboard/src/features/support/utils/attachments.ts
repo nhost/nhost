@@ -26,6 +26,17 @@ export function supportAttachmentId(url: string): string | undefined {
   return z.uuid().safeParse(id).success ? id : undefined;
 }
 
+export function supportAttachmentIds(markdown: string): Set<string> {
+  const ids = new Set<string>();
+  for (const match of markdown.matchAll(SUPPORT_ATTACHMENT_TOKEN_PATTERN)) {
+    const id = supportAttachmentId(`attachment:${match[3]}`);
+    if (id) {
+      ids.add(id);
+    }
+  }
+  return ids;
+}
+
 export function supportAttachmentMarkdown(file: SupportAttachmentFile): string {
   const label = (file.name || 'attachment')
     .replace(/[\r\n]/g, ' ')
@@ -46,14 +57,13 @@ export function isSupportImage(mimeType: string): boolean {
 export const SUPPORT_ATTACHMENT_BUCKET = 'support_tickets_attachments';
 export const MAX_SUPPORT_ATTACHMENT_SIZE = 5_000_000;
 
+const attachmentFileSchema = z
+  .file()
+  .min(1, 'Empty files cannot be attached.')
+  .max(MAX_SUPPORT_ATTACHMENT_SIZE, 'Files must be 5 MB or smaller.');
+
 export function attachmentValidationError(file: File): string | undefined {
-  if (file.size === 0) {
-    return 'Empty files cannot be attached.';
-  }
-  if (file.size > MAX_SUPPORT_ATTACHMENT_SIZE) {
-    return 'Files must be 5 MB or smaller.';
-  }
-  return undefined;
+  return attachmentFileSchema.safeParse(file).error?.issues[0]?.message;
 }
 
 export function saveSupportAttachment(blob: Blob, filename: string): void {

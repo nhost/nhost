@@ -31,3 +31,11 @@ export const SERVICE_ICONS = {
   (typeof SERVICES)[number],
   ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 >;
+
+// Ticket services are stored strings, so names like `constructor` must not
+// resolve to inherited object properties.
+export function serviceIcon(service: string) {
+  return Object.hasOwn(SERVICE_ICONS, service)
+    ? SERVICE_ICONS[service as keyof typeof SERVICE_ICONS]
+    : SERVICE_ICONS.other;
+}

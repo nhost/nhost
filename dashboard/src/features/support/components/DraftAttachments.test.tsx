@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
 import NewTicket from '@/features/support/components/NewTicket';
-import { useSupportAttachmentDraft } from '@/features/support/hooks/use-support-attachment-draft';
+import { useSupportAttachmentDraft } from '@/features/support/hooks/useSupportAttachmentDraft';
 import { SUPPORT_ATTACHMENT_BUCKET } from '@/features/support/utils/attachments';
 import type {
   DashboardSupportAttachmentDraftQuery,
@@ -12,7 +12,11 @@ import type {
 import { mockMultipartFormData } from '@/tests/mock-multipart-form-data';
 import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
-import { expectInputValue, selectEditorText } from '@/tests/supportEditor';
+import {
+  editorValue,
+  expectInputValue,
+  selectEditorText,
+} from '@/tests/supportEditor';
 import {
   act,
   fireEvent,
@@ -630,6 +634,62 @@ describe('new ticket attachment drafts', () => {
       );
     });
   });
+  it('lists uploads deleted from the description and blocks submission until they are inserted or removed', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await uploadFiles(user);
+    await uploaded();
+    const description = screen.getByRole('textbox', { name: 'Description' });
+    const token = `[logs.txt](attachment:${records[0].id})`;
+    async function deleteToken() {
+      selectEditorText(
+        description,
+        editorValue(description).indexOf(token) + token.length,
+      );
+      await user.keyboard('{Backspace}');
+      expect(editorValue(description)).not.toContain(token);
+    }
+    const attachments = screen.getByRole('region', {
+      name: 'Draft attachments',
+    });
+
+    await deleteToken();
+    expect(
+      await within(attachments).findByText('logs.txt'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Insert or remove attachments that are not in the description/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Create ticket' }),
+    ).toBeDisabled();
+
+    await user.click(
+      within(attachments).getByRole('button', {
+        name: 'Insert logs.txt into description',
+      }),
+    );
+    await waitFor(() => expect(editorValue(description)).toContain(token));
+    await uploaded();
+    expect(within(attachments).queryByText('logs.txt')).not.toBeInTheDocument();
+
+    await deleteToken();
+    await user.click(
+      await within(attachments).findByRole('button', {
+        name: 'Remove logs.txt',
+      }),
+    );
+    await waitFor(() => expect(records[0].discarded).toBe(true));
+    await uploaded();
+    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    expect(requests.filter((item) => item.operation === 'ticket')).toHaveLength(
+      1,
+    );
+  });
 
   it('shows resized draft image thumbnails as user even for a support agent', async () => {
     authorize(true);
@@ -815,6 +875,8 @@ describe('new ticket attachment drafts', () => {
     expect(
       draftList.getByText('Files must be 5 MB or smaller.'),
     ).toBeInTheDocument();
+    expect(draftList.getAllByText(/Can't be uploaded/)).toHaveLength(2);
+    expect(draftList.queryByText(/Ready to upload/)).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Retry' }),
     ).not.toBeInTheDocument();
@@ -1156,7 +1218,9 @@ describe('new ticket attachment drafts', () => {
     await act(async () => {
       await result.current.action.mutateAsync({ type: 'upload' });
     });
-    await waitFor(() => expect(result.current.blocked).toBe(false));
+    const unsettled = () =>
+      result.current.files.filter((file) => file.status !== 'uploaded');
+    await waitFor(() => expect(unsettled()).toEqual([]));
     for (let index = 0; index < 100; index += 1) {
       const entry = reserve(`extra-${index}.txt`);
       entry.completed = index < 99;
@@ -1165,8 +1229,10 @@ describe('new ticket attachment drafts', () => {
       await queryClient.invalidateQueries({ queryKey: ['support'] });
     });
     await waitFor(() => expect(result.current.unfinished).toHaveLength(1));
-    expect(result.current.blocked).toBe(true);
-    await expect(result.current.prepareSubmission()).rejects.toThrow(
+    expect(unsettled()).toEqual([
+      expect.objectContaining({ id: records[100].id, status: 'unfinished' }),
+    ]);
+    await expect(result.current.prepareSubmission(new Set())).rejects.toThrow(
       'Upload or remove unfinished attachments',
     );
     expect(
@@ -1180,10 +1246,86 @@ describe('new ticket attachment drafts', () => {
         id: records[100].id,
       });
     });
-    await waitFor(() => expect(result.current.blocked).toBe(false));
-    expect(result.current.query.data?.draft?.attachments).toHaveLength(100);
-    await expect(result.current.prepareSubmission()).resolves.toEqual({
-      draftID,
+    await waitFor(() => expect(unsettled()).toEqual([]));
+    const attachments = result.current.query.data?.draft?.attachments ?? [];
+    expect(attachments).toHaveLength(100);
+    await expect(
+      result.current.prepareSubmission(new Set([records[1].id])),
+    ).rejects.toThrow('Insert or remove attachments that are not in the');
+    await expect(
+      result.current.prepareSubmission(
+        new Set(attachments.map((item) => item.id)),
+      ),
+    ).resolves.toEqual({ draftID });
+  });
+
+  it('shows no attachment error at any point while files upload', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    const seen: string[] = [];
+    const observer = new MutationObserver(() => {
+      const text = document.body.textContent ?? '';
+      for (const message of [
+        'Upload or remove unfinished attachments',
+        'Insert or remove attachments that are not in the description',
+      ]) {
+        if (text.includes(message) && !seen.includes(message)) {
+          seen.push(message);
+        }
+      }
     });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    await uploadFiles(user, ['one.txt', 'two.txt']);
+    await uploaded();
+    await waitFor(() =>
+      expect(
+        editorValue(screen.getByRole('textbox', { name: 'Description' })),
+      ).toContain(`attachment:${records[1].id}`),
+    );
+    observer.disconnect();
+    expect(seen).toEqual([]);
+  });
+
+  it('does not report files as unfinished while an upload is running', async () => {
+    const renders: { busy: boolean; statuses: string[] }[] = [];
+    const { result } = renderHook(
+      () => {
+        const controller = useSupportAttachmentDraft(organizationID);
+        renders.push({
+          busy: controller.busy,
+          statuses: controller.files.map((file) => file.status),
+        });
+        return controller;
+      },
+      { wrapper: Providers },
+    );
+    await act(async () => {
+      await result.current.action.mutateAsync({
+        type: 'upload',
+        files: [new File(['one'], 'one.txt'), new File(['two'], 'two.txt')],
+      });
+    });
+    await waitFor(() =>
+      expect(result.current.files.map((file) => file.status)).toEqual([
+        'uploaded',
+        'uploaded',
+      ]),
+    );
+    expect(renders.some((entry) => entry.busy)).toBe(true);
+    // The draft is only validated once the upload has finished.
+    expect(
+      renders.filter(
+        ({ busy, statuses }) =>
+          busy &&
+          statuses.some(
+            (status) => status !== 'uploaded' && status !== 'uploading',
+          ),
+      ),
+    ).toEqual([]);
   });
 });

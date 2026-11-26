@@ -46,12 +46,13 @@ import {
 } from '@/features/support/components/SupportArea';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import { TicketSeverity } from '@/features/support/components/TicketBadges';
-import { useSupportAttachmentDraft } from '@/features/support/hooks/use-support-attachment-draft';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useSupportAttachmentDraft } from '@/features/support/hooks/useSupportAttachmentDraft';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
 import {
   attachmentValidationError,
   SUPPORT_ATTACHMENT_TOKEN_PATTERN,
   supportAttachmentId,
+  supportAttachmentIds,
 } from '@/features/support/utils/attachments';
 import { SERVICE_ICONS } from '@/features/support/utils/service-icons';
 import {
@@ -61,6 +62,7 @@ import {
   supportLabel,
   type TicketFormValues,
   ticketFormSchema,
+  unlinkedAttachments,
 } from '@/features/support/utils/tickets';
 import {
   DashboardCreateSupportTicketDocument,
@@ -77,6 +79,7 @@ const severityHints = {
   high: 'A feature is broken',
   urgent: 'Production is down',
 };
+const listFormat = new Intl.ListFormat('en', { type: 'conjunction' });
 
 export default function NewTicket() {
   const { user } = useSupportSession();
@@ -96,6 +99,7 @@ function NewTicketForm() {
       description: '',
       severity: SupportSeverities_Enum.Low,
       services: [],
+      attachments: [],
     },
   });
   const organizationID = form.watch('organizationID');
@@ -104,6 +108,14 @@ function NewTicketForm() {
   const [pendingOrganization, setPendingOrganization] = useState<string>();
   const [changingOrganization, setChangingOrganization] = useState(false);
   const draft = useSupportAttachmentDraft(organizationID);
+  const watchedDescription = form.watch('description');
+  const unlinked = unlinkedAttachments(draft.files, watchedDescription);
+  // The attachment rules also depend on the description, so revalidate when
+  // either changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: revalidate on description changes
+  useEffect(() => {
+    form.setValue('attachments', draft.files, { shouldValidate: true });
+  }, [draft.files, watchedDescription, form]);
   const organizations = useQuery({
     queryKey: ['support', user?.id, 'user', 'organizations'],
     queryFn: ({ signal }) =>
@@ -204,13 +216,14 @@ function NewTicketForm() {
     selectedOrganization?.plan?.supportAllowedSeverities,
   );
   const planName = selectedOrganization?.plan?.name || 'current';
+  const supportPlans = organizations.data?.plans ?? [];
   const billingHref = selectedOrganization?.slug
     ? `/orgs/${encodeURIComponent(selectedOrganization.slug)}/billing?openUpgradeModal=true`
     : undefined;
-  const hasSupport = allowedSeverities.length > 0;
-  const planExplanation = !hasSupport
-    ? `Support isn't on your ${planName} plan.`
-    : `Your ${planName} plan includes Low.`;
+  const planExplanation =
+    allowedSeverities.length > 0
+      ? `Your ${planName} plan includes ${listFormat.format(allowedSeverities.map(supportLabel))}.`
+      : `Support isn't on your ${planName} plan.`;
   const selectedSeverity = form.watch('severity');
   useEffect(() => {
     const allowed = getAllowedSupportSeverities(
@@ -221,7 +234,7 @@ function NewTicketForm() {
     }
   }, [selectedOrganization, form]);
   const create = useMutation({
-    mutationFn: async (values: TicketFormValues) => {
+    mutationFn: async ({ attachments: _, ...values }: TicketFormValues) => {
       const organization = organizations.data?.organizations.find(
         (candidate) => candidate.id === values.organizationID,
       );
@@ -232,7 +245,9 @@ function NewTicketForm() {
       ) {
         throw new Error('Select an organization and one of its projects.');
       }
-      const submission = await draft.prepareSubmission();
+      const submission = await draft.prepareSubmission(
+        supportAttachmentIds(values.description),
+      );
       if (submission.ticketID) {
         return submission.ticketID;
       }
@@ -499,6 +514,13 @@ function NewTicketForm() {
                                   const locked =
                                     !selectedOrganization ||
                                     !allowedSeverities.includes(severity);
+                                  const plansWithSeverity = supportPlans
+                                    .filter((plan) =>
+                                      plan.supportAllowedSeverities.includes(
+                                        severity,
+                                      ),
+                                    )
+                                    .map((plan) => plan.name);
                                   const disabled =
                                     locked || form.formState.isSubmitting;
                                   const card = (
@@ -546,14 +568,15 @@ function NewTicketForm() {
                                         </span>
                                         {selectedOrganization &&
                                           locked &&
-                                          (severity ===
-                                          SupportSeverities_Enum.Low ? (
+                                          (plansWithSeverity[0] ? (
+                                            <OrganizationPlanBadge
+                                              plan={plansWithSeverity[0]}
+                                            />
+                                          ) : (
                                             <Lock
                                               aria-hidden="true"
                                               className="size-3.5 shrink-0 text-muted-foreground"
                                             />
-                                          ) : (
-                                            <OrganizationPlanBadge plan="Team" />
                                           ))}
                                       </span>
                                       <span
@@ -569,23 +592,23 @@ function NewTicketForm() {
                                       key={severity}
                                       severity={supportLabel(severity)}
                                       explanation={planExplanation}
-                                      plansIntro={
-                                        hasSupport
-                                          ? 'Normal, High and Urgent come with:'
-                                          : 'Available with:'
-                                      }
-                                      accessibleDescription={
-                                        severity === SupportSeverities_Enum.Low
-                                          ? `${supportLabel(severity)}. ${planExplanation}`
-                                          : `${supportLabel(severity)}. Needs Team or Enterprise plan.`
-                                      }
+                                      plans={plansWithSeverity}
+                                      accessibleDescription={`${supportLabel(severity)}. ${planExplanation} ${
+                                        plansWithSeverity.length > 0
+                                          ? `Available with ${listFormat.format(plansWithSeverity)}.`
+                                          : 'Not included in any plan.'
+                                      }`}
                                       billingHref={billingHref}
-                                      onSeePlans={() => {
-                                        setUpgradeOrgSlug(
-                                          selectedOrganization?.slug ??
-                                            undefined,
-                                        );
-                                      }}
+                                      onSeePlans={
+                                        selectedOrganization?.plan?.isFree
+                                          ? undefined
+                                          : () => {
+                                              setUpgradeOrgSlug(
+                                                selectedOrganization?.slug ??
+                                                  undefined,
+                                              );
+                                            }
+                                      }
                                       disabled={form.formState.isSubmitting}
                                     >
                                       {card}
@@ -747,12 +770,7 @@ function NewTicketForm() {
                             },
                           );
                         }}
-                        attachments={(
-                          insert,
-                          _uploadFiles,
-                          remove,
-                          focusAttach,
-                        ) => (
+                        attachments={(insert, remove, focusAttach) => (
                           <DraftAttachments
                             draft={draft}
                             disabled={
@@ -762,13 +780,14 @@ function NewTicketForm() {
                             onRemoveTokens={remove}
                             focusAttach={focusAttach}
                             onRetriedUpload={insert}
+                            unlinked={unlinked}
+                            onInsert={insert}
                           />
                         )}
                       />
-                      {draft.blocked && !draft.busy && !draft.query.isError && (
-                        <p className="text-muted-foreground text-sm">
-                          Upload or remove unfinished attachments before
-                          creating the ticket.
+                      {form.formState.errors.attachments?.message && (
+                        <p className="font-medium text-destructive text-sm">
+                          {form.formState.errors.attachments.message}
                         </p>
                       )}
                     </div>
@@ -784,7 +803,8 @@ function NewTicketForm() {
                     loading={form.formState.isSubmitting}
                     disabled={
                       !selectedOrganization ||
-                      draft.blocked ||
+                      !draft.ready ||
+                      !!form.formState.errors.attachments ||
                       !allowedSeverities.includes(selectedSeverity)
                     }
                   >
@@ -799,7 +819,10 @@ function NewTicketForm() {
               key={upgradeOrgSlug}
               dialogOnly={{
                 orgSlug: upgradeOrgSlug,
-                onClose: () => setUpgradeOrgSlug(undefined),
+                onClose: () => {
+                  setUpgradeOrgSlug(undefined);
+                  void organizations.refetch();
+                },
               }}
             />
           )}

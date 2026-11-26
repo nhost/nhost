@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   type SupportRole,
   useSupportSession,
-} from '@/features/support/hooks/use-support-session';
+} from '@/features/support/hooks/useSupportSession';
 import {
   isSupportImage,
   MAX_SUPPORT_ATTACHMENT_SIZE,

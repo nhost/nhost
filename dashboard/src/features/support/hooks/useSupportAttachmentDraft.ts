@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useMemo, useRef, useState } from 'react';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
 import {
   attachmentValidationError,
   type SupportAttachmentUploaded,
 } from '@/features/support/utils/attachments';
+import type { TicketAttachment } from '@/features/support/utils/tickets';
 import {
   DashboardCreateSupportAttachmentDraftDocument,
   type DashboardCreateSupportAttachmentDraftMutation,
@@ -36,6 +37,11 @@ interface DraftUpload {
   status: 'pending' | 'uploading' | 'uploaded' | 'failed' | 'invalid';
   error?: string;
 }
+export type DraftFile = TicketAttachment & {
+  name: string;
+  size?: number | null;
+  mimeType?: string | null;
+};
 type DraftAction =
   | { type: 'upload'; files?: File[]; onUploaded?: SupportAttachmentUploaded }
   | { type: 'remove'; id: number }
@@ -98,7 +104,6 @@ export function useSupportAttachmentDraft(organizationID: string) {
     enabled: !!identity && !!user,
     cacheTime: 0,
     retry: false,
-    refetchInterval: 30000,
   });
 
   async function refreshDraft(): Promise<DraftState> {
@@ -322,7 +327,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
     return items;
   }
 
-  async function prepareSubmission(): Promise<{
+  async function prepareSubmission(linked: ReadonlySet<string>): Promise<{
     draftID?: string;
     ticketID?: string;
   }> {
@@ -345,6 +350,11 @@ export function useSupportAttachmentDraft(organizationID: string) {
         'Upload or remove unfinished attachments before creating the ticket.',
       );
     }
+    if (state?.attachments.some((file) => !linked.has(file.id))) {
+      throw new Error(
+        'Insert or remove attachments that are not in the description before creating the ticket.',
+      );
+    }
     return identity ? { draftID: identity.id } : {};
   }
 
@@ -360,10 +370,45 @@ export function useSupportAttachmentDraft(organizationID: string) {
     data?.uploads.filter((item) => !completedIDs.has(item.id)) ?? [];
   const busy = action.status === 'loading';
   const hasFiles = !!identity || uploads.length > 0;
-  const blocked =
-    busy ||
-    uploads.some((item) => item.status !== 'uploaded') ||
-    (!!identity && (query.isLoading || query.isError || unfinished.length > 0));
+  const ready = !busy && !(identity && (query.isLoading || query.isError));
+  // While an attachment action runs the draft is mid-change, so it is only
+  // validated once the action has finished.
+  const files = useMemo(() => {
+    if (busy) {
+      return [];
+    }
+    const current = query.isError ? undefined : query.data?.draft;
+    const completed = new Set(current?.attachments.map((item) => item.id));
+    const queued = uploads.filter((item) => item.status !== 'uploaded');
+    const tracked = new Set(queued.map((item) => item.reservationID));
+    return [
+      ...queued.map(
+        (item): DraftFile => ({
+          id: `local-${item.id}`,
+          name: item.file.name,
+          status: item.status,
+        }),
+      ),
+      ...(current?.uploads ?? [])
+        .filter((item) => !completed.has(item.id) && !tracked.has(item.id))
+        .map(
+          (item): DraftFile => ({
+            id: item.id,
+            name: 'Unfinished upload',
+            status: 'unfinished',
+          }),
+        ),
+      ...(current?.attachments ?? []).map(
+        (item): DraftFile => ({
+          id: item.id,
+          name: item.file?.name || 'attachment',
+          size: item.file?.size,
+          mimeType: item.file?.mimeType,
+          status: 'uploaded',
+        }),
+      ),
+    ];
+  }, [busy, query.data, query.isError, uploads]);
 
   return {
     identity,
@@ -376,7 +421,8 @@ export function useSupportAttachmentDraft(organizationID: string) {
     submissionUncertain,
     busy,
     hasFiles,
-    blocked,
+    ready,
+    files,
     unfinished,
   };
 }

@@ -8,7 +8,6 @@ interface SupportHelpCardProps {
   description: string;
   external?: boolean;
   href: string;
-  footer?: ReactNode;
 }
 
 export default function SupportHelpCard({
@@ -17,7 +16,6 @@ export default function SupportHelpCard({
   description,
   external = false,
   href,
-  footer,
 }: SupportHelpCardProps) {
   return (
     <Link
@@ -44,7 +42,6 @@ export default function SupportHelpCard({
       </span>
       <span className="mt-5 font-semibold text-lg">{title}</span>
       <span className="mt-1 text-muted-foreground text-sm">{description}</span>
-      {footer && <div className="mt-auto pt-4">{footer}</div>}
       {external && <span className="sr-only">(opens in a new tab)</span>}
     </Link>
   );

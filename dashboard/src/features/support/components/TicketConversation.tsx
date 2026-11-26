@@ -23,8 +23,8 @@ import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import TicketActivity from '@/features/support/components/TicketActivity';
 import TicketAttachments from '@/features/support/components/TicketAttachments';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import { useSupportTicketAttachments } from '@/features/support/hooks/use-support-ticket-attachments';
+import { useSupportSession } from '@/features/support/hooks/useSupportSession';
+import { useSupportTicketAttachments } from '@/features/support/hooks/useSupportTicketAttachments';
 import {
   PAGE_SIZE,
   supportDate,
@@ -86,7 +86,6 @@ export default function TicketConversation({
     enabled: !!user && isAgent,
     cacheTime: 0,
     retry: false,
-    refetchInterval: 30000,
   });
   const activity =
     isAgent && !events.isError ? events.data?.supportTicketEvents : undefined;
@@ -106,7 +105,6 @@ export default function TicketConversation({
         : undefined,
     cacheTime: 0,
     retry: false,
-    refetchInterval: 30000,
   });
   const form = useForm<z.infer<typeof replySchema>>({
     resolver: zodResolver(replySchema),
@@ -246,10 +244,7 @@ export default function TicketConversation({
                           teamReply ? 'bg-primary/10' : 'bg-muted/60',
                         )}
                       >
-                        <SupportMarkdown
-                          attachmentScope={attachmentScope}
-                          compactAttachments
-                        >
+                        <SupportMarkdown ticketId={ticketId}>
                           {message.body}
                         </SupportMarkdown>
                       </div>

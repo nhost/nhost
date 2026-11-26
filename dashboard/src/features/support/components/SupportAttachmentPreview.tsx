@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   type SupportRole,
   useSupportSession,
-} from '@/features/support/hooks/use-support-session';
+} from '@/features/support/hooks/useSupportSession';
 import {
   isSupportImage,
   MAX_SUPPORT_ATTACHMENT_SIZE,
@@ -133,10 +133,9 @@ export default function SupportAttachmentPreview({
     },
     enabled: !!user && eligible && visible,
     cacheTime: 0,
-    staleTime: 30000,
+    staleTime: Infinity,
     retry: false,
     keepPreviousData: false,
-    refetchInterval: 30000,
   });
   const blob = eligible && !preview.isError ? preview.data : undefined;
   useEffect(() => {

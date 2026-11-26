@@ -1,7 +1,9 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import type { PropsWithChildren, ReactElement } from 'react';
+import { BaseLayout } from '@/components/layout/BaseLayout';
 import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
+import { Logo } from '@/components/presentational/Logo';
 import { Button } from '@/components/ui/v3/button';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -29,12 +31,43 @@ export function SupportArea({ children }: PropsWithChildren) {
 
 export function getSupportLayout(page: ReactElement) {
   return (
-    <StandaloneLayout hideHeaderNavigation>
+    <StandaloneLayout title="Support" hideHeaderNavigation>
       <AuthGuard>
         <SupportArea>{page}</SupportArea>
       </AuthGuard>
     </StandaloneLayout>
   );
+}
+
+function SupportHubLayout({ children }: PropsWithChildren) {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    return (
+      <StandaloneLayout title="Support" hideHeaderNavigation>
+        {children}
+      </StandaloneLayout>
+    );
+  }
+  return (
+    <BaseLayout title="Support" className="flex h-full flex-col">
+      <header className="flex h-14 w-full shrink-0 items-center border-b px-4 py-1">
+        <Link
+          href="/"
+          aria-label="Dashboard"
+          className="grid h-6 w-6 shrink-0 place-items-center"
+        >
+          <Logo className="h-6 w-6" />
+        </Link>
+      </header>
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
+        {children}
+      </main>
+    </BaseLayout>
+  );
+}
+
+export function getSupportHubLayout(page: ReactElement) {
+  return <SupportHubLayout>{page}</SupportHubLayout>;
 }
 
 export function SupportError({

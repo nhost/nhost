@@ -18,11 +18,7 @@ fragment DashboardSupportTicket on supportTickets {
   updatedAt
 }
 
-query dashboardSupportTickets(
-  $where: supportTickets_bool_exp!
-  $offset: Int!
-  $replyRole: String!
-) {
+query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!) {
   supportTickets(
     where: $where
     order_by: [{ updatedAt: desc }, { id: desc }]
@@ -34,13 +30,6 @@ query dashboardSupportTickets(
       aggregate {
         count
       }
-    }
-    lastReply: comments(
-      where: { authorRole: { _eq: $replyRole } }
-      order_by: [{ createdAt: desc }, { id: desc }]
-      limit: 1
-    ) {
-      createdAt
     }
   }
 }
@@ -104,12 +93,21 @@ query dashboardSupportOrganizations($userId: uuid!) {
     slug
     plan {
       name
+      isFree
       supportAllowedSeverities
     }
     apps(order_by: { name: asc }) {
       id
       name
     }
+  }
+  plans(
+    order_by: { sort: asc }
+    where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
+  ) {
+    id
+    name
+    supportAllowedSeverities
   }
 }
 

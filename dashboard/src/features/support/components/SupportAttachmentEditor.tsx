@@ -59,6 +59,7 @@ interface SupportAttachmentEditorProps
   onChange: (value: string) => void;
   onBlur: VoidFunction;
   label: string;
+  placeholder?: string;
   disabled?: boolean;
   dragging: boolean;
   scope?: SupportAttachmentScope;
@@ -94,6 +95,9 @@ const basicSetup = {
   closeBrackets: false,
   autocompletion: false,
   drawSelection: false,
+  // There is no language to highlight, and its plugin crashes when deleting an
+  // attachment widget empties the editor (stale viewport end).
+  syntaxHighlighting: false,
 };
 
 function SupportAttachmentEditor({
@@ -102,6 +106,7 @@ function SupportAttachmentEditor({
   onChange,
   onBlur,
   label,
+  placeholder,
   disabled = false,
   dragging,
   scope,
@@ -366,6 +371,9 @@ function SupportAttachmentEditor({
     if (invalid !== undefined) {
       attributes['aria-invalid'] = String(invalid);
     }
+    if (placeholder) {
+      attributes['aria-placeholder'] = placeholder;
+    }
     return [
       codeMirrorAppBackground,
       editorTheme,
@@ -374,14 +382,25 @@ function SupportAttachmentEditor({
       shortcuts,
       decorations,
     ];
-  }, [decorations, describedBy, disabled, id, invalid, label, shortcuts]);
+  }, [
+    decorations,
+    describedBy,
+    disabled,
+    id,
+    invalid,
+    label,
+    placeholder,
+    shortcuts,
+  ]);
+  const hasError = invalid === true || invalid === 'true';
 
   return (
     <fieldset
       aria-label={`${label} editor`}
       className={cn(
         'relative min-h-40 w-full rounded-md border border-input bg-background text-base ring-offset-background transition-colors md:text-sm [&_.cm-content]:min-h-40',
-        !disabled && 'hover:border-primary/50',
+        !disabled && !hasError && 'hover:border-primary/50',
+        hasError && 'border-red-500',
         dragging && !filesDisabled && 'border-primary ring-2 ring-primary/30',
         dragging && organizationRequired && 'border-destructive',
       )}
@@ -502,6 +521,7 @@ function SupportAttachmentEditor({
           ref={editor}
           value={value}
           onChange={onChange}
+          placeholder={placeholder}
           readOnly={disabled}
           indentWithTab={false}
           basicSetup={basicSetup}

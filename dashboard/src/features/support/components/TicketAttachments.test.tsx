@@ -6,7 +6,7 @@ import { vi } from 'vitest';
 import { Form } from '@/components/form/Form';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import TicketAttachments from '@/features/support/components/TicketAttachments';
-import { useSupportTicketAttachments } from '@/features/support/hooks/use-support-ticket-attachments';
+import { useSupportTicketAttachments } from '@/features/support/hooks/useSupportTicketAttachments';
 import { SUPPORT_ATTACHMENT_BUCKET } from '@/features/support/utils/attachments';
 import type { DashboardSupportAttachmentsQuery } from '@/generated/graphql';
 import { useNhostClient } from '@/providers/nhost';
@@ -537,7 +537,7 @@ describe('ticket attachments', () => {
     expect(downloads).toEqual([]);
   });
 
-  it('paginates the server-limited attachment view without losing the boundary', async () => {
+  it('loads every page of the server-limited attachment view without losing the boundary', async () => {
     server.use(
       nhostGraphQLLink.query('dashboardSupportAttachments', ({ variables }) => {
         const offset = Number(variables.offset);
@@ -559,16 +559,9 @@ describe('ticket attachments', () => {
       }),
     );
     renderAttachments();
-    await screen.findByText('log-99.txt');
-    await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Load more attachments' }),
-    );
     await screen.findByText('log-100.txt');
     expect(screen.getAllByText('log-99.txt')).toHaveLength(1);
     expect(queries.map(({ variables }) => variables.offset)).toEqual([0, 100]);
-    expect(
-      screen.queryByRole('button', { name: 'Load more attachments' }),
-    ).not.toBeInTheDocument();
   });
 
   it('hides stale attachment metadata and disables uploads after access fails', async () => {
