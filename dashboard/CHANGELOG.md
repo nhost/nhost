@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.11.1] - 2026-11-26
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Move cookie settings to account settings (#5458)
+
 ## [@nhost/dashboard@3.11.0] - 2026-11-26
 
 ### 🚀 Features
