@@ -1,56 +1,56 @@
-import { BlogLeadPost } from '@/components/blog/BlogLeadPost'
-import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
-import { BlogSearchField } from '@/components/blog/BlogSearchField'
-import { BlogTagRow } from '@/components/blog/BlogTagRow'
-import { Button } from '@/components/common/Button'
-import { Container } from '@/components/common/Container'
-import { Layout } from '@/components/common/Layout'
-import { useArticleSearch } from '@/hooks/useArticleSearch'
-import { POSTS_PER_BATCH } from '@/lib/blogGrouping'
-import { buildSeo, BuildSeoOptions } from '@/utils/seo'
-import { Article } from '@/utils/types'
-import Router from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import Router from 'next/router';
+import { useEffect, useRef, useState } from 'react';
+import { BlogLeadPost } from '@/components/blog/BlogLeadPost';
+import { BlogPostGrid } from '@/components/blog/BlogPostGrid';
+import { BlogSearchField } from '@/components/blog/BlogSearchField';
+import { BlogTagRow } from '@/components/blog/BlogTagRow';
+import { Button } from '@/components/common/Button';
+import { Container } from '@/components/common/Container';
+import { Layout } from '@/components/common/Layout';
+import { useArticleSearch } from '@/hooks/useArticleSearch';
+import { POSTS_PER_BATCH } from '@/lib/blogGrouping';
+import { type BuildSeoOptions, buildSeo } from '@/utils/seo';
+import type { Article } from '@/utils/types';
 
 /**
  * How many posts each listing has revealed, by path, so moving between tags
  * and reading a post keep each list as far open as it was. Lives until a full
  * reload or a navigation outside /blog.
  */
-const revealedCounts = new Map<string, number>()
+const revealedCounts = new Map<string, number>();
 
 /** The same for search results, for one search term only. */
-const revealedSearch = { term: '', counts: new Map<string, number>() }
+const revealedSearch = { term: '', counts: new Map<string, number>() };
 
 /** Forgets the revealed search results unless they were for `term`. */
 function keepRevealedSearch(term: string) {
   if (revealedSearch.term !== term) {
-    revealedSearch.term = term
-    revealedSearch.counts.clear()
+    revealedSearch.term = term;
+    revealedSearch.counts.clear();
   }
 }
 
 if (typeof window !== 'undefined') {
   Router.events.on('routeChangeStart', (url: string) => {
     if (!/^\/blog(?=[/?#]|$)/.test(url)) {
-      revealedCounts.clear()
-      keepRevealedSearch('')
+      revealedCounts.clear();
+      keepRevealedSearch('');
     }
-  })
+  });
 }
 
 export interface BlogListingProps {
-  seo: BuildSeoOptions
+  seo: BuildSeoOptions;
   /** Shown above the toolbar on every listing; the lists leave it out. */
-  lead: Article | null
+  lead: Article | null;
   /** Every post in the listing, newest first. */
-  articles: Article[]
+  articles: Article[];
   /** Every post the search covers: the listing plus the lead. */
-  searchable: Article[]
+  searchable: Article[];
   /** Every tag, most used first. */
-  tags: string[]
+  tags: string[];
   /** The tag whose listing this is, or `null` on /blog. */
-  activeTag: string | null
+  activeTag: string | null;
 }
 
 /**
@@ -74,65 +74,66 @@ export default function BlogListing({
   tags,
   activeTag,
 }: BlogListingProps) {
-  const { query, setQuery, isSearching, results } = useArticleSearch(searchable)
+  const { query, setQuery, isSearching, results } =
+    useArticleSearch(searchable);
 
   const [listCount, setListCount] = useState(
     () => revealedCounts.get(seo.path) ?? POSTS_PER_BATCH,
-  )
-  const searchTerm = query.trim().toLowerCase()
+  );
+  const searchTerm = query.trim().toLowerCase();
   const [searchCount, setSearchCount] = useState(() =>
     revealedSearch.term === searchTerm
-      ? revealedSearch.counts.get(seo.path) ?? POSTS_PER_BATCH
+      ? (revealedSearch.counts.get(seo.path) ?? POSTS_PER_BATCH)
       : POSTS_PER_BATCH,
-  )
-  const visibleCount = isSearching ? searchCount : listCount
-  const postsRef = useRef<HTMLDivElement>(null)
-  const showedMoreRef = useRef(false)
+  );
+  const visibleCount = isSearching ? searchCount : listCount;
+  const postsRef = useRef<HTMLDivElement>(null);
+  const showedMoreRef = useRef(false);
 
   // Move focus to the first post a "Show more posts" click revealed, so
   // keyboard users continue from there rather than below the new posts.
   useEffect(() => {
     if (!showedMoreRef.current) {
-      return
+      return;
     }
 
-    showedMoreRef.current = false
+    showedMoreRef.current = false;
     postsRef.current
       ?.querySelectorAll<HTMLAnchorElement>('li > a')
-      [visibleCount - POSTS_PER_BATCH]?.focus({ preventScroll: true })
-  }, [visibleCount])
+      [visibleCount - POSTS_PER_BATCH]?.focus({ preventScroll: true });
+  }, [visibleCount]);
 
   function handleShowMore() {
-    showedMoreRef.current = true
+    showedMoreRef.current = true;
 
     if (isSearching) {
-      keepRevealedSearch(searchTerm)
-      revealedSearch.counts.set(seo.path, searchCount + POSTS_PER_BATCH)
-      setSearchCount(searchCount + POSTS_PER_BATCH)
+      keepRevealedSearch(searchTerm);
+      revealedSearch.counts.set(seo.path, searchCount + POSTS_PER_BATCH);
+      setSearchCount(searchCount + POSTS_PER_BATCH);
 
-      return
+      return;
     }
 
-    revealedCounts.set(seo.path, listCount + POSTS_PER_BATCH)
-    setListCount(listCount + POSTS_PER_BATCH)
+    revealedCounts.set(seo.path, listCount + POSTS_PER_BATCH);
+    setListCount(listCount + POSTS_PER_BATCH);
   }
 
   // Each new search term starts again from the first batch, on every listing.
   function handleQueryChange(value: string) {
-    const term = value.trim().toLowerCase()
+    const term = value.trim().toLowerCase();
 
-    setQuery(value)
+    setQuery(value);
 
     if (term !== searchTerm) {
-      keepRevealedSearch(term)
-      setSearchCount(POSTS_PER_BATCH)
+      keepRevealedSearch(term);
+      setSearchCount(POSTS_PER_BATCH);
     }
   }
 
-  const shown = isSearching ? results : articles
-  const count = shown.length
+  const shown = isSearching ? results : articles;
+  const count = shown.length;
 
-  const sectionHeading = activeTag ?? 'Latest'
+  const sectionHeading = activeTag ?? 'Latest';
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
@@ -218,5 +219,5 @@ export default function BlogListing({
         </section>
       </Container>
     </Layout>
-  )
+  );
 }

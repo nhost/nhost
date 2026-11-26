@@ -6,7 +6,10 @@ export interface CookieConsentProps {
   onReject: () => void;
 }
 
-export default function CookieConsent({ onAccept, onReject }: CookieConsentProps) {
+export default function CookieConsent({
+  onAccept,
+  onReject,
+}: CookieConsentProps) {
   return (
     <div
       role="dialog"
@@ -15,7 +18,10 @@ export default function CookieConsent({ onAccept, onReject }: CookieConsentProps
     >
       <p className="mb-4 text-white text-opacity-65">
         We use cookies to understand how Nhost is used and to improve it.{' '}
-        <Link href="/legal/cookies-policy" className="inline text-opacity-100 underline">
+        <Link
+          href="/legal/cookies-policy"
+          className="inline text-opacity-100 underline"
+        >
           Learn more
         </Link>
       </p>

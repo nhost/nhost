@@ -1,22 +1,22 @@
-import { AnnouncementProvider } from '@/providers/AnnouncementProvider'
-import '@/styles/globals.css'
-import '@code-hike/mdx/dist/index.css'
-import { baseUrl } from '@/utils/utils'
-import { NextPage } from 'next'
-import { DefaultSeo } from 'next-seo'
-import type { AppProps } from 'next/app'
-import { ReactElement } from 'react'
-import Analytics from '@/components/analytics/analytics'
+import { AnnouncementProvider } from '@/providers/AnnouncementProvider';
+import '@/styles/globals.css';
+import '@code-hike/mdx/dist/index.css';
+import type { NextPage } from 'next';
+import type { AppProps } from 'next/app';
+import { DefaultSeo } from 'next-seo';
+import type { ReactElement } from 'react';
+import Analytics from '@/components/analytics/analytics';
+import { baseUrl } from '@/utils/utils';
 
 export type NextPageWithLayout = NextPage & {
-  getLayout?: (page: ReactElement) => ReactElement
-}
+  getLayout?: (page: ReactElement) => ReactElement;
+};
 export interface LandingPageProps extends AppProps {
-  Component: NextPageWithLayout
+  Component: NextPageWithLayout;
 }
 
 export default function App({ Component, pageProps }: LandingPageProps) {
-  const getLayout = Component.getLayout || ((page: ReactElement) => page)
+  const getLayout = Component.getLayout || ((page: ReactElement) => page);
 
   return (
     <AnnouncementProvider>
@@ -44,5 +44,5 @@ export default function App({ Component, pageProps }: LandingPageProps) {
 
       {getLayout(<Component {...pageProps} />)}
     </AnnouncementProvider>
-  )
+  );
 }

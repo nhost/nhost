@@ -44,6 +44,7 @@ vi.mock('next/router', () => ({
       orgSlug: 'local',
       appSubdomain: 'local',
       dataSourceSlug: 'default',
+      tab: 'sql',
       jobId: mocks.jobId,
       notice: mocks.notice,
     },
@@ -223,8 +224,9 @@ async function page(view: 'settings' | 'job' | 'notice' | 'index' = 'index') {
   mocks.pathname = `/events/cron-jobs${view === 'settings' ? '/settings' : view === 'job' ? '/sql/[jobId]' : ''}`;
   mocks.jobId = view === 'job' ? sqlJobFixture.jobid : undefined;
   mocks.notice = view === 'notice' ? 'sql' : undefined;
-  render(<SqlJobs />);
-  return screen.findByRole('heading', { name: /^SQL jobs/i });
+  const viewResult = render(<SqlJobs />);
+  await screen.findByRole('tab', { name: /^SQL\b/i, selected: true });
+  return viewResult;
 }
 
 async function selectJobAction(user: TestUserEvent, name: string) {
@@ -562,10 +564,19 @@ describe('SQL Jobs', () => {
         }),
       );
       const user = new TestUserEvent();
-      await page('settings');
+      const { rerender } = await page('job');
+      function showAction(action: string) {
+        const settings = action === 'Disable pg_cron';
+        mocks.pathname = settings
+          ? '/events/cron-jobs/settings'
+          : '/events/cron-jobs/sql/[jobId]';
+        mocks.jobId = settings ? undefined : sqlJobFixture.jobid;
+        rerender(<SqlJobs />);
+      }
       await selectJobAction(user, 'Pause');
       await waitFor(() => expect(attempts).toBe(1));
 
+      showAction(opener);
       if (opener === 'Delete refresh-summary') {
         await selectJobAction(user, 'Delete');
       } else {
@@ -589,6 +600,7 @@ describe('SQL Jobs', () => {
         expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
       );
 
+      showAction(nextOpener);
       if (nextOpener === 'Delete refresh-summary') {
         await selectJobAction(user, 'Delete');
       } else {
@@ -840,14 +852,16 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page('settings');
     const timezone = await screen.findByLabelText('Time zone');
-    await user.clear(timezone);
-    await user.type(timezone, 'not-a-timezone');
-    await user.click(screen.getByRole('button', { name: 'Save settings' }));
+    await user.click(timezone);
+    await user.type(
+      await screen.findByPlaceholderText('Search time zones'),
+      'not-a-timezone',
+    );
+    expect(await screen.findByText('No time zone found.')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
     expect(
-      await screen.findByText(
-        'Enter a valid IANA timezone, such as Europe/Stockholm.',
-      ),
-    ).toBeInTheDocument();
+      screen.getByRole('button', { name: 'Save settings' }),
+    ).toBeDisabled();
     expect(configWrites).toHaveLength(0);
   });
 
@@ -882,8 +896,14 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page('settings');
     const timezone = await screen.findByLabelText('Time zone');
-    await user.clear(timezone);
-    await user.type(timezone, 'Europe/Stockholm');
+    await user.click(timezone);
+    await user.type(
+      await screen.findByPlaceholderText('Search time zones'),
+      'Europe/Stockholm',
+    );
+    await user.click(
+      await screen.findByRole('option', { name: /Europe\/Stockholm/ }),
+    );
     await user.click(screen.getByRole('button', { name: 'Save settings' }));
     await waitFor(() => expect(configWrites).toHaveLength(1));
     expect(configWrites[0]).toMatchObject({
