@@ -135,7 +135,7 @@ func (ctrl *Controller) finishOIDC(
 		ctx, deptr(params.Code), verifier, state.Nonce, responseIssuer,
 	)
 	if err != nil {
-		logger.WarnContext(ctx, "failed to verify OIDC authorization response")
+		logger.WarnContext(ctx, "failed to verify OIDC authorization response", logError(err))
 		return "", ErrOauthTokenExchangeFailed
 	}
 

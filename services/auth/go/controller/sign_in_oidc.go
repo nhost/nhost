@@ -129,7 +129,7 @@ func (ctrl *Controller) startOIDC( //nolint:funlen // Browser authorization keep
 		jwt.MapClaims{oidcStateClaim: state}, expiresAt,
 	)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to sign OIDC state")
+		logger.ErrorContext(ctx, "failed to sign OIDC state", logError(err))
 		return "", nil, ErrInternalServerError
 	}
 
@@ -139,7 +139,7 @@ func (ctrl *Controller) startOIDC( //nolint:funlen // Browser authorization keep
 
 	location, err := p.AuthorizationURL(ctx, signedState, nonce, verifier)
 	if err != nil {
-		logger.WarnContext(ctx, "failed to start OIDC authorization")
+		logger.WarnContext(ctx, "failed to start OIDC authorization", logError(err))
 		return "", nil, ErrOauthProviderError
 	}
 

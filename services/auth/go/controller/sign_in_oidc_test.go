@@ -210,6 +210,15 @@ func (f *oidcRouteFixture) router(
 ) (http.Handler, *controller.JWTGetter) {
 	t.Helper()
 
+	return f.routerWithLogger(t, registry, db, slog.New(slog.DiscardHandler), opts...)
+}
+
+func (f *oidcRouteFixture) routerWithLogger(
+	t *testing.T, registry *providers.OIDCRegistry, db *mock.MockDBClient,
+	logger *slog.Logger, opts ...getControllerOptsFunc,
+) (http.Handler, *controller.JWTGetter) {
+	t.Helper()
+
 	opts = append(opts, func(opts *getControllerOpts) {
 		opts.oidcProviders = registry
 	})
@@ -234,7 +243,7 @@ func (f *oidcRouteFixture) router(
 	router, validator, err := oapi.NewRouter(
 		spec, oidcFixturePrefix, signer.MiddlewareFunc,
 		oapimw.CORSOptions{AllowedOrigins: []string{"http://localhost:3000"}},
-		slog.New(slog.DiscardHandler),
+		logger,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -291,6 +300,71 @@ func oidcRouteRequest(
 	handler.ServeHTTP(resp, req)
 
 	return resp
+}
+
+func TestOIDCBrowserStartLogsDiscoveryError(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+
+	raw, err := json.Marshal(map[string]map[string]string{
+		oidcPrimary: {
+			"issuer":       fixture.issuer(oidcPrimary),
+			"discoveryUrl": fixture.issuer(oidcSecondary) + ".well-known/openid-configuration",
+			"clientId":     "web-authentik",
+			"clientSecret": oidcFixtureClientSecret,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	registry, err := providers.NewOIDCRegistry(
+		string(raw), getConfig().ServerURL.JoinPath("v1"), fixture.server.Client(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logs bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&logs, nil))
+	db := mock.NewMockDBClient(gomock.NewController(t))
+	handler, _ := fixture.routerWithLogger(t, registry, db, logger)
+	challenge := pkce.ComputeS256Challenge(oauth2.GenerateVerifier())
+
+	resp := oidcRouteRequest(t, handler, http.MethodGet,
+		"/v1/signin/oidc/authentik?codeChallenge="+challenge, nil,
+	)
+	if resp.Code != http.StatusBadRequest || !strings.Contains(resp.Body.String(), "oauth-provider-error") {
+		t.Fatalf("expected provider error, got HTTP %d", resp.Code)
+	}
+
+	if strings.Contains(logs.String(), oidcFixtureClientSecret) {
+		t.Fatal("OIDC start logs contain the client secret")
+	}
+
+	decoder := json.NewDecoder(&logs)
+	for decoder.More() {
+		var record struct {
+			Message string `json:"msg"`
+			Level   string `json:"level"`
+			Error   string `json:"error"`
+		}
+		if err := decoder.Decode(&record); err != nil {
+			t.Fatal(err)
+		}
+
+		if record.Message == "failed to start OIDC authorization" {
+			if record.Level != "WARN" || !strings.Contains(record.Error, "issuer mismatch") {
+				t.Fatal("OIDC start warning does not contain the discovery error")
+			}
+
+			return
+		}
+	}
+
+	t.Fatal("missing OIDC start warning")
 }
 
 func expectOIDCSession(db *mock.MockDBClient, userID uuid.UUID) {

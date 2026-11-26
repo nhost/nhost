@@ -53,7 +53,7 @@ func (ctrl *Controller) oidcIDTokenSession(
 
 	profile, err := p.VerifyNative(ctx, body.IdToken, deptr(body.Nonce))
 	if err != nil {
-		logger.WarnContext(ctx, "failed to verify native OIDC ID token")
+		logger.WarnContext(ctx, "failed to verify native OIDC ID token", logError(err))
 		return nil, ErrInvalidRequest
 	}
 
