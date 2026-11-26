@@ -13,7 +13,13 @@ import (
 	"github.com/nhost/nhost/services/auth/go/oidc"
 )
 
-var errOIDCConfig = errors.New("AUTH_PROVIDER_OIDC must be an object keyed by provider slug")
+var (
+	errOIDCConfig = errors.New("AUTH_PROVIDER_OIDC must be an object keyed by provider slug")
+	errOIDCDecode = errors.New(
+		"AUTH_PROVIDER_OIDC is not valid JSON or contains an unknown or mistyped field " +
+			"(expected issuer, discoveryUrl, clientId, clientSecret, scopes, audiences, disableNonce)",
+	)
+)
 
 // OIDCRegistry holds custom providers separately from the built-in Map.
 type OIDCRegistry struct {
@@ -27,11 +33,14 @@ func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client) (*OIDC
 		return registry, nil
 	}
 
+	if !strings.HasPrefix(strings.TrimSpace(raw), "{") {
+		return nil, errOIDCConfig
+	}
+
 	// JSON decoding errors can contain credentials from the configuration.
 	var configs map[string]oidc.CustomProviderConfig
-	if !strings.HasPrefix(strings.TrimSpace(raw), "{") ||
-		json.Unmarshal([]byte(raw), &configs, json.RejectUnknownMembers(true)) != nil {
-		return nil, errOIDCConfig
+	if json.Unmarshal([]byte(raw), &configs, json.RejectUnknownMembers(true)) != nil {
+		return nil, errOIDCDecode
 	}
 
 	for _, slug := range slices.Sorted(maps.Keys(configs)) {

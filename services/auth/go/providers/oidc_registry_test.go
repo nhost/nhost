@@ -52,8 +52,18 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 	}{
 		{name: "unset", config: "", valid: true},
 		{name: "empty object", config: "{}", valid: true},
-		{name: "null", config: "null", valid: false},
-		{name: "array", config: "[" + valid + "]", valid: false},
+		{
+			name:          "null",
+			config:        "null",
+			valid:         false,
+			errorContains: "must be an object keyed by provider slug",
+		},
+		{
+			name:          "array",
+			config:        "[" + valid + "]",
+			valid:         false,
+			errorContains: "must be an object keyed by provider slug",
+		},
 		{name: "duplicate slug", config: `{"one":` + valid + `,"one":` + valid + "}", valid: false},
 		{name: "uppercase slug", config: `{"OIDC":` + valid + "}", valid: false},
 		{
@@ -100,6 +110,24 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 			name:   "issuer credentials",
 			config: `{"idp":` + strings.Replace(valid, "idp.example", "user@idp.example", 1) + "}",
 			valid:  false,
+		},
+		{
+			name:          "casing typo",
+			config:        `{"idp":` + strings.Replace(valid, "clientId", "clientID", 1) + "}",
+			valid:         false,
+			errorContains: "is not valid JSON or contains an unknown or mistyped field",
+		},
+		{
+			name:          "trailing comma",
+			config:        `{"idp":` + strings.TrimSuffix(valid, "}") + ",}}",
+			valid:         false,
+			errorContains: "is not valid JSON or contains an unknown or mistyped field",
+		},
+		{
+			name:          "wrong value type",
+			config:        `{"idp":` + strings.Replace(valid, `"web"`, "5", 1) + "}",
+			valid:         false,
+			errorContains: "is not valid JSON or contains an unknown or mistyped field",
 		},
 		{
 			name:   "type field",
