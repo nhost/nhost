@@ -63,6 +63,7 @@ func newApp() *graph.App {
 			},
 		},
 		SystemConfig: &model.ConfigSystemConfig{
+			Envoy: nil,
 			Postgres: &model.ConfigSystemConfigPostgres{
 				MajorVersion: new("14"),
 				Database:     "local",

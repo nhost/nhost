@@ -2,11 +2,14 @@ package appconfig
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 )
+
+var errNullOIDCProvider = errors.New("auth.method.oidc entries must be objects")
 
 const (
 	secretHasuraAuthGraphqlDatabaseURL    = "databaseUrl"
@@ -15,6 +18,8 @@ const (
 	secretHasuraAuthJWTSecret             = "jwtSecret"
 	secretHasuraAuthSMTPPassword          = "smtpPassword"
 	secretHasuraAuthEncryptionKey         = "encryptionKey"
+	authProviderOIDCEnv                   = "AUTH_PROVIDER_OIDC"
+	authOIDCAllowPrivateIPsEnv            = "AUTH_PROVIDER_OIDC_ALLOW_PRIVATE_IPS"
 )
 
 type oauthsettings interface {
@@ -80,6 +85,70 @@ func getOauthSettings(c oauthsettings, provider string) []EnvVar {
 		env = append(env, EnvVar{
 			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_SCOPE", provider),
 			Value:      Stringify(c.GetScope()),
+			IsSecret:   false,
+			SecretName: "",
+		})
+	}
+
+	return env
+}
+
+type oidcProviderEnv struct {
+	Issuer       string   `json:"issuer"`
+	DiscoveryURL *string  `json:"discoveryUrl,omitempty"`
+	ClientID     string   `json:"clientId"`
+	ClientSecret string   `json:"clientSecret"`
+	Scopes       []string `json:"scopes,omitempty"`
+	Audiences    []string `json:"audiences,omitempty"`
+	DisableNonce bool     `json:"disableNonce,omitempty"`
+}
+
+func oidcProvidersEnv(providers []*model.ConfigOIDCProvider) (EnvVar, error) {
+	registry := make(map[string]oidcProviderEnv, len(providers))
+	for _, provider := range providers {
+		if provider == nil {
+			return EnvVar{}, errNullOIDCProvider
+		}
+
+		registry[provider.Slug] = oidcProviderEnv{
+			Issuer:       provider.Issuer,
+			DiscoveryURL: provider.DiscoveryUrl,
+			ClientID:     provider.ClientId,
+			ClientSecret: provider.ClientSecret,
+			Scopes:       provider.Scopes,
+			Audiences:    provider.Audiences,
+			DisableNonce: unptr(provider.DisableNonce),
+		}
+	}
+
+	//nolint:gosec // G117: Auth receives the registry as a secret.
+	value, err := json.Marshal(registry)
+	if err != nil {
+		return EnvVar{}, fmt.Errorf("could not marshal OIDC providers: %w", err)
+	}
+
+	return EnvVar{
+		Name:       authProviderOIDCEnv,
+		Value:      string(value),
+		IsSecret:   true,
+		SecretName: "oidcProviders",
+	}, nil
+}
+
+func appendAuthGlobalEnv(
+	env []EnvVar,
+	variables []*model.ConfigGlobalEnvironmentVariable,
+) []EnvVar {
+	for _, variable := range variables {
+		// Older saved configs can still contain these reserved variables.
+		if strings.EqualFold(variable.Name, authProviderOIDCEnv) ||
+			strings.EqualFold(variable.Name, authOIDCAllowPrivateIPsEnv) {
+			continue
+		}
+
+		env = append(env, EnvVar{
+			Name:       variable.Name,
+			Value:      variable.Value,
 			IsSecret:   false,
 			SecretName: "",
 		})
@@ -603,6 +672,15 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 				SecretName: "",
 			},
 		}...)
+	}
+
+	if providers := config.GetAuth().GetMethod().GetOidc(); len(providers) > 0 {
+		oidcEnv, err := oidcProvidersEnv(providers)
+		if err != nil {
+			return nil, err
+		}
+
+		env = append(env, oidcEnv)
 	}
 
 	env = append(
@@ -1237,12 +1315,5 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			})
 	}
 
-	for _, e := range config.GetGlobal().GetEnvironment() {
-		env = append(env, EnvVar{ //nolint:exhaustruct
-			Name:  e.Name,
-			Value: e.Value,
-		})
-	}
-
-	return env, nil
+	return appendAuthGlobalEnv(env, config.GetGlobal().GetEnvironment()), nil
 }

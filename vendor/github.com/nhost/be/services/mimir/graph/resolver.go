@@ -9,6 +9,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/nhost"
 	"github.com/nhost/be/services/mimir/schema"
+	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/sirupsen/logrus"
 )
 
@@ -51,25 +52,34 @@ type Resolver struct {
 	fetcher Fetcher
 	schema  *schema.Schema
 	plugins []Plugin
-	mu      sync.RWMutex
+	// minVersions is empty when minimum versions aren't checked.
+	minVersions []appconfig.MinVersion
+	mu          sync.RWMutex
 }
 
 func NewResolver(
-	store DataStore, fetcher Fetcher, nhostc nhost.Querier, plugins []Plugin,
+	store DataStore, fetcher Fetcher, nhostc nhost.Querier, plugins []Plugin, opts ...Option,
 ) (*Resolver, error) {
 	s, err := schema.New()
 	if err != nil {
 		return nil, fmt.Errorf("problem getting schema: %w", err)
 	}
 
-	return &Resolver{
-		nhost:   nhostc,
-		store:   store,
-		fetcher: fetcher,
-		schema:  s,
-		plugins: plugins,
-		mu:      sync.RWMutex{},
-	}, nil
+	r := &Resolver{
+		nhost:       nhostc,
+		store:       store,
+		fetcher:     fetcher,
+		schema:      s,
+		plugins:     plugins,
+		minVersions: nil,
+		mu:          sync.RWMutex{},
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r, nil
 }
 
 // ensureLoaded checks the cache for appID and fetches from source on miss.

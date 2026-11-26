@@ -1,11 +1,15 @@
 package dockercompose
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
+
+var errOIDCRequiresHTTPS = errors.New("auth.method.oidc requires HTTPS on the local Auth URL")
 
 func traefikHostMatch(name string) string {
 	return fmt.Sprintf(
@@ -66,6 +70,15 @@ func auth( //nolint:funlen
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
 		env[v.Name] = v.Value
+	}
+
+	if len(cfg.GetAuth().GetMethod().GetOidc()) > 0 {
+		callbackBase, err := url.Parse(env["AUTH_SERVER_URL"])
+		if err != nil || callbackBase.Scheme != "https" || callbackBase.Hostname() == "" ||
+			callbackBase.User != nil || callbackBase.ForceQuery || callbackBase.RawQuery != "" ||
+			callbackBase.Fragment != "" {
+			return nil, errOIDCRequiresHTTPS
+		}
 	}
 
 	svc := &Service{

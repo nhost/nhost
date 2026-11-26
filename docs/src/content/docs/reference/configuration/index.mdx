@@ -153,7 +153,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.52.0"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
+| `version` | `string` | `"0.53.0"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
 | `resources?` | [`Resources`](#resources) |  | Resources for the service |
 | `elevatedPrivileges` | object |  | Settings for elevated-privilege operations. |
 | `redirections` | object |  | Allowed post-authentication redirect URLs. |
@@ -272,6 +272,7 @@ Configuration for auth service
 | `emailPassword` | object |  | Email and password sign-in. |
 | `smsPasswordless` | object |  | Passwordless sign-in via SMS. Deprecated: use otp.sms instead. The two flags remain independent in config; their values are OR-ed only when generating hasura-auth environment variables. |
 | `oauth` | object |  | OAuth social sign-in providers. |
+| `oidc?` | list of [`OIDCProvider`](#oidcprovider) |  | Custom OpenID Connect sign-in providers. |
 | `webauthn` | object |  | WebAuthn / passkey sign-in. |
 
 #### `auth.method.anonymous`
@@ -456,7 +457,7 @@ Configuration for postgres service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"18.6-20260930-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
+| `version` | `string` | `"18.7-20261118-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
 | `resources` | object |  | Resources for the service |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 | `pitr?` | object |  | Point-in-time recovery settings. |
@@ -547,6 +548,8 @@ Configuration for postgres service
 | `maxUserConnections` | `int32` | `10` | Maximum concurrent workflow SQL connections. |
 | `retentionDays` | `int32` | `30` | Days to retain completed workflow instances. |
 | `logWorkflowSql` | `"on"` \| `"off"` | `"off"` | Log substituted workflow SQL, which may contain secrets. |
+| `httpSecurity` | `"restricted"` \| `"disabled"` \| `"unrestricted"` | `"unrestricted"` | HTTP egress policy. Unrestricted permits private-network destinations. |
+| `httpAllowedDomains` | list of `string & =~"^[a-zA-Z0-9*.-]+$"` | `[]` | Allowed HTTP host patterns. An empty list denies all hosts in restricted mode. |
 
 ##### `postgres.settings.extensions.timescaledb`
 
@@ -577,7 +580,7 @@ Configuration for storage service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.15.1"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
+| `version` | `string` | `"0.17.0"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
 | `resources?` | [`Resources`](#resources) `{networking?: null}` |  | Networking (custom domains at the moment) are not allowed as we need to do further configurations in the CDN. We will enable it again in the future. |
 | `antivirus?` | object |  | Antivirus scanning for uploaded files. |
 | `imageTransformer?` | object |  | Bounds applied to on-the-fly image transformations to keep a single request from exhausting the service's memory/CPU. Omit to use the storage service's built-in defaults. |
@@ -655,7 +658,7 @@ Types reused across multiple sections above.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `name` | `=~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"` |  | Name of the environment variable |
+| `name` | `=~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_" & !~"(?i)^AUTH_PROVIDER_OIDC(_ALLOW_PRIVATE_IPS)?$"` |  | Name of the environment variable |
 | `value` | `string` |  | Value of the environment variable |
 
 ### JWTSecret
@@ -767,6 +770,19 @@ string & strings.MinRunes(2) & strings.MaxRunes(3)
 ```cue
 =~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 ```
+
+### OIDCProvider
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `slug` | `=~"^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$"` |  | Unique provider identifier used in the Auth callback URL. |
+| `issuer` | `string & httpsURL & !~"\\?"` |  | Issuer URL configured in the identity provider. |
+| `discoveryUrl?` | `string & httpsURL` \| `""` |  | Optional discovery endpoint. Auth derives it from the issuer by default. |
+| `clientId` | `string & oauthValue` |  | OAuth client ID registered with the identity provider. |
+| `clientSecret` | `string` |  | OAuth client secret. Supports references to project secrets. |
+| `scopes?` | list of `string & oauthValue` |  | Requested OAuth scopes. Auth defaults to openid, email, and profile. |
+| `audiences?` | list of `string & oauthValue` |  | Additional allowed audiences for ID tokens. Auth always allows the client ID. |
+| `disableNonce?` | `bool` |  | Skip ID-token nonce verification for this provider. |
 
 ### StandardOauthProvider
 
@@ -881,7 +897,7 @@ Resource configuration for a service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.7.1"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
+| `version` | `string` | `"0.8.1"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 
 #### `Constellation.settings`

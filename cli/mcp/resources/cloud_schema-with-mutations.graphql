@@ -79,6 +79,7 @@ type ConfigAuthMethod {
   emailPassword: ConfigAuthMethodEmailPassword
   emailPasswordless: ConfigAuthMethodEmailPasswordless
   oauth: ConfigAuthMethodOauth
+  oidc: [ConfigOIDCProvider!]
   otp: ConfigAuthMethodOtp
   smsPasswordless: ConfigAuthMethodSmsPasswordless
   webauthn: ConfigAuthMethodWebauthn
@@ -499,6 +500,16 @@ type ConfigJWTSecret {
 type ConfigNetworking {
   ingresses: [ConfigIngress!]
 }
+type ConfigOIDCProvider {
+  audiences: [String!]
+  clientId: String!
+  clientSecret: String!
+  disableNonce: Boolean
+  discoveryUrl: String
+  issuer: String!
+  scopes: [String!]
+  slug: String!
+}
 
 type ConfigObservability {
   grafana: ConfigGrafana!
@@ -846,6 +857,7 @@ input ConfigAuthMethodUpdateInput {
   emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
   emailPasswordless: ConfigAuthMethodEmailPasswordlessUpdateInput
   oauth: ConfigAuthMethodOauthUpdateInput
+  oidc: [ConfigOIDCProviderUpdateInput!]
   otp: ConfigAuthMethodOtpUpdateInput
   smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
   webauthn: ConfigAuthMethodWebauthnUpdateInput
@@ -1197,6 +1209,16 @@ input ConfigJWTSecretUpdateInput {
 
 input ConfigNetworkingUpdateInput {
   ingresses: [ConfigIngressUpdateInput!]
+}
+input ConfigOIDCProviderUpdateInput {
+  audiences: [String!]
+  clientId: String
+  clientSecret: String
+  disableNonce: Boolean
+  discoveryUrl: String
+  issuer: String
+  scopes: [String!]
+  slug: String
 }
 
 input ConfigObservabilityUpdateInput {

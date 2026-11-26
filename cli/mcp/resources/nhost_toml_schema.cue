@@ -90,7 +90,7 @@ import (
 
 #GlobalEnvironmentVariable: {
 	// Name of the environment variable
-	name: =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"
+	name: =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_" & !~"(?i)^AUTH_PROVIDER_OIDC(_ALLOW_PRIVATE_IPS)?$"
 	// Value of the environment variable
 	value: string
 }
@@ -248,7 +248,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.15.1"
+	version: string | *"0.17.0"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -297,7 +297,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"18.6-20260930-1"
+	version: string | *"18.7-20261118-1"
 
 	// Resources for the service
 	resources: {
@@ -410,6 +410,10 @@ import (
 				retentionDays: int32 | *30
 				// Log substituted workflow SQL, which may contain secrets.
 				logWorkflowSql: "on" | *"off"
+				// HTTP egress policy. Unrestricted permits private-network destinations.
+				httpSecurity: "restricted" | "disabled" | *"unrestricted"
+				// Allowed HTTP host patterns. An empty list denies all hosts in restricted mode.
+				httpAllowedDomains: [...string & =~"^[a-zA-Z0-9*.-]+$"] | *[]
 			}
 			timescaledb: {
 				// Maximum number of background workers.
@@ -440,7 +444,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.52.0"
+	version: string | *"0.53.0"
 
 	// Resources for the service
 	resources?: #Resources
@@ -681,6 +685,12 @@ import (
 			}
 		}
 
+		// Custom OpenID Connect sign-in providers.
+		oidc?: [...#OIDCProvider]
+		if oidc != _|_ {
+			_oidcSlugsMustBeUnique: list.UniqueItems([for provider in oidc {provider.slug}]) & true @cuegraph(skip)
+		}
+
 		// WebAuthn / passkey sign-in.
 		webauthn: {
 			// Enable this feature.
@@ -811,6 +821,33 @@ import (
 	scope?: [...string]
 }
 
+#OIDCProvider: {
+	// Match an HTTPS authority with a host and no user info or fragment.
+	let httpsURL = net.URL & =~"(?i)^https://(?:\\[[^\\]/?#@\\s]+\\]|[^:/?#@\\[\\]\\s]+)(?::[0-9]+)?(?:[/?]|$)" & !~"#"
+	let oauthValue = =~"^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"
+
+	// Unique provider identifier used in the Auth callback URL.
+	slug: =~"^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$"
+	// Issuer URL configured in the identity provider.
+	issuer: string & httpsURL & !~"\\?"
+	// Optional discovery endpoint. Auth derives it from the issuer by default.
+	discoveryUrl?: string & httpsURL | ""
+	// OAuth client ID registered with the identity provider.
+	clientId: string & oauthValue
+	// OAuth client secret. Supports references to project secrets.
+	clientSecret: string
+	_clientSecretPresent: (strings.TrimSpace(clientSecret) != "") & true @cuegraph(skip)
+	// Requested OAuth scopes. Auth defaults to openid, email, and profile.
+	scopes?: [...string & oauthValue]
+	if scopes != _|_ {
+		_openidScopePresent: (len(scopes) == 0 | list.Contains(scopes, "openid")) & true @cuegraph(skip)
+	}
+	// Additional allowed audiences for ID tokens. Auth always allows the client ID.
+	audiences?: [...string & oauthValue]
+	// Skip ID-token nonce verification for this provider.
+	disableNonce?: bool
+}
+
 #Provider: {
 	// SMTP server used to send emails.
 	smtp?: #Smtp
@@ -938,6 +975,9 @@ import (
 	}
 
 	persistentVolumesEncrypted: bool | *false
+
+	// serve the app's default domains through Envoy Gateway in regions that run it
+	envoy: bool | *false
 }
 
 #Experimental: {
@@ -948,7 +988,7 @@ import (
 #Constellation: {
 	// Version of constellation, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/constellation/tags
-	version: string | *"0.7.1"
+	version: string | *"0.8.1"
 
 	// Advanced configuration settings for the service.
 	settings?: {

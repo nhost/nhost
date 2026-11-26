@@ -1892,6 +1892,8 @@ type ConfigAuthMethod struct {
 	SmsPasswordless *ConfigAuthMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
 	// OAuth social sign-in providers.
 	Oauth *ConfigAuthMethodOauth `json:"oauth,omitempty" toml:"oauth,omitempty"`
+	// Custom OpenID Connect sign-in providers.
+	Oidc []*ConfigOIDCProvider `json:"oidc,omitempty" toml:"oidc,omitempty"`
 	// WebAuthn / passkey sign-in.
 	Webauthn *ConfigAuthMethodWebauthn `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
 }
@@ -1915,6 +1917,9 @@ func (o *ConfigAuthMethod) MarshalJSON() ([]byte, error) {
 	}
 	if o.Oauth != nil {
 		m["oauth"] = o.Oauth
+	}
+	if o.Oidc != nil {
+		m["oidc"] = o.Oidc
 	}
 	if o.Webauthn != nil {
 		m["webauthn"] = o.Webauthn
@@ -1964,6 +1969,13 @@ func (o *ConfigAuthMethod) GetOauth() *ConfigAuthMethodOauth {
 	return o.Oauth
 }
 
+func (o *ConfigAuthMethod) GetOidc() []*ConfigOIDCProvider {
+	if o == nil {
+		o = &ConfigAuthMethod{}
+	}
+	return o.Oidc
+}
+
 func (o *ConfigAuthMethod) GetWebauthn() *ConfigAuthMethodWebauthn {
 	if o == nil {
 		return nil
@@ -1984,6 +1996,8 @@ type ConfigAuthMethodUpdateInput struct {
 	IsSetSmsPasswordless   bool                                          `json:"-"`
 	Oauth                  *ConfigAuthMethodOauthUpdateInput             `json:"oauth,omitempty" toml:"oauth,omitempty"`
 	IsSetOauth             bool                                          `json:"-"`
+	Oidc                   []*ConfigOIDCProviderUpdateInput              `json:"oidc,omitempty" toml:"oidc,omitempty"`
+	IsSetOidc              bool                                          `json:"-"`
 	Webauthn               *ConfigAuthMethodWebauthnUpdateInput          `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
 	IsSetWebauthn          bool                                          `json:"-"`
 }
@@ -2053,6 +2067,25 @@ func (o *ConfigAuthMethodUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetOauth = true
 	}
+	if v, ok := m["oidc"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("Oidc must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigOIDCProviderUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigOIDCProviderUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.Oidc = l
+		}
+		o.IsSetOidc = true
+	}
 	if x, ok := m["webauthn"]; ok {
 		if x != nil {
 			t := &ConfigAuthMethodWebauthnUpdateInput{}
@@ -2114,6 +2147,13 @@ func (o *ConfigAuthMethodUpdateInput) GetOauth() *ConfigAuthMethodOauthUpdateInp
 		return nil
 	}
 	return o.Oauth
+}
+
+func (o *ConfigAuthMethodUpdateInput) GetOidc() []*ConfigOIDCProviderUpdateInput {
+	if o == nil {
+		o = &ConfigAuthMethodUpdateInput{}
+	}
+	return o.Oidc
 }
 
 func (o *ConfigAuthMethodUpdateInput) GetWebauthn() *ConfigAuthMethodWebauthnUpdateInput {
@@ -2187,6 +2227,18 @@ func (s *ConfigAuthMethod) Update(v *ConfigAuthMethodUpdateInput) {
 			s.Oauth.Update(v.Oauth)
 		}
 	}
+	if v.IsSetOidc || v.Oidc != nil {
+		if v.Oidc == nil {
+			s.Oidc = nil
+		} else {
+			s.Oidc = make([]*ConfigOIDCProvider, len(v.Oidc))
+			for i, e := range v.Oidc {
+				v := &ConfigOIDCProvider{}
+				v.Update(e)
+				s.Oidc[i] = v
+			}
+		}
+	}
 	if v.IsSetWebauthn || v.Webauthn != nil {
 		if v.Webauthn == nil {
 			s.Webauthn = nil
@@ -2206,6 +2258,7 @@ type ConfigAuthMethodInsertInput struct {
 	EmailPassword     *ConfigAuthMethodEmailPasswordInsertInput     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordlessInsertInput   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauthInsertInput             `json:"oauth,omitempty" toml:"oauth,omitempty"`
+	Oidc              []*ConfigOIDCProviderInsertInput              `json:"oidc,omitempty" toml:"oidc,omitempty"`
 	Webauthn          *ConfigAuthMethodWebauthnInsertInput          `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
 }
 
@@ -2249,6 +2302,13 @@ func (o *ConfigAuthMethodInsertInput) GetOauth() *ConfigAuthMethodOauthInsertInp
 		return nil
 	}
 	return o.Oauth
+}
+
+func (o *ConfigAuthMethodInsertInput) GetOidc() []*ConfigOIDCProviderInsertInput {
+	if o == nil {
+		o = &ConfigAuthMethodInsertInput{}
+	}
+	return o.Oidc
 }
 
 func (o *ConfigAuthMethodInsertInput) GetWebauthn() *ConfigAuthMethodWebauthnInsertInput {
@@ -2295,6 +2355,14 @@ func (s *ConfigAuthMethod) Insert(v *ConfigAuthMethodInsertInput) {
 		}
 		s.Oauth.Insert(v.Oauth)
 	}
+	if v.Oidc != nil {
+		s.Oidc = make([]*ConfigOIDCProvider, len(v.Oidc))
+		for i, e := range v.Oidc {
+			v := &ConfigOIDCProvider{}
+			v.Insert(e)
+			s.Oidc[i] = v
+		}
+	}
 	if v.Webauthn != nil {
 		if s.Webauthn == nil {
 			s.Webauthn = &ConfigAuthMethodWebauthn{}
@@ -2315,6 +2383,12 @@ func (s *ConfigAuthMethod) Clone() *ConfigAuthMethod {
 	v.EmailPassword = s.EmailPassword.Clone()
 	v.SmsPasswordless = s.SmsPasswordless.Clone()
 	v.Oauth = s.Oauth.Clone()
+	if s.Oidc != nil {
+		v.Oidc = make([]*ConfigOIDCProvider, len(s.Oidc))
+		for i, e := range s.Oidc {
+			v.Oidc[i] = e.Clone()
+		}
+	}
 	v.Webauthn = s.Webauthn.Clone()
 	return v
 }
@@ -2329,6 +2403,7 @@ type ConfigAuthMethodComparisonExp struct {
 	EmailPassword     *ConfigAuthMethodEmailPasswordComparisonExp     `json:"emailPassword,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordlessComparisonExp   `json:"smsPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauthComparisonExp             `json:"oauth,omitempty"`
+	Oidc              *ConfigOIDCProviderComparisonExp                `json:"oidc,omitempty"`
 	Webauthn          *ConfigAuthMethodWebauthnComparisonExp          `json:"webauthn,omitempty"`
 }
 
@@ -2345,6 +2420,7 @@ func (exp *ConfigAuthMethodComparisonExp) Matches(o *ConfigAuthMethod) bool {
 			EmailPassword:     &ConfigAuthMethodEmailPassword{},
 			SmsPasswordless:   &ConfigAuthMethodSmsPasswordless{},
 			Oauth:             &ConfigAuthMethodOauth{},
+			Oidc:              []*ConfigOIDCProvider{},
 			Webauthn:          &ConfigAuthMethodWebauthn{},
 		}
 	}
@@ -2365,6 +2441,18 @@ func (exp *ConfigAuthMethodComparisonExp) Matches(o *ConfigAuthMethod) bool {
 	}
 	if !exp.Oauth.Matches(o.Oauth) {
 		return false
+	}
+	{
+		found := false
+		for _, o := range o.Oidc {
+			if exp.Oidc.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Oidc != nil {
+			return false
+		}
 	}
 	if !exp.Webauthn.Matches(o.Webauthn) {
 		return false
@@ -21384,6 +21472,571 @@ func (exp *ConfigNetworkingComparisonExp) Matches(o *ConfigNetworking) bool {
 	return true
 }
 
+type ConfigOIDCProvider struct {
+	// Unique provider identifier used in the Auth callback URL.
+	Slug string `json:"slug" toml:"slug"`
+	// Issuer URL configured in the identity provider.
+	Issuer string `json:"issuer" toml:"issuer"`
+	// Optional discovery endpoint. Auth derives it from the issuer by default.
+	DiscoveryUrl *string `json:"discoveryUrl" toml:"discoveryUrl"`
+	// OAuth client ID registered with the identity provider.
+	ClientId string `json:"clientId" toml:"clientId"`
+	// OAuth client secret. Supports references to project secrets.
+	ClientSecret string `json:"clientSecret" toml:"clientSecret"`
+	// Requested OAuth scopes. Auth defaults to openid, email, and profile.
+	Scopes []string `json:"scopes,omitempty" toml:"scopes,omitempty"`
+	// Additional allowed audiences for ID tokens. Auth always allows the client ID.
+	Audiences []string `json:"audiences,omitempty" toml:"audiences,omitempty"`
+	// Skip ID-token nonce verification for this provider.
+	DisableNonce *bool `json:"disableNonce" toml:"disableNonce"`
+}
+
+func (o *ConfigOIDCProvider) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["slug"] = o.Slug
+	m["issuer"] = o.Issuer
+	if o.DiscoveryUrl != nil {
+		m["discoveryUrl"] = o.DiscoveryUrl
+	}
+	m["clientId"] = o.ClientId
+	m["clientSecret"] = o.ClientSecret
+	if o.Scopes != nil {
+		m["scopes"] = o.Scopes
+	}
+	if o.Audiences != nil {
+		m["audiences"] = o.Audiences
+	}
+	if o.DisableNonce != nil {
+		m["disableNonce"] = o.DisableNonce
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigOIDCProvider) GetSlug() string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.Slug
+}
+
+func (o *ConfigOIDCProvider) GetIssuer() string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.Issuer
+}
+
+func (o *ConfigOIDCProvider) GetDiscoveryUrl() *string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.DiscoveryUrl
+}
+
+func (o *ConfigOIDCProvider) GetClientId() string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigOIDCProvider) GetClientSecret() string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.ClientSecret
+}
+
+func (o *ConfigOIDCProvider) GetScopes() []string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.Scopes
+}
+
+func (o *ConfigOIDCProvider) GetAudiences() []string {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.Audiences
+}
+
+func (o *ConfigOIDCProvider) GetDisableNonce() *bool {
+	if o == nil {
+		o = &ConfigOIDCProvider{}
+	}
+	return o.DisableNonce
+}
+
+type ConfigOIDCProviderUpdateInput struct {
+	Slug              *string  `json:"slug,omitempty" toml:"slug,omitempty"`
+	IsSetSlug         bool     `json:"-"`
+	Issuer            *string  `json:"issuer,omitempty" toml:"issuer,omitempty"`
+	IsSetIssuer       bool     `json:"-"`
+	DiscoveryUrl      *string  `json:"discoveryUrl,omitempty" toml:"discoveryUrl,omitempty"`
+	IsSetDiscoveryUrl bool     `json:"-"`
+	ClientId          *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId     bool     `json:"-"`
+	ClientSecret      *string  `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	IsSetClientSecret bool     `json:"-"`
+	Scopes            []string `json:"scopes,omitempty" toml:"scopes,omitempty"`
+	IsSetScopes       bool     `json:"-"`
+	Audiences         []string `json:"audiences,omitempty" toml:"audiences,omitempty"`
+	IsSetAudiences    bool     `json:"-"`
+	DisableNonce      *bool    `json:"disableNonce,omitempty" toml:"disableNonce,omitempty"`
+	IsSetDisableNonce bool     `json:"-"`
+}
+
+func (o *ConfigOIDCProviderUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["slug"]; ok {
+		if v == nil {
+			o.Slug = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Slug = &x
+		}
+		o.IsSetSlug = true
+	}
+	if v, ok := m["issuer"]; ok {
+		if v == nil {
+			o.Issuer = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Issuer = &x
+		}
+		o.IsSetIssuer = true
+	}
+	if v, ok := m["discoveryUrl"]; ok {
+		if v == nil {
+			o.DiscoveryUrl = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DiscoveryUrl = &x
+		}
+		o.IsSetDiscoveryUrl = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["clientSecret"]; ok {
+		if v == nil {
+			o.ClientSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientSecret = &x
+		}
+		o.IsSetClientSecret = true
+	}
+	if v, ok := m["scopes"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Scopes = l
+		}
+		o.IsSetScopes = true
+	}
+	if v, ok := m["audiences"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Audiences = l
+		}
+		o.IsSetAudiences = true
+	}
+	if v, ok := m["disableNonce"]; ok {
+		if v == nil {
+			o.DisableNonce = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DisableNonce = &x
+		}
+		o.IsSetDisableNonce = true
+	}
+
+	return nil
+}
+
+func (o *ConfigOIDCProviderUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetSlug() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.Slug
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetIssuer() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.Issuer
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetDiscoveryUrl() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.DiscoveryUrl
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.ClientSecret
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetScopes() []string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.Scopes
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetAudiences() []string {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.Audiences
+}
+
+func (o *ConfigOIDCProviderUpdateInput) GetDisableNonce() *bool {
+	if o == nil {
+		o = &ConfigOIDCProviderUpdateInput{}
+	}
+	return o.DisableNonce
+}
+
+func (s *ConfigOIDCProvider) Update(v *ConfigOIDCProviderUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSlug || v.Slug != nil {
+		if v.Slug != nil {
+			s.Slug = *v.Slug
+		}
+	}
+	if v.IsSetIssuer || v.Issuer != nil {
+		if v.Issuer != nil {
+			s.Issuer = *v.Issuer
+		}
+	}
+	if v.IsSetDiscoveryUrl || v.DiscoveryUrl != nil {
+		s.DiscoveryUrl = v.DiscoveryUrl
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		if v.ClientId != nil {
+			s.ClientId = *v.ClientId
+		}
+	}
+	if v.IsSetClientSecret || v.ClientSecret != nil {
+		if v.ClientSecret != nil {
+			s.ClientSecret = *v.ClientSecret
+		}
+	}
+	if v.IsSetScopes || v.Scopes != nil {
+		if v.Scopes == nil {
+			s.Scopes = nil
+		} else {
+			s.Scopes = make([]string, len(v.Scopes))
+			for i, e := range v.Scopes {
+				s.Scopes[i] = e
+			}
+		}
+	}
+	if v.IsSetAudiences || v.Audiences != nil {
+		if v.Audiences == nil {
+			s.Audiences = nil
+		} else {
+			s.Audiences = make([]string, len(v.Audiences))
+			for i, e := range v.Audiences {
+				s.Audiences[i] = e
+			}
+		}
+	}
+	if v.IsSetDisableNonce || v.DisableNonce != nil {
+		s.DisableNonce = v.DisableNonce
+	}
+}
+
+type ConfigOIDCProviderInsertInput struct {
+	Slug         string   `json:"slug,omitempty" toml:"slug,omitempty"`
+	Issuer       string   `json:"issuer,omitempty" toml:"issuer,omitempty"`
+	DiscoveryUrl *string  `json:"discoveryUrl,omitempty" toml:"discoveryUrl,omitempty"`
+	ClientId     string   `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	ClientSecret string   `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	Scopes       []string `json:"scopes,omitempty" toml:"scopes,omitempty"`
+	Audiences    []string `json:"audiences,omitempty" toml:"audiences,omitempty"`
+	DisableNonce *bool    `json:"disableNonce,omitempty" toml:"disableNonce,omitempty"`
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetSlug() string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.Slug
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetIssuer() string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.Issuer
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetDiscoveryUrl() *string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.DiscoveryUrl
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetClientId() string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetClientSecret() string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.ClientSecret
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetScopes() []string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.Scopes
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetAudiences() []string {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.Audiences
+}
+
+func (o *ConfigOIDCProviderInsertInput) GetDisableNonce() *bool {
+	if o == nil {
+		o = &ConfigOIDCProviderInsertInput{}
+	}
+	return o.DisableNonce
+}
+
+func (s *ConfigOIDCProvider) Insert(v *ConfigOIDCProviderInsertInput) {
+	s.Slug = v.Slug
+	s.Issuer = v.Issuer
+	s.DiscoveryUrl = v.DiscoveryUrl
+	s.ClientId = v.ClientId
+	s.ClientSecret = v.ClientSecret
+	if v.Scopes != nil {
+		s.Scopes = make([]string, len(v.Scopes))
+		for i, e := range v.Scopes {
+			s.Scopes[i] = e
+		}
+	}
+	if v.Audiences != nil {
+		s.Audiences = make([]string, len(v.Audiences))
+		for i, e := range v.Audiences {
+			s.Audiences[i] = e
+		}
+	}
+	s.DisableNonce = v.DisableNonce
+}
+
+func (s *ConfigOIDCProvider) Clone() *ConfigOIDCProvider {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigOIDCProvider{}
+	v.Slug = s.Slug
+	v.Issuer = s.Issuer
+	v.DiscoveryUrl = s.DiscoveryUrl
+	v.ClientId = s.ClientId
+	v.ClientSecret = s.ClientSecret
+	if s.Scopes != nil {
+		v.Scopes = make([]string, len(s.Scopes))
+		copy(v.Scopes, s.Scopes)
+	}
+	if s.Audiences != nil {
+		v.Audiences = make([]string, len(s.Audiences))
+		copy(v.Audiences, s.Audiences)
+	}
+	v.DisableNonce = s.DisableNonce
+	return v
+}
+
+type ConfigOIDCProviderComparisonExp struct {
+	And          []*ConfigOIDCProviderComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigOIDCProviderComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigOIDCProviderComparisonExp `json:"_or,omitempty"`
+	Slug         *ConfigStringComparisonExp         `json:"slug,omitempty"`
+	Issuer       *ConfigStringComparisonExp         `json:"issuer,omitempty"`
+	DiscoveryUrl *ConfigStringComparisonExp         `json:"discoveryUrl,omitempty"`
+	ClientId     *ConfigStringComparisonExp         `json:"clientId,omitempty"`
+	ClientSecret *ConfigStringComparisonExp         `json:"clientSecret,omitempty"`
+	Scopes       *ConfigStringComparisonExp         `json:"scopes,omitempty"`
+	Audiences    *ConfigStringComparisonExp         `json:"audiences,omitempty"`
+	DisableNonce *ConfigBooleanComparisonExp        `json:"disableNonce,omitempty"`
+}
+
+func (exp *ConfigOIDCProviderComparisonExp) Matches(o *ConfigOIDCProvider) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigOIDCProvider{
+			Scopes:    []string{},
+			Audiences: []string{},
+		}
+	}
+	if !exp.Slug.Matches(o.Slug) {
+		return false
+	}
+	if !exp.Issuer.Matches(o.Issuer) {
+		return false
+	}
+	if o.DiscoveryUrl != nil && !exp.DiscoveryUrl.Matches(*o.DiscoveryUrl) {
+		return false
+	}
+	if !exp.ClientId.Matches(o.ClientId) {
+		return false
+	}
+	if !exp.ClientSecret.Matches(o.ClientSecret) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.Scopes {
+			if exp.Scopes.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Scopes != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Audiences {
+			if exp.Audiences.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Audiences != nil {
+			return false
+		}
+	}
+	if o.DisableNonce != nil && !exp.DisableNonce.Matches(*o.DisableNonce) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigObservability struct {
 	// Grafana dashboards and alerting configuration.
 	Grafana *ConfigGrafana `json:"grafana,omitempty" toml:"grafana,omitempty"`
@@ -24953,6 +25606,10 @@ type ConfigPostgresSettingsExtensionsPgDurable struct {
 	RetentionDays *int32 `json:"retentionDays" toml:"retentionDays"`
 	// Log substituted workflow SQL, which may contain secrets.
 	LogWorkflowSql *string `json:"logWorkflowSql" toml:"logWorkflowSql"`
+	// HTTP egress policy. Unrestricted permits private-network destinations.
+	HttpSecurity *string `json:"httpSecurity" toml:"httpSecurity"`
+	// Allowed HTTP host patterns. An empty list denies all hosts in restricted mode.
+	HttpAllowedDomains []string `json:"httpAllowedDomains,omitempty" toml:"httpAllowedDomains,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsExtensionsPgDurable) MarshalJSON() ([]byte, error) {
@@ -24965,6 +25622,12 @@ func (o *ConfigPostgresSettingsExtensionsPgDurable) MarshalJSON() ([]byte, error
 	}
 	if o.LogWorkflowSql != nil {
 		m["logWorkflowSql"] = o.LogWorkflowSql
+	}
+	if o.HttpSecurity != nil {
+		m["httpSecurity"] = o.HttpSecurity
+	}
+	if o.HttpAllowedDomains != nil {
+		m["httpAllowedDomains"] = o.HttpAllowedDomains
 	}
 	return json.Marshal(m)
 }
@@ -24990,13 +25653,31 @@ func (o *ConfigPostgresSettingsExtensionsPgDurable) GetLogWorkflowSql() *string 
 	return o.LogWorkflowSql
 }
 
+func (o *ConfigPostgresSettingsExtensionsPgDurable) GetHttpSecurity() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	return o.HttpSecurity
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurable) GetHttpAllowedDomains() []string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	return o.HttpAllowedDomains
+}
+
 type ConfigPostgresSettingsExtensionsPgDurableUpdateInput struct {
-	MaxUserConnections      *int32  `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
-	IsSetMaxUserConnections bool    `json:"-"`
-	RetentionDays           *int32  `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
-	IsSetRetentionDays      bool    `json:"-"`
-	LogWorkflowSql          *string `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
-	IsSetLogWorkflowSql     bool    `json:"-"`
+	MaxUserConnections      *int32   `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
+	IsSetMaxUserConnections bool     `json:"-"`
+	RetentionDays           *int32   `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
+	IsSetRetentionDays      bool     `json:"-"`
+	LogWorkflowSql          *string  `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
+	IsSetLogWorkflowSql     bool     `json:"-"`
+	HttpSecurity            *string  `json:"httpSecurity,omitempty" toml:"httpSecurity,omitempty"`
+	IsSetHttpSecurity       bool     `json:"-"`
+	HttpAllowedDomains      []string `json:"httpAllowedDomains,omitempty" toml:"httpAllowedDomains,omitempty"`
+	IsSetHttpAllowedDomains bool     `json:"-"`
 }
 
 func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -25055,6 +25736,38 @@ func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) UnmarshalGQL(v in
 		}
 		o.IsSetLogWorkflowSql = true
 	}
+	if v, ok := m["httpSecurity"]; ok {
+		if v == nil {
+			o.HttpSecurity = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.HttpSecurity = &x
+		}
+		o.IsSetHttpSecurity = true
+	}
+	if v, ok := m["httpAllowedDomains"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.HttpAllowedDomains = l
+		}
+		o.IsSetHttpAllowedDomains = true
+	}
 
 	return nil
 }
@@ -25087,6 +25800,20 @@ func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetLogWorkflowSql
 	return o.LogWorkflowSql
 }
 
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetHttpSecurity() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+	}
+	return o.HttpSecurity
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetHttpAllowedDomains() []string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+	}
+	return o.HttpAllowedDomains
+}
+
 func (s *ConfigPostgresSettingsExtensionsPgDurable) Update(v *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) {
 	if v == nil {
 		return
@@ -25100,12 +25827,27 @@ func (s *ConfigPostgresSettingsExtensionsPgDurable) Update(v *ConfigPostgresSett
 	if v.IsSetLogWorkflowSql || v.LogWorkflowSql != nil {
 		s.LogWorkflowSql = v.LogWorkflowSql
 	}
+	if v.IsSetHttpSecurity || v.HttpSecurity != nil {
+		s.HttpSecurity = v.HttpSecurity
+	}
+	if v.IsSetHttpAllowedDomains || v.HttpAllowedDomains != nil {
+		if v.HttpAllowedDomains == nil {
+			s.HttpAllowedDomains = nil
+		} else {
+			s.HttpAllowedDomains = make([]string, len(v.HttpAllowedDomains))
+			for i, e := range v.HttpAllowedDomains {
+				s.HttpAllowedDomains[i] = e
+			}
+		}
+	}
 }
 
 type ConfigPostgresSettingsExtensionsPgDurableInsertInput struct {
-	MaxUserConnections *int32  `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
-	RetentionDays      *int32  `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
-	LogWorkflowSql     *string `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
+	MaxUserConnections *int32   `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
+	RetentionDays      *int32   `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
+	LogWorkflowSql     *string  `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
+	HttpSecurity       *string  `json:"httpSecurity,omitempty" toml:"httpSecurity,omitempty"`
+	HttpAllowedDomains []string `json:"httpAllowedDomains,omitempty" toml:"httpAllowedDomains,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetMaxUserConnections() *int32 {
@@ -25129,10 +25871,31 @@ func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetLogWorkflowSql
 	return o.LogWorkflowSql
 }
 
+func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetHttpSecurity() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableInsertInput{}
+	}
+	return o.HttpSecurity
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetHttpAllowedDomains() []string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableInsertInput{}
+	}
+	return o.HttpAllowedDomains
+}
+
 func (s *ConfigPostgresSettingsExtensionsPgDurable) Insert(v *ConfigPostgresSettingsExtensionsPgDurableInsertInput) {
 	s.MaxUserConnections = v.MaxUserConnections
 	s.RetentionDays = v.RetentionDays
 	s.LogWorkflowSql = v.LogWorkflowSql
+	s.HttpSecurity = v.HttpSecurity
+	if v.HttpAllowedDomains != nil {
+		s.HttpAllowedDomains = make([]string, len(v.HttpAllowedDomains))
+		for i, e := range v.HttpAllowedDomains {
+			s.HttpAllowedDomains[i] = e
+		}
+	}
 }
 
 func (s *ConfigPostgresSettingsExtensionsPgDurable) Clone() *ConfigPostgresSettingsExtensionsPgDurable {
@@ -25144,6 +25907,11 @@ func (s *ConfigPostgresSettingsExtensionsPgDurable) Clone() *ConfigPostgresSetti
 	v.MaxUserConnections = s.MaxUserConnections
 	v.RetentionDays = s.RetentionDays
 	v.LogWorkflowSql = s.LogWorkflowSql
+	v.HttpSecurity = s.HttpSecurity
+	if s.HttpAllowedDomains != nil {
+		v.HttpAllowedDomains = make([]string, len(s.HttpAllowedDomains))
+		copy(v.HttpAllowedDomains, s.HttpAllowedDomains)
+	}
 	return v
 }
 
@@ -25154,6 +25922,8 @@ type ConfigPostgresSettingsExtensionsPgDurableComparisonExp struct {
 	MaxUserConnections *ConfigInt32ComparisonExp                                 `json:"maxUserConnections,omitempty"`
 	RetentionDays      *ConfigInt32ComparisonExp                                 `json:"retentionDays,omitempty"`
 	LogWorkflowSql     *ConfigStringComparisonExp                                `json:"logWorkflowSql,omitempty"`
+	HttpSecurity       *ConfigStringComparisonExp                                `json:"httpSecurity,omitempty"`
+	HttpAllowedDomains *ConfigStringComparisonExp                                `json:"httpAllowedDomains,omitempty"`
 }
 
 func (exp *ConfigPostgresSettingsExtensionsPgDurableComparisonExp) Matches(o *ConfigPostgresSettingsExtensionsPgDurable) bool {
@@ -25162,7 +25932,9 @@ func (exp *ConfigPostgresSettingsExtensionsPgDurableComparisonExp) Matches(o *Co
 	}
 
 	if o == nil {
-		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+		o = &ConfigPostgresSettingsExtensionsPgDurable{
+			HttpAllowedDomains: []string{},
+		}
 	}
 	if o.MaxUserConnections != nil && !exp.MaxUserConnections.Matches(*o.MaxUserConnections) {
 		return false
@@ -25172,6 +25944,21 @@ func (exp *ConfigPostgresSettingsExtensionsPgDurableComparisonExp) Matches(o *Co
 	}
 	if o.LogWorkflowSql != nil && !exp.LogWorkflowSql.Matches(*o.LogWorkflowSql) {
 		return false
+	}
+	if o.HttpSecurity != nil && !exp.HttpSecurity.Matches(*o.HttpSecurity) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.HttpAllowedDomains {
+			if exp.HttpAllowedDomains.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.HttpAllowedDomains != nil {
+			return false
+		}
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -30327,6 +31114,8 @@ type ConfigSystemConfig struct {
 	Postgres *ConfigSystemConfigPostgres `json:"postgres,omitempty" toml:"postgres,omitempty"`
 
 	PersistentVolumesEncrypted *bool `json:"persistentVolumesEncrypted" toml:"persistentVolumesEncrypted"`
+	// serve the app's default domains through Envoy Gateway in regions that run it
+	Envoy *bool `json:"envoy" toml:"envoy"`
 }
 
 func (o *ConfigSystemConfig) MarshalJSON() ([]byte, error) {
@@ -30342,6 +31131,9 @@ func (o *ConfigSystemConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.PersistentVolumesEncrypted != nil {
 		m["persistentVolumesEncrypted"] = o.PersistentVolumesEncrypted
+	}
+	if o.Envoy != nil {
+		m["envoy"] = o.Envoy
 	}
 	return json.Marshal(m)
 }
@@ -30374,6 +31166,13 @@ func (o *ConfigSystemConfig) GetPersistentVolumesEncrypted() *bool {
 	return o.PersistentVolumesEncrypted
 }
 
+func (o *ConfigSystemConfig) GetEnvoy() *bool {
+	if o == nil {
+		o = &ConfigSystemConfig{}
+	}
+	return o.Envoy
+}
+
 type ConfigSystemConfigUpdateInput struct {
 	Auth                            *ConfigSystemConfigAuthUpdateInput     `json:"auth,omitempty" toml:"auth,omitempty"`
 	IsSetAuth                       bool                                   `json:"-"`
@@ -30383,6 +31182,8 @@ type ConfigSystemConfigUpdateInput struct {
 	IsSetPostgres                   bool                                   `json:"-"`
 	PersistentVolumesEncrypted      *bool                                  `json:"persistentVolumesEncrypted,omitempty" toml:"persistentVolumesEncrypted,omitempty"`
 	IsSetPersistentVolumesEncrypted bool                                   `json:"-"`
+	Envoy                           *bool                                  `json:"envoy,omitempty" toml:"envoy,omitempty"`
+	IsSetEnvoy                      bool                                   `json:"-"`
 }
 
 func (o *ConfigSystemConfigUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -30437,6 +31238,23 @@ func (o *ConfigSystemConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetPersistentVolumesEncrypted = true
 	}
+	if v, ok := m["envoy"]; ok {
+		if v == nil {
+			o.Envoy = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Envoy = &x
+		}
+		o.IsSetEnvoy = true
+	}
 
 	return nil
 }
@@ -30476,6 +31294,13 @@ func (o *ConfigSystemConfigUpdateInput) GetPersistentVolumesEncrypted() *bool {
 	return o.PersistentVolumesEncrypted
 }
 
+func (o *ConfigSystemConfigUpdateInput) GetEnvoy() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigUpdateInput{}
+	}
+	return o.Envoy
+}
+
 func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
 	if v == nil {
 		return
@@ -30513,6 +31338,9 @@ func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
 	if v.IsSetPersistentVolumesEncrypted || v.PersistentVolumesEncrypted != nil {
 		s.PersistentVolumesEncrypted = v.PersistentVolumesEncrypted
 	}
+	if v.IsSetEnvoy || v.Envoy != nil {
+		s.Envoy = v.Envoy
+	}
 }
 
 type ConfigSystemConfigInsertInput struct {
@@ -30520,6 +31348,7 @@ type ConfigSystemConfigInsertInput struct {
 	Graphql                    *ConfigSystemConfigGraphqlInsertInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
 	Postgres                   *ConfigSystemConfigPostgresInsertInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
 	PersistentVolumesEncrypted *bool                                  `json:"persistentVolumesEncrypted,omitempty" toml:"persistentVolumesEncrypted,omitempty"`
+	Envoy                      *bool                                  `json:"envoy,omitempty" toml:"envoy,omitempty"`
 }
 
 func (o *ConfigSystemConfigInsertInput) GetAuth() *ConfigSystemConfigAuthInsertInput {
@@ -30550,6 +31379,13 @@ func (o *ConfigSystemConfigInsertInput) GetPersistentVolumesEncrypted() *bool {
 	return o.PersistentVolumesEncrypted
 }
 
+func (o *ConfigSystemConfigInsertInput) GetEnvoy() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigInsertInput{}
+	}
+	return o.Envoy
+}
+
 func (s *ConfigSystemConfig) Insert(v *ConfigSystemConfigInsertInput) {
 	if v.Auth != nil {
 		if s.Auth == nil {
@@ -30570,6 +31406,7 @@ func (s *ConfigSystemConfig) Insert(v *ConfigSystemConfigInsertInput) {
 		s.Postgres.Insert(v.Postgres)
 	}
 	s.PersistentVolumesEncrypted = v.PersistentVolumesEncrypted
+	s.Envoy = v.Envoy
 }
 
 func (s *ConfigSystemConfig) Clone() *ConfigSystemConfig {
@@ -30582,6 +31419,7 @@ func (s *ConfigSystemConfig) Clone() *ConfigSystemConfig {
 	v.Graphql = s.Graphql.Clone()
 	v.Postgres = s.Postgres.Clone()
 	v.PersistentVolumesEncrypted = s.PersistentVolumesEncrypted
+	v.Envoy = s.Envoy
 	return v
 }
 
@@ -30593,6 +31431,7 @@ type ConfigSystemConfigComparisonExp struct {
 	Graphql                    *ConfigSystemConfigGraphqlComparisonExp  `json:"graphql,omitempty"`
 	Postgres                   *ConfigSystemConfigPostgresComparisonExp `json:"postgres,omitempty"`
 	PersistentVolumesEncrypted *ConfigBooleanComparisonExp              `json:"persistentVolumesEncrypted,omitempty"`
+	Envoy                      *ConfigBooleanComparisonExp              `json:"envoy,omitempty"`
 }
 
 func (exp *ConfigSystemConfigComparisonExp) Matches(o *ConfigSystemConfig) bool {
@@ -30617,6 +31456,9 @@ func (exp *ConfigSystemConfigComparisonExp) Matches(o *ConfigSystemConfig) bool 
 		return false
 	}
 	if o.PersistentVolumesEncrypted != nil && !exp.PersistentVolumesEncrypted.Matches(*o.PersistentVolumesEncrypted) {
+		return false
+	}
+	if o.Envoy != nil && !exp.Envoy.Matches(*o.Envoy) {
 		return false
 	}
 
