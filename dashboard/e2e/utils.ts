@@ -1,7 +1,9 @@
 import { faker } from '@faker-js/faker';
-import type { FrameLocator, Page } from '@playwright/test';
+import type { BrowserContext, FrameLocator, Page } from '@playwright/test';
 import { add, format } from 'date-fns';
+import { CONSENT_COOKIE } from '@/components/common/CookieConsent/consentCookie';
 import {
+  TEST_DASHBOARD_URL,
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
   TEST_PROJECT_ADMIN_SECRET,
@@ -387,7 +389,22 @@ export function getCardExpiration() {
   return format(now, 'MMyy');
 }
 
+/**
+ * Records "Essential only" as the cookie choice before the dashboard loads.
+ * Otherwise the consent banner, fixed over the bottom-right corner of every
+ * page, covers controls the tests click.
+ *
+ * @param context - The browser context the tests run in.
+ * @returns A promise that resolves once the consent cookie is set.
+ */
+export async function rejectCookieConsent(context: BrowserContext) {
+  await context.addCookies([
+    { name: CONSENT_COOKIE, value: 'rejected', url: TEST_DASHBOARD_URL },
+  ]);
+}
+
 export async function loginWithFreeUser(page: Page) {
+  await rejectCookieConsent(page.context());
   await page.goto('/');
   await page.waitForURL('/signin');
   await page.getByRole('link', { name: /continue with email/i }).click();
