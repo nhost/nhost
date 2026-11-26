@@ -102,10 +102,6 @@ func (p *CustomProvider) fetchKeys(
 			continue
 		}
 
-		if _, ok := keys[key.KID]; ok || len(keys) == maxSigningKeys {
-			return nil, fmt.Errorf("%w: duplicate kid or too many signing keys", errInvalidJWKS)
-		}
-
 		// Use the public key parameters in the discovered set. There is
 		// no secondary certificate URL or token-directed network lookup.
 		key.X5U = ""
@@ -116,7 +112,13 @@ func (p *CustomProvider) fetchKeys(
 			key, jwkset.JWKMarshalOptions{Private: false}, validateOptions,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("parsing OIDC signing key: %w", err)
+			// JWKS entries are candidates: an unsupported or malformed key
+			// must not prevent verification with another usable signing key.
+			continue
+		}
+
+		if _, ok := keys[key.KID]; ok || len(keys) == maxSigningKeys {
+			return nil, fmt.Errorf("%w: duplicate kid or too many signing keys", errInvalidJWKS)
 		}
 
 		keys[key.KID] = parsed

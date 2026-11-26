@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -627,6 +628,106 @@ func TestOIDCCachesAndRefreshesKeys(t *testing.T) {
 	if err := verify("key-2"); err != nil || f.keyCalls.Load() != 3 {
 		t.Fatalf("expired key set should be refreshed, got %v", err)
 	}
+}
+
+func TestOIDCSigningKeyCandidates(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		validKeys int
+		badKeys   int
+		badFirst  bool
+		duplicate bool
+		wantError bool
+	}{
+		{name: "unsupported curve before RSA", validKeys: 1, badKeys: 1, badFirst: true},
+		{name: "malformed certificate after RSA with same kid", validKeys: 1, badKeys: 2},
+		{name: "only unparseable keys", badKeys: 2, wantError: true},
+		{name: "skipped keys do not consume cap", validKeys: maxSigningKeys, badKeys: 2},
+		{name: "too many parsed keys", validKeys: maxSigningKeys + 1, badKeys: 2, wantError: true},
+		{name: "duplicate usable kid", validKeys: 2, badKeys: 2, duplicate: true, wantError: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newOIDCFixture(t, false)
+
+			jwk, err := jwkset.NewJWKFromKey(&f.key.PublicKey, jwkset.JWKOptions{
+				Metadata: jwkset.JWKMetadataOptions{
+					KID: *f.keyID.Load(), USE: jwkset.UseSig, ALG: jwkset.AlgRS256,
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			keys := signingKeyCandidates(jwk, tc.validKeys, tc.badKeys, tc.badFirst, tc.duplicate)
+
+			transport := f.client.Transport
+			f.client.Transport = oidcMetadataTransport(func(req *http.Request) (*http.Response, error) {
+				if !strings.HasSuffix(req.URL.Path, "/jwks/") {
+					return transport.RoundTrip(req)
+				}
+
+				response := httptest.NewRecorder()
+				writeFixtureJSON(t, response, jwkset.JWKSMarshal{Keys: keys})
+
+				return response.Result(), nil
+			})
+
+			p := f.provider(t)
+
+			token, err := f.sign(f.claims("mobile", hashNonce(fixtureNonce)), *f.keyID.Load())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			profile, err := p.VerifyNative(t.Context(), token, fixtureNonce)
+			if tc.wantError {
+				if !errors.Is(err, errInvalidJWKS) {
+					t.Fatalf("expected invalid key set, got %v", err)
+				}
+			} else {
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if profile.ProviderUserID != fixtureSubject || len(p.keys.keys) != tc.validKeys {
+					t.Fatal("expected verified RSA profile and only parsed keys in cache")
+				}
+			}
+		})
+	}
+}
+
+func signingKeyCandidates(jwk jwkset.JWK, validKeys, badKeys int, badFirst, duplicate bool) []jwkset.JWKMarshal {
+	unsupported := jwk.Marshal()
+	unsupported.KTY = jwkset.KtyEC
+	unsupported.CRV = "secp256k1"
+	malformed := jwk.Marshal()
+	malformed.X5C = []string{"not-a-certificate"}
+	bad := []jwkset.JWKMarshal{unsupported, malformed}[:badKeys]
+
+	keys := make([]jwkset.JWKMarshal, 0, validKeys+badKeys)
+	if badFirst {
+		keys = append(keys, bad...)
+	}
+
+	for i := range validKeys {
+		key := jwk.Marshal()
+		if i > 0 && !duplicate {
+			key.KID = fmt.Sprintf("key-%d", i+1)
+		}
+
+		keys = append(keys, key)
+	}
+
+	if !badFirst {
+		keys = append(keys, bad...)
+	}
+
+	return keys
 }
 
 type oidcMetadataTransport func(*http.Request) (*http.Response, error)
