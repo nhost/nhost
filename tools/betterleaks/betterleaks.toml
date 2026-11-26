@@ -6,8 +6,6 @@ filter.matchesAny(attributes["path"], [
   `^tools/betterleaks/`,
   `(?:^|/)(?:generated|__generated__)(?:/|$)`,
   `(?:^|/)[^/]+(?:\.gen|_gen|\.typegen)\.[^/]+$`,
-  // Committed test-only TLS fixtures for the Auth OIDC integration stack.
-  `(?:^|/)build/dev/docker/oidc/certs/`,
 ])
 ||
 finding["secret"] in [
