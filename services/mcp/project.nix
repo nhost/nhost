@@ -26,6 +26,7 @@ let
       ../../.golangci.yaml
       ../../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
+      ./tools/storage_preview.html
       (fs.fileFilter (f: f.hasExt "go") ../../cli/mcp/graphql)
       (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/oapi/middleware)
     ];

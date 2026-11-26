@@ -2,22 +2,20 @@
 title: Roles & Permissions
 description: >-
   Control what AI assistants can do through the Backend MCP Server using your existing
-  GraphQL permissions and a dedicated enforced role, plus security best practices.
-keywords: ["MCP permissions", "enforce-role", "user_mcp", "Hasura permissions", "least privilege", "prompt injection", "security", "read-only"]
+  GraphQL and Storage permissions and a dedicated enforced role, plus security best practices.
+keywords: ["MCP permissions", "enforce-role", "user_mcp", "Hasura permissions", "Storage permissions", "least privilege", "prompt injection", "security", "read-only"]
 head:
   - tag: title
     content: "Control AI Access with Roles & Permissions | Nhost Docs"
 ---
 
-The Backend MCP Server does not invent its own permission system. It rides on the one you already have: every request runs as the authenticated user, and GraphQL enforces the same row-level and column-level permissions that apply to that user everywhere else. The assistant can only read and write what the user is allowed to.
-
-This page explains how to narrow that further, and the practices we recommend when connecting an LLM to your data.
+Each request runs with the signed-in user's existing permissions. GraphQL enforces row and column restrictions, and Storage enforces file download permissions. Use a dedicated role to give assistants less access than users have in the rest of your application.
 
 ## How access is scoped
 
 The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Backend MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's [Hasura claims](/products/graphql/permissions/permission-variables) — so the effective boundary is the role the token carries.
 
-That makes the token's role the main lever for controlling AI access.
+Storage uses the same token to check [download permissions](#storage-permissions).
 
 ## Enforce a dedicated role
 
@@ -33,7 +31,8 @@ Pair this with a role you define in your GraphQL permissions specifically for AI
 
 1. Create a role — for example `user_mcp` — in your GraphQL permissions.
 2. Grant it only what the assistant needs: read-only on some tables, a subset of columns, row filters tied to the user, and no more.
-3. Deploy Backend MCP with `--enforce-role=user_mcp`.
+3. If the assistant needs to read files, grant [Download permission](#storage-permissions) to `user_mcp`. Access to your application tables doesn't grant file access.
+4. Deploy Backend MCP with `--enforce-role=user_mcp`.
 
 Now the assistant is boxed into that role regardless of what broader permissions the user has in the rest of your app. When enforcement is on, Backend MCP also advertises the scope `graphql:role:user_mcp` in its discovery metadata, so clients request a token with that default role.
 
@@ -43,13 +42,23 @@ This lets you:
 - Limit which tables and columns the assistant can see.
 - Run multiple MCP instances with different roles for different use cases.
 
+## Storage permissions
+
+Seeing `storage-download` in the client doesn't mean the user can download files. To grant access:
+
+1. In the dashboard, open **Storage → Permissions**.
+2. Select **Download** for the MCP user's role. If you set `MCP_ENFORCE_ROLE=user_mcp`, configure `user_mcp`, not your application's usual `user` role.
+3. Add checks for the files the assistant needs. For example, match `bucket_id` to the intended bucket and `uploaded_by_user_id` to `X-Hasura-User-Id` to allow users to read only their own uploads there.
+
+You don't need to grant Upload, Replace, or Delete. See [Storage permissions](/products/storage/permissions) for required columns and more examples. To hide the tool entirely, remove `MCP_STORAGE_URL` from the MCP service configuration.
+
 ## Security best practices
 
 Connecting any data source to an LLM carries risk. Backend MCP reduces it by scoping every request to the authenticated user, but you should still follow these practices.
 
 ### Use a least-privilege role
 
-Do not point Backend MCP at a role with broad access. Define a dedicated role, grant it the minimum, and enforce it with `--enforce-role`. Start read-only and add mutations deliberately, table by table.
+Do not point Backend MCP at a role with broad access. Define a dedicated role, grant it the minimum, and enforce it with `--enforce-role`. Start read-only and add mutations deliberately, table by table. Apply the same least-privilege policy to file downloads and buckets.
 
 ### Be careful with mutations
 
@@ -76,3 +85,4 @@ Backend MCP requires a valid, unexpired, correctly-issued JWT on every request; 
 - [Authentication](/products/ai/mcp/authentication) — how tokens are issued and validated.
 - [Configuration](/products/ai/mcp/configuration) — the `--enforce-role` flag and related settings.
 - [GraphQL permissions](/products/graphql/permissions) — how to define roles, row filters, and column permissions.
+- [Storage permissions](/products/storage/permissions) — file actions, bucket restrictions, and ownership checks.
