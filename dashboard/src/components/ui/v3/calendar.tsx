@@ -1,7 +1,11 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { DayPicker, type DayPickerProps } from 'react-day-picker';
+import {
+  type ChevronProps,
+  DayPicker,
+  type DayPickerProps,
+} from 'react-day-picker';
 import { buttonVariants } from '@/components/ui/v3/button';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +46,11 @@ export type CalendarProps = DayPickerProps & {
   hiddenClassName?: string;
   defaultMonth: Date;
 };
+
+function CalendarChevron({ orientation }: ChevronProps) {
+  const Icon = orientation === 'left' ? ChevronLeft : ChevronRight;
+  return <Icon className="h-4 w-4" />;
+}
 
 /**
  * A custom calendar component built on top of react-day-picker.
@@ -164,12 +173,7 @@ function Calendar({
         disabled: disabledClassName,
         hidden: hiddenClassName,
       }}
-      components={{
-        Chevron: ({ orientation }) => {
-          const Icon = orientation === 'left' ? ChevronLeft : ChevronRight;
-          return <Icon className="h-4 w-4" />;
-        },
-      }}
+      components={{ Chevron: CalendarChevron }}
       defaultMonth={defaultMonth}
       {...props}
     />

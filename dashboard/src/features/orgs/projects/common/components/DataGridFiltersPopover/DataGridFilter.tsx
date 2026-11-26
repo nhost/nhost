@@ -7,12 +7,12 @@ import { useDataGridFilters } from './DataGridFiltersProvider';
 import { DataGridFilterValue } from './DataGridFilterValue';
 import { useGetDataColumns } from './useGetDataColumns';
 
-type FilterProps = {
+interface FilterProps {
   column: string;
   op: DataGridFilterOperator;
   value: string;
   index: number;
-};
+}
 
 function DataGridFilter({ column, op, value, index }: FilterProps) {
   const { removeFilter } = useDataGridFilters();

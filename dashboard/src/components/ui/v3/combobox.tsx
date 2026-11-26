@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { forwardRef, type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, type Ref, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -93,155 +93,151 @@ export interface ComboboxProps {
   'aria-invalid'?: boolean;
 }
 
-const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
-  function ComboboxComponent(
-    {
-      value,
-      onChange,
-      onBlur,
-      placeholder,
-      searchPlaceholder = 'Search...',
-      emptyText = 'No results found.',
-      className,
-      disabled,
-      options,
-      filter,
-      triggerLabel,
-      triggerContent,
-      footerSlot,
-      open,
-      onOpenChange,
-      onCloseAutoFocus,
-      onSearchChange,
-      popoverContentClassName,
-      popoverAnchor,
-      id,
-      'data-testid': dataTestId,
-      'aria-label': ariaLabel,
-      'aria-describedby': ariaDescribedBy,
-      'aria-invalid': ariaInvalid,
-    },
-    ref,
-  ) {
-    const [internalOpen, setInternalOpen] = useState(false);
-    const isOpenControlled = open !== undefined;
-    const isOpen = isOpenControlled ? open : internalOpen;
-    const setOpen = (next: boolean) => {
-      if (!isOpenControlled) {
-        setInternalOpen(next);
+const Combobox = function ComboboxComponent({
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  searchPlaceholder = 'Search...',
+  emptyText = 'No results found.',
+  className,
+  disabled,
+  options,
+  filter,
+  triggerLabel,
+  triggerContent,
+  footerSlot,
+  open,
+  onOpenChange,
+  onCloseAutoFocus,
+  onSearchChange,
+  popoverContentClassName,
+  popoverAnchor,
+  id,
+  'data-testid': dataTestId,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  ref,
+}: ComboboxProps & { ref?: Ref<HTMLButtonElement> }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpenControlled = open !== undefined;
+  const isOpen = isOpenControlled ? open : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (!isOpenControlled) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
+
+  const groupedOptions = useMemo(() => {
+    const groups = new Map<string, ComboboxOption[]>();
+    for (const option of options) {
+      const key = option.group ?? '';
+      const existing = groups.get(key);
+      if (existing) {
+        existing.push(option);
+      } else {
+        groups.set(key, [option]);
       }
-      onOpenChange?.(next);
-    };
+    }
+    return Array.from(groups.entries());
+  }, [options]);
 
-    const groupedOptions = useMemo(() => {
-      const groups = new Map<string, ComboboxOption[]>();
-      for (const option of options) {
-        const key = option.group ?? '';
-        const existing = groups.get(key);
-        if (existing) {
-          existing.push(option);
-        } else {
-          groups.set(key, [option]);
-        }
-      }
-      return Array.from(groups.entries());
-    }, [options]);
+  const popoverAnchorVirtualRef = useMemo(
+    () => (popoverAnchor ? { current: popoverAnchor } : undefined),
+    [popoverAnchor],
+  );
 
-    const popoverAnchorVirtualRef = useMemo(
-      () => (popoverAnchor ? { current: popoverAnchor } : undefined),
-      [popoverAnchor],
-    );
+  const selected = options.find((option) => option.value === value);
+  const displayLabel: ReactNode =
+    triggerLabel ??
+    selected?.label ??
+    (typeof value === 'string' && value.length > 0 ? value : null);
 
-    const selected = options.find((option) => option.value === value);
-    const displayLabel: ReactNode =
-      triggerLabel ??
-      selected?.label ??
-      (typeof value === 'string' && value.length > 0 ? value : null);
-
-    return (
-      <Popover open={isOpen} onOpenChange={setOpen}>
-        {popoverAnchorVirtualRef && (
-          <PopoverAnchor virtualRef={popoverAnchorVirtualRef} />
-        )}
-        <PopoverTrigger asChild>
-          <Button
-            ref={ref}
-            id={id}
-            type="button"
-            variant="outline"
-            role="combobox"
-            disabled={disabled}
-            data-testid={dataTestId}
-            aria-label={ariaLabel}
-            aria-describedby={ariaDescribedBy}
-            aria-invalid={ariaInvalid}
-            className={cn(
-              controlHeight,
-              controlText,
-              'w-full justify-between font-normal',
-              !displayLabel && 'text-muted-foreground',
-              className,
-            )}
-            onBlur={onBlur}
-          >
-            {triggerContent ?? (
-              <>
-                <span className="truncate">{displayLabel ?? placeholder}</span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          onCloseAutoFocus={onCloseAutoFocus}
+  return (
+    <Popover open={isOpen} onOpenChange={setOpen}>
+      {popoverAnchorVirtualRef && (
+        <PopoverAnchor virtualRef={popoverAnchorVirtualRef} />
+      )}
+      <PopoverTrigger asChild>
+        <Button
+          ref={ref}
+          id={id}
+          type="button"
+          variant="outline"
+          role="combobox"
+          disabled={disabled}
+          data-testid={dataTestId}
+          aria-label={ariaLabel}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid}
           className={cn(
-            'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
-            popoverContentClassName,
+            controlHeight,
+            controlText,
+            'w-full justify-between font-normal',
+            !displayLabel && 'text-muted-foreground',
+            className,
           )}
+          onBlur={onBlur}
         >
-          <Command filter={filter}>
-            <CommandInput
-              placeholder={searchPlaceholder}
-              disabled={disabled}
-              onValueChange={onSearchChange}
-            />
-            <CommandList>
-              <CommandEmpty>{emptyText}</CommandEmpty>
-              {groupedOptions.map(([heading, items]) => (
-                <CommandGroup
-                  key={heading || '__default__'}
-                  heading={heading || undefined}
-                >
-                  {items.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      keywords={option.keywords ?? [option.label]}
-                      disabled={option.disabled}
-                      onSelect={() => {
-                        onChange(option.value);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 size-4 shrink-0',
-                          option.value === value ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                      {option.render ?? option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ))}
-              {footerSlot}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    );
-  },
-);
+          {triggerContent ?? (
+            <>
+              <span className="truncate">{displayLabel ?? placeholder}</span>
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        onCloseAutoFocus={onCloseAutoFocus}
+        className={cn(
+          'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
+          popoverContentClassName,
+        )}
+      >
+        <Command filter={filter}>
+          <CommandInput
+            placeholder={searchPlaceholder}
+            disabled={disabled}
+            onValueChange={onSearchChange}
+          />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            {groupedOptions.map(([heading, items]) => (
+              <CommandGroup
+                key={heading || '__default__'}
+                heading={heading || undefined}
+              >
+                {items.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    keywords={option.keywords ?? [option.label]}
+                    disabled={option.disabled}
+                    onSelect={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 size-4 shrink-0',
+                        option.value === value ? 'opacity-100' : 'opacity-0',
+                      )}
+                    />
+                    {option.render ?? option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+            {footerSlot}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 export { Combobox };

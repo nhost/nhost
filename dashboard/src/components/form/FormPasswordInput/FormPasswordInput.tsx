@@ -1,9 +1,8 @@
-import {
-  type ChangeEventHandler,
-  type FocusEventHandler,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
+import type {
+  ChangeEventHandler,
+  FocusEventHandler,
+  ReactNode,
+  Ref,
 } from 'react';
 import type {
   Control,
@@ -64,30 +63,30 @@ interface FormPasswordInputProps<
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
-function InnerFormPasswordInput<
+function FormPasswordInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    className = '',
-    containerClassName = '',
-    inline,
-    helperText,
-    disabled,
-    autoComplete,
-    autoFocus,
-    transform,
-    'data-testid': dataTestId,
-    'aria-label': ariaLabel,
-    onChange: onChangeProp,
-    onBlur: onBlurProp,
-  }: FormPasswordInputProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLInputElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  className = '',
+  containerClassName = '',
+  inline,
+  helperText,
+  disabled,
+  autoComplete,
+  autoFocus,
+  transform,
+  'data-testid': dataTestId,
+  'aria-label': ariaLabel,
+  onChange: onChangeProp,
+  onBlur: onBlurProp,
+  ref,
+}: FormPasswordInputProps<TFieldValues, TName> & {
+  ref?: Ref<HTMLInputElement>;
+}) {
   return (
     <FormField
       control={control}
@@ -165,14 +164,5 @@ function InnerFormPasswordInput<
     />
   );
 }
-
-const FormPasswordInput = forwardRef(InnerFormPasswordInput) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormPasswordInputProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLInputElement>;
-  },
-) => ReturnType<typeof InnerFormPasswordInput>;
 
 export default FormPasswordInput;

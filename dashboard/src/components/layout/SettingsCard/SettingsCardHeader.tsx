@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import * as React from 'react';
+import type * as React from 'react';
 import {
   SettingsDocsLink,
   type SettingsDocsLinkProps,
@@ -48,83 +48,73 @@ export interface SettingsCardHeaderProps
   docsLink?: SettingsDocsLinkProps;
 }
 
-const SettingsCardHeader = React.forwardRef<
-  HTMLDivElement,
-  SettingsCardHeaderProps
->(
-  (
-    {
+const SettingsCardHeader = ({
+  className,
+  title,
+  description,
+  icon,
+  actions,
+  control,
+  size = 'default',
+  children,
+  docsLink,
+  ref,
+  ...props
+}: SettingsCardHeaderProps & { ref?: React.Ref<HTMLDivElement> }) => (
+  <div
+    ref={ref}
+    className={cn(
+      'flex flex-col gap-3 px-6 sm:flex-row sm:items-center sm:justify-between',
       className,
-      title,
-      description,
-      icon,
-      actions,
-      control,
-      size = 'default',
-      children,
-      docsLink,
-      ...props
-    },
-    ref,
-  ) => (
-    <div
-      ref={ref}
-      className={cn(
-        'flex flex-col gap-3 px-6 sm:flex-row sm:items-center sm:justify-between',
-        className,
-      )}
-      {...props}
-    >
-      {/* With a control or actions on the right, the description stops at a
+    )}
+    {...props}
+  >
+    {/* With a control or actions on the right, the description stops at a
           readable width instead of running into them. */}
-      <div
-        className={cn(
-          'flex min-w-0 flex-1 gap-4',
-          Boolean(control || actions) && 'sm:max-w-lg',
-        )}
-      >
-        {typeof icon === 'string' ? (
-          <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
-            <Image src={icon} alt="" width={32} height={32} />
-          </div>
-        ) : (
-          icon
-        )}
-
-        <div className="grid min-w-0 grid-flow-row gap-0.5">
-          <div className="flex items-center gap-1">
-            {typeof title === 'string' ? (
-              <h3
-                className={cn(
-                  'font-semibold',
-                  size === 'lg' ? 'text-xl' : 'text-lg',
-                )}
-              >
-                {title}
-              </h3>
-            ) : (
-              title
-            )}
-            {docsLink && <SettingsDocsLink {...docsLink} />}
-          </div>
-
-          {description && (
-            <p className="text-muted-foreground">{description}</p>
-          )}
-
-          {children && <div className="mt-2">{children}</div>}
-        </div>
-      </div>
-
-      {(actions || control) && (
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
-          {actions}
-          {control}
-        </div>
+    <div
+      className={cn(
+        'flex min-w-0 flex-1 gap-4',
+        Boolean(control || actions) && 'sm:max-w-lg',
       )}
+    >
+      {typeof icon === 'string' ? (
+        <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
+          <Image src={icon} alt="" width={32} height={32} />
+        </div>
+      ) : (
+        icon
+      )}
+
+      <div className="grid min-w-0 grid-flow-row gap-0.5">
+        <div className="flex items-center gap-1">
+          {typeof title === 'string' ? (
+            <h3
+              className={cn(
+                'font-semibold',
+                size === 'lg' ? 'text-xl' : 'text-lg',
+              )}
+            >
+              {title}
+            </h3>
+          ) : (
+            title
+          )}
+          {docsLink && <SettingsDocsLink {...docsLink} />}
+        </div>
+
+        {description && <p className="text-muted-foreground">{description}</p>}
+
+        {children && <div className="mt-2">{children}</div>}
+      </div>
     </div>
-  ),
+
+    {(actions || control) && (
+      <div className="flex shrink-0 flex-wrap items-center gap-3">
+        {actions}
+        {control}
+      </div>
+    )}
+  </div>
 );
-SettingsCardHeader.displayName = 'SettingsCardHeader';
 
 export { SettingsCardHeader };

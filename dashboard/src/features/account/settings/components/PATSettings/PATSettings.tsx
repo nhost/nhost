@@ -38,12 +38,12 @@ import {
 } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
 
-type PersonalAccessToken = {
+interface PersonalAccessToken {
   id: string;
   name: string;
   expiresAt: string;
   createdAt: string;
-};
+}
 
 export default function PATSettings() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

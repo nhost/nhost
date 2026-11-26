@@ -7,10 +7,10 @@ import RemoveSecurityKeyButton from '@/features/account/settings/components/Secu
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 
-type SecurityKeyProps = {
+interface SecurityKeyProps {
   id: string;
   nickname?: string | null;
-};
+}
 
 function SecurityKey({ id, nickname }: SecurityKeyProps) {
   return (

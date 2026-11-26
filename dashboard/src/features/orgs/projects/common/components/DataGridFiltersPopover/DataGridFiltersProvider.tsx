@@ -33,7 +33,7 @@ function updateFilter(
   return updateFilterInArray(oldFilters, index, filterToUpdate);
 }
 
-type DataGridFiltersContextProps = {
+interface DataGridFiltersContextProps {
   filters: DataGridFilter[];
   setFilters: (filters: DataGridFilter[]) => void;
   addFilter: (newFilter: DataGridFilter) => void;
@@ -41,7 +41,7 @@ type DataGridFiltersContextProps = {
   setValue: (index: number, newValue: string) => void;
   setColumn: (index: number, newColumn: string) => void;
   setOp: (index: number, newOp: DataGridFilterOperator) => void;
-};
+}
 
 const DataGridFiltersContext = createContext<DataGridFiltersContextProps>({
   filters: [] as DataGridFilter[],

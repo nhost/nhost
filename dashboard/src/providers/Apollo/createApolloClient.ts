@@ -29,13 +29,13 @@ const isRetriableOperation = (operation: Operation) => {
   );
 };
 
-export type NhostApolloClientOptions = {
+export interface NhostApolloClientOptions {
   nhost?: NhostClient;
   graphqlUrl?: string;
   globalHeaders?: Record<string, string>;
   fetchPolicy?: WatchQueryFetchPolicy;
   connectToDevTools?: boolean;
-};
+}
 
 export const createApolloClient = ({
   nhost,

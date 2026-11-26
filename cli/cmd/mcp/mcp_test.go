@@ -100,7 +100,7 @@ func runTests(t *testing.T, mcpClient *client.Client) { //nolint:maintidx
 		res,
 		//nolint:tagalign
 		&mcp.InitializeResult{
-			ProtocolVersion: "2025-06-18",
+			ProtocolVersion: "2026-07-28",
 			Capabilities: mcp.ServerCapabilities{
 				Elicitation:  nil,
 				Experimental: nil,
@@ -297,6 +297,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"type": string("boolean"),
 							},
 						},
+						Required: []string{},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "List Nhost Docs",
@@ -395,6 +396,8 @@ config validate after making changes to your nhost.toml file to ensure it is val
 		cmpopts.SortSlices(func(a, b mcp.Tool) bool {
 			return a.Name < b.Name
 		}),
+		cmpopts.IgnoreFields(mcp.PaginatedResult{}, "CacheableResult"),
+		cmpopts.IgnoreFields(mcp.ToolInputSchema{}, "PropertyOrder"),
 	); diff != "" {
 		t.Errorf("ListToolsResult mismatch (-want +got):\n%s", diff)
 	}
@@ -415,7 +418,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				{
 					Annotations: &mcp.Annotations{
 						Audience: []mcp.Role{mcp.RoleAssistant},
-						Priority: 1,
+						Priority: new(1.0),
 					},
 					URI:         "schema://graphql-management",
 					Name:        "graphql-management",
@@ -426,7 +429,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				{
 					Annotations: &mcp.Annotations{
 						Audience: []mcp.Role{mcp.RoleAssistant},
-						Priority: 1,
+						Priority: new(1.0),
 					},
 					URI:         "schema://nhost-cloud",
 					Name:        "nhost-cloud",
@@ -436,7 +439,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				{
 					Annotations: &mcp.Annotations{
 						Audience: []mcp.Role{mcp.RoleAssistant},
-						Priority: 1,
+						Priority: new(1.0),
 					},
 					URI:         "schema://nhost.toml",
 					Name:        "nhost.toml",
@@ -445,6 +448,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				},
 			},
 		},
+		cmpopts.IgnoreFields(mcp.PaginatedResult{}, "CacheableResult"),
 	); diff != "" {
 		t.Errorf("ListResourcesResult mismatch (-want +got):\n%s", diff)
 	}

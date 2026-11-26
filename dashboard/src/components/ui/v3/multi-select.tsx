@@ -29,14 +29,14 @@ import {
 } from '@/components/ui/v3/popover';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
-type MultiSelectContextType = {
+interface MultiSelectContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
   selectedValues: Set<string>;
   toggleValue: (value: string) => void;
   items: Map<string, ReactNode>;
   onItemAdded: (value: string, label: ReactNode) => void;
-};
+}
 const MultiSelectContext = createContext<MultiSelectContextType | null>(null);
 
 function useMultiSelectContext() {

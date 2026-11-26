@@ -5,12 +5,12 @@ import { formatRemoteSchemaEndpoint } from '@/features/orgs/projects/database/da
 import getRemoteFieldPath from '@/features/orgs/projects/remote-schemas/utils/getRemoteFieldPath';
 import type { RemoteRelationshipItem } from '@/utils/hasura-api/generated/schemas';
 
-type BuildRemoteRelationshipArgs = {
+interface BuildRemoteRelationshipArgs {
   relationship: RemoteRelationshipItem;
   tableSchema: string;
   tableName: string;
   dataSource: string;
-};
+}
 
 export default function buildRemoteRelationshipViewModel({
   relationship,

@@ -15,20 +15,20 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import type { DataGridFilterOperator } from './operators';
 
-export type DataGridFilter = {
+export interface DataGridFilter {
   column: string;
   op: DataGridFilterOperator;
   value: string;
   id: string;
-};
+}
 
-type DataGridQueryParamsContextProps = {
+interface DataGridQueryParamsContextProps {
   appliedFilters: DataGridFilter[];
   setAppliedFilters: (filters: DataGridFilter[]) => void;
   sortBy: ColumnSort[];
   setSortBy: Dispatch<SetStateAction<ColumnSort[]>>;
   currentOffset: number;
-};
+}
 
 const DataGridQueryParamsContext =
   createContext<DataGridQueryParamsContextProps>({

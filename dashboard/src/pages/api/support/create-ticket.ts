@@ -3,20 +3,20 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Sla_Level_Enum } from '@/generated/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
 
-export type CreateTicketRequest = {
+export interface CreateTicketRequest {
   project: string;
   services: string[];
   priority: string;
   subject: string;
   description: string;
-};
+}
 
-export type CreateTicketResponse = {
+export interface CreateTicketResponse {
   success: boolean;
   error?: string;
-};
+}
 
-type GetProjectResponse = {
+interface GetProjectResponse {
   apps: Array<{
     id: string;
     organization: {
@@ -25,7 +25,7 @@ type GetProjectResponse = {
       } | null;
     } | null;
   }>;
-};
+}
 
 type ZendeskTokenResult =
   | { success: true; accessToken: string }

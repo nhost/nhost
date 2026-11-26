@@ -1,9 +1,4 @@
-import {
-  type ComponentProps,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
-} from 'react';
+import type { ComponentProps, ReactNode, Ref } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import {
@@ -36,24 +31,22 @@ interface FormSwitchProps<
   onCheckedChange?: (checked: boolean) => void;
 }
 
-function InnerFormSwitch<
+function FormSwitch<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    className = '',
-    containerClassName = '',
-    labelClassName = '',
-    inline,
-    helperText,
-    disabled,
-    onCheckedChange,
-  }: FormSwitchProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLButtonElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  className = '',
+  containerClassName = '',
+  labelClassName = '',
+  inline,
+  helperText,
+  disabled,
+  onCheckedChange,
+  ref,
+}: FormSwitchProps<TFieldValues, TName> & { ref?: Ref<HTMLButtonElement> }) {
   return (
     <FormField
       control={control}
@@ -110,14 +103,5 @@ function InnerFormSwitch<
     />
   );
 }
-
-const FormSwitch = forwardRef(InnerFormSwitch) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormSwitchProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLButtonElement>;
-  },
-) => ReturnType<typeof InnerFormSwitch>;
 
 export default FormSwitch;

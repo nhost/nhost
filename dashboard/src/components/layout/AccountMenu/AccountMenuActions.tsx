@@ -1,5 +1,7 @@
+import { Cookie } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { resetCookieConsent } from '@/components/common/CookieConsent';
 import { Button } from '@/components/ui/v3/button';
 import {
   ACCOUNT_MENU_LINKS,
@@ -56,6 +58,10 @@ export default function AccountMenuActions({
           </Button>
         );
       })}
+      <Button variant="menu" onClick={resetCookieConsent}>
+        <Cookie className="h-4 w-4" />
+        Cookie settings
+      </Button>
     </div>
   );
 }

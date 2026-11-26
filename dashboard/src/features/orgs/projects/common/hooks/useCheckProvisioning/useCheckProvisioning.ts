@@ -9,10 +9,10 @@ import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 
-type ApplicationStateMetadata = {
+interface ApplicationStateMetadata {
   state: ApplicationStatus;
   createdAt?: string;
-};
+}
 
 /**
  * This hook will poll for a new application state

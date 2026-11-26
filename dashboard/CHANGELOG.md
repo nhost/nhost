@@ -1,3 +1,28 @@
+## [@nhost/dashboard@3.11.0] - 2026-11-26
+
+### 🚀 Features
+
+- *(dashboard)* Add database extensions page (#5116)
+- *(dashboard)* Add billing usage metrics (#4888)
+- *(dashboard)* Support PostGIS geometry/geography in the database data grid (#5190)
+- *(dashboard)* Share cookie choice across nhost.io and dashboard (#5352)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Substitute NEXT_PUBLIC_NHOST_LOGS_* URLs at container start (#5134)
+- *(dashboard)* Load all Run services in custom domain settings (#5418)
+- *(dashboard)* Show organization status strip and billing state (#5370)
+- *(dashboard)* Match native controls to the theme in Safari (#5432)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Redesign project cards with menu and compact status (#5388)
+- *(dashboard)* Enable noNestedComponentDefinitions and noReactPropAssignments (#5445)
+- *(dashboard)* Replace forwardRef with ref as a prop (#5443)
+- *(dashboard)* Enable useConsistentTypeDefinitions (#5447)
+
 ## [@nhost/dashboard@3.10.1] - 2026-11-17
 
 ### 🐛 Bug Fixes
