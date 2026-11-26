@@ -40,9 +40,18 @@ func TestGenerateOIDCProvider(t *testing.T) {
 	}{
 		{"HTTPS constraints", "must use HTTPS without user info or a fragment"},
 		{"issuer query", "`issuer` must also have no query string"},
-		{"discovery fallback", "Omit `discoveryUrl` to derive the discovery endpoint from the issuer."},
-		{"OAuth characters", "non-empty printable ASCII without spaces, double quotes, or backslashes"},
-		{"required scope", "A non-empty `scopes` list must include `openid`; an empty list is allowed"},
+		{
+			"discovery fallback",
+			"Omit `discoveryUrl` to derive the discovery endpoint from the issuer.",
+		},
+		{
+			"OAuth characters",
+			"non-empty printable ASCII without spaces, double quotes, or backslashes",
+		},
+		{
+			"required scope",
+			"A non-empty `scopes` list must include `openid`; an empty list is allowed",
+		},
 		{"non-blank secret", "`clientSecret` must not be empty or contain only whitespace"},
 		{"issuer type", "| `issuer` | HTTPS URL |"},
 		{"optional discovery type", "| `discoveryUrl?` | HTTPS URL or empty string |"},
