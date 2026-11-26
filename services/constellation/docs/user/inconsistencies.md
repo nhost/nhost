@@ -194,7 +194,7 @@ Recorded when schema composition fails for a specific role. Triggers:
 * `connector/schemamerge.MergeConnectorSchema` rejects an incoming connector's
   schema (duplicate field/type with incompatible shape, conflicting enums,
   conflicting `_comparison_exp` inputs).
-* `BuildValidatedSchema` rejects the merged schema for the role (any
+* `schemamerge.BuildComposedSchema` rejects the merged schema for the role (any
   GraphQL-spec violation that survived merging).
 
 **Effect:** only that role is dropped from `validatedSchemas`. Requests for
