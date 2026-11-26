@@ -125,6 +125,9 @@ const server = setupServer(
     if (sql.includes('pg_settings')) {
       return HttpResponse.json(rows([state]));
     }
+    if (sql.includes('count(*)::int AS "all"')) {
+      return HttpResponse.json(rows([{ all: 1, failed: 1 }]));
+    }
     if (sql.includes('FROM cron.job job')) {
       return HttpResponse.json(rows(jobs));
     }
@@ -272,9 +275,14 @@ describe('SQL Jobs', () => {
       'href',
       `/orgs/local/projects/local/events/cron-jobs/sql/${sqlJobFixture.jobid}`,
     );
-    expect(screen.getByText(sqlJobFixture.schedule)).toBeInTheDocument();
+    const fields = ['Minute', 'Hour', 'Day', 'Month', 'Weekday'];
+    sqlJobFixture.schedule.split(' ').forEach((value, index) => {
+      expect(
+        screen.getByText(fields[index]).previousElementSibling,
+      ).toHaveTextContent(value);
+    });
     expect(sqlEditor().state.doc.toString()).toBe(sqlJobFixture.command);
-    await user.click(screen.getByRole('tab', { name: 'Run history' }));
+    await user.click(await screen.findByRole('tab', { name: 'Run history' }));
     expect(await screen.findByText('Permission denied')).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: 'Started' }),
