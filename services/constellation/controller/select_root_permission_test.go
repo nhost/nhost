@@ -16,7 +16,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
+func TestSelectRootPermissionsHTTP(t *testing.T) {
 	t.Parallel()
 
 	md, err := metadata.FromHasuraJSON([]byte(`{
@@ -30,11 +30,13 @@ func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
 	      }}}],
 	      "select_permissions": [
 	        {"role": "reader", "permission": {"columns": ["id"], "filter": {}}},
-	        {"role": "control", "permission": {"columns": ["id"], "filter": {}}}
+	        {"role": "control", "permission": {"columns": ["id"], "filter": {}}},
+	        {"role": "nested_only", "permission": {"columns": ["id"], "filter": {}}}
 	      ]
 	    },
 	    {
 	      "table": {"schema": "public", "name": "documents"},
+	      "configuration": {"custom_root_fields": {"select_by_pk": "document"}},
 	      "select_permissions": [
 	        {"role": "reader", "permission": {
 	          "columns": ["id", "folder_id"], "filter": {},
@@ -43,6 +45,14 @@ func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
 	        {"role": "control", "permission": {
 	          "columns": ["id", "folder_id"], "filter": {},
 	          "query_root_fields": ["select", "select_aggregate"], "allow_aggregations": true
+	        }},
+	        {"role": "by_key", "permission": {
+	          "columns": ["id", "folder_id"], "filter": {"id": {"_gt": 1}},
+	          "query_root_fields": ["select_by_pk"], "subscription_root_fields": []
+	        }},
+	        {"role": "nested_only", "permission": {
+	          "columns": ["id", "folder_id"], "filter": {"id": {"_gt": 1}},
+	          "query_root_fields": [], "subscription_root_fields": []
 	        }}
 	      ]
 	    }
@@ -59,7 +69,7 @@ func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
 		CREATE TABLE folders (id INTEGER PRIMARY KEY);
 		CREATE TABLE documents (id INTEGER PRIMARY KEY, folder_id INTEGER NOT NULL REFERENCES folders(id));
 		INSERT INTO folders VALUES (1);
-		INSERT INTO documents VALUES (2, 1);
+		INSERT INTO documents VALUES (1, 1), (2, 1);
 	`)
 	logger := slog.New(slog.DiscardHandler)
 
@@ -76,6 +86,7 @@ func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
 	}
 
 	router := newTestRouter(t, ctrl)
+	allDocuments := []any{map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}
 	tests := []struct {
 		name    string
 		role    string
@@ -105,13 +116,37 @@ func TestSelectRootPermissionInconsistencyHTTP(t *testing.T) {
 		{
 			"control root and relationship",
 			"control",
-			`{"query":"{ documents { id } folders { documents { id } } }"}`,
+			`{"query":"{ documents(order_by: {id: asc}) { id } folders { documents(order_by: {id: asc}) { id } } }"}`,
 			map[string]any{
-				"documents": []any{map[string]any{"id": float64(2)}},
-				"folders": []any{
-					map[string]any{"documents": []any{map[string]any{"id": float64(2)}}},
-				},
+				"documents": allDocuments,
+				"folders":   []any{map[string]any{"documents": allDocuments}},
 			},
+			"",
+		},
+		{
+			"custom by-key root applies row filter", "by_key",
+			`{"query":"{ allowed: document(id: 2) { id } filtered: document(id: 1) { id } }"}`,
+			map[string]any{"allowed": map[string]any{"id": float64(2)}, "filtered": nil},
+			"",
+		},
+		{
+			"by-key role has no collection root", "by_key", `{"query":"{ documents { id } }"}`,
+			nil, `Cannot query field "documents"`,
+		},
+		{
+			"by-key role has no subscription root",
+			"by_key",
+			`{"query":"{ __schema { subscriptionType { name } } }"}`,
+			map[string]any{"__schema": map[string]any{"subscriptionType": nil}},
+			"",
+		},
+		{
+			"nested read with both allowlists empty",
+			"nested_only",
+			`{"query":"{ folders { documents { id } } }"}`,
+			map[string]any{"folders": []any{
+				map[string]any{"documents": []any{map[string]any{"id": float64(2)}}},
+			}},
 			"",
 		},
 	}
