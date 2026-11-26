@@ -22,27 +22,32 @@ import (
 var ErrGraphqlEndpointRequired = errors.New("graphql-endpoint is required")
 
 const (
-	FlagListenAddr           = "listen-addr"
-	FlagDebug                = "debug"
-	FlagLogFormatTEXT        = "log-format-text"
-	FlagGraphqlEndpoint      = "graphql-endpoint"
-	FlagMCPInstructions      = "mcp-instructions"
-	FlagQueryInstructions    = "query-instructions"
-	FlagMutationInstructions = "mutation-instructions"
-	FlagSchemaInstructions   = "schema-instructions"
-	FlagAuthURL              = "auth-url"
-	FlagRealm                = "realm"
-	FlagEnforceRole          = "enforce-role"
-	FlagBrowserHTML          = "browser-html"
+	FlagListenAddr              = "listen-addr"
+	FlagDebug                   = "debug"
+	FlagLogFormatTEXT           = "log-format-text"
+	FlagGraphqlEndpoint         = "graphql-endpoint"
+	FlagStorageURL              = "storage-url"
+	FlagStorageMaxTransferBytes = "storage-max-transfer-bytes"
+	FlagMCPInstructions         = "mcp-instructions"
+	FlagQueryInstructions       = "query-instructions"
+	FlagMutationInstructions    = "mutation-instructions"
+	FlagSchemaInstructions      = "schema-instructions"
+	FlagAuthURL                 = "auth-url"
+	FlagRealm                   = "realm"
+	FlagEnforceRole             = "enforce-role"
+	FlagBrowserHTML             = "browser-html"
 
-	shutdownTimeout = 5 * time.Second
+	mcpAppsExtension = "io.modelcontextprotocol/ui"
+	shutdownTimeout  = 5 * time.Second
+
+	defaultStorageMaxTransferBytes = 50_000_000
 )
 
 func Command(version string) *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "mcp",
 		Version: version,
-		Usage:   "Nhost MCP Service - GraphQL tools over HTTP",
+		Usage:   "Nhost MCP Service - GraphQL and storage downloads over HTTP",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagListenAddr,
@@ -69,6 +74,19 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Required: true,
 				Sources:  cli.EnvVars("MCP_GRAPHQL_ENDPOINT"),
 				Category: "GraphQL",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagStorageURL,
+				Usage:    "Storage service URL including API prefix (enables storage-download)",
+				Sources:  cli.EnvVars("MCP_STORAGE_URL"),
+				Category: "Storage",
+			},
+			&cli.Int64Flag{ //nolint:exhaustruct
+				Name:     FlagStorageMaxTransferBytes,
+				Usage:    "Maximum storage download response size in bytes",
+				Value:    defaultStorageMaxTransferBytes,
+				Sources:  cli.EnvVars("MCP_STORAGE_MAX_TRANSFER_BYTES"),
+				Category: "Storage",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagMCPInstructions,
@@ -144,6 +162,13 @@ func BuildServer(
 		opts = append(opts, mcpserver.WithInstructions(instructions))
 	}
 
+	storageURL := cmd.String(FlagStorageURL)
+	if storageURL != "" {
+		opts = append(opts, mcpserver.WithExtensions(map[string]any{
+			mcpAppsExtension: struct{}{},
+		}))
+	}
+
 	mcpServer := mcpserver.NewMCPServer("mcp", version, opts...)
 
 	t := tools.NewTool(
@@ -155,6 +180,16 @@ func BuildServer(
 	t.RegisterQuery(mcpServer)
 	t.RegisterMutation(mcpServer)
 	t.RegisterSchema(mcpServer)
+
+	if storageURL != "" {
+		if err := tools.RegisterStorage(
+			mcpServer,
+			storageURL,
+			cmd.Int64(FlagStorageMaxTransferBytes),
+		); err != nil {
+			return nil, fmt.Errorf("registering storage download tool: %w", err)
+		}
+	}
 
 	return mcpServer, nil
 }
