@@ -25,6 +25,11 @@ export interface SqlJobRun {
   command: string;
 }
 
+export interface SqlJobRunCounts {
+  all: number;
+  failed: number;
+}
+
 export interface CronSetting {
   name: string;
   setting: string;

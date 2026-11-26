@@ -30,7 +30,14 @@ export const SQL_JOBS_SQL =
   FROM cron.job job ORDER BY job.jobid DESC
 ) j`);
 
-export function getJobRunsSql(jobid: string, offset: number, limit: number) {
+export type SqlJobRunFilter = 'all' | 'failed';
+
+export function getJobRunsSql(
+  jobid: string,
+  offset: number,
+  limit: number,
+  filter: SqlJobRunFilter = 'all',
+) {
   if (!/^\d+$/.test(jobid) || !Number.isSafeInteger(offset) || offset < 0) {
     throw new Error('Invalid job history request.');
   }
@@ -44,12 +51,30 @@ export function getJobRunsSql(jobid: string, offset: number, limit: number) {
       `SELECT row_to_json(r) AS data FROM (
     SELECT runid::text, jobid::text, status, return_message,
       start_time, end_time, command
-    FROM cron.job_run_details AS runs WHERE runs.jobid = %L::bigint
+    FROM cron.job_run_details AS runs WHERE runs.jobid = %L::bigint%s
     ORDER BY runs.start_time DESC NULLS LAST, runs.runid DESC LIMIT %s OFFSET %s
   ) r`,
       jobid,
+      filter === 'failed' ? " AND runs.status = 'failed'" : '',
       limit,
       offset,
+    ),
+  );
+}
+
+export function getJobRunCountsSql(jobid: string) {
+  if (!/^\d+$/.test(jobid)) {
+    throw new Error('Invalid job history request.');
+  }
+
+  return withPostgresRole(
+    format(
+      `SELECT row_to_json(r) AS data FROM (
+    SELECT count(*)::int AS "all",
+      count(*) FILTER (WHERE status = 'failed')::int AS failed
+    FROM cron.job_run_details WHERE jobid = %L::bigint
+  ) r`,
+      jobid,
     ),
   );
 }

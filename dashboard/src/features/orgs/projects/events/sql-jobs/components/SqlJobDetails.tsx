@@ -1,10 +1,24 @@
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { ArrowDown, Pause, Pencil, Play, RefreshCw } from 'lucide-react';
+import { format, formatDistanceToNowStrict } from 'date-fns';
+import {
+  ChevronRight,
+  CircleCheck,
+  CircleX,
+  Clock,
+  Pause,
+  Pencil,
+  Play,
+  RefreshCw,
+} from 'lucide-react';
 import { useState } from 'react';
+import { Pagination } from '@/components/common/Pagination';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -21,18 +35,30 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
+import {
+  describeCronSchedule,
+  getCronScheduleKind,
+} from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
 import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
+import type { SqlJobRunFilter } from '@/features/orgs/projects/events/sql-jobs/sql';
 import {
   SQL_EDITOR_EXTENSIONS,
   SQL_EDITOR_SETUP,
 } from '@/features/orgs/projects/events/sql-jobs/sql-editor';
-import type { SqlJob } from '@/features/orgs/projects/events/sql-jobs/types';
-import { useSqlJobRuns } from '@/features/orgs/projects/events/sql-jobs/use-sql-jobs';
+import type {
+  SqlJob,
+  SqlJobRun,
+} from '@/features/orgs/projects/events/sql-jobs/types';
+import {
+  useSqlJobRunCounts,
+  useSqlJobRuns,
+} from '@/features/orgs/projects/events/sql-jobs/use-sql-jobs';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 
 const SQL_VIEWER_EXTENSIONS = [
@@ -87,11 +113,14 @@ export default function SqlJobDetails({
   const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
   const schedule = describeCronSchedule(job.schedule);
+  const runCounts = useSqlJobRunCounts(job);
+  const hasRuns = (runCounts.data?.all ?? 0) > 0;
+  const noRunsYet = runCounts.isSuccess && !hasRuns;
   return (
     <Tabs defaultValue="overview" className="gap-0">
       <CronJobPaneHeader
         title={job.jobname ?? `Job ${job.jobid}`}
-        subtitle={`SQL job · ${schedule}`}
+        subtitle={`SQL job · ${schedule}${noRunsYet ? ' · No runs yet' : ''}`}
         actions={
           <>
             <JobIconButton
@@ -112,10 +141,12 @@ export default function SqlJobDetails({
           </>
         }
       >
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="runs">Run history</TabsTrigger>
-        </TabsList>
+        {hasRuns && (
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="runs">Run history</TabsTrigger>
+          </TabsList>
+        )}
       </CronJobPaneHeader>
       <TabsContent value="overview" className="space-y-4 p-6">
         {onConfigurePreload && (
@@ -144,36 +175,29 @@ export default function SqlJobDetails({
         )}
         <div className="grid gap-4 lg:grid-cols-2">
           <section className="rounded-lg border p-4">
-            <h2 className="mb-3 font-medium">Schedule</h2>
-            <p className="font-mono text-lg">{job.schedule}</p>
+            <h2 className="font-medium">Schedule</h2>
             <p className="mt-1 text-muted-foreground text-sm">
               {schedule}, in {timezone}
             </p>
+            <ScheduleFields schedule={job.schedule} />
           </section>
           <section className="rounded-lg border p-4">
             <h2 className="mb-3 font-medium">Details</h2>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">State</dt>
-                <dd>{job.active ? 'Enabled' : 'Paused'}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Database role</dt>
-                <dd>{job.username}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Database</dt>
-                <dd>{job.database}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Job ID</dt>
-                <dd>{job.jobid}</dd>
-              </div>
-            </dl>
+            <VariableGroup>
+              <DetailRow label="Database role" value={job.username} />
+              <DetailRow label="Database" value={job.database} />
+              <DetailRow label="Job ID" value={job.jobid} />
+            </VariableGroup>
           </section>
         </div>
         <section className="rounded-lg border p-4">
-          <h2 className="mb-3 font-medium">SQL command</h2>
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h2 className="font-medium">SQL command</h2>
+            <CopyToClipboardButton
+              textToCopy={job.command}
+              title="SQL command"
+            />
+          </div>
           <CodeMirror
             aria-label="SQL command"
             value={job.command}
@@ -199,26 +223,208 @@ export default function SqlJobDetails({
   );
 }
 
+const SCHEDULE_FIELDS = ['Minute', 'Hour', 'Day', 'Month', 'Weekday'];
+
+function ScheduleFields({ schedule }: { schedule: string }) {
+  const parts = schedule.trim().split(/\s+/);
+  if (getCronScheduleKind(schedule) !== 'expression' || parts.length !== 5) {
+    return (
+      <p className="mt-3 inline-block rounded-md border bg-muted/30 px-3 py-2 font-mono text-sm">
+        {schedule}
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {parts.map((part, index) => (
+        <div
+          key={SCHEDULE_FIELDS[index]}
+          className="flex min-w-20 flex-col items-center rounded-md border bg-muted/30 px-3 py-2"
+        >
+          <span className="font-mono text-base">{part}</span>
+          <span className="text-muted-foreground text-xs">
+            {SCHEDULE_FIELDS[index]}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <TableRow className="group">
+      <TableCell>{label}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <span className="min-w-0 break-all font-mono text-muted-foreground">
+            {value}
+          </span>
+          <CopyToClipboardButton
+            className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+            textToCopy={value}
+            title={label}
+          />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function RunStatusLabel({ status }: { status: string }) {
+  if (status === 'succeeded') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-success">
+        <CircleCheck className="size-4" />
+        Succeeded
+      </span>
+    );
+  }
+  if (status === 'failed') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-destructive">
+        <CircleX className="size-4" />
+        Failed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+      <Clock className="size-4" />
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+}
+
+function runDuration(run: SqlJobRun): string {
+  if (!run.start_time || !run.end_time) {
+    return '—';
+  }
+  const ms =
+    new Date(run.end_time).getTime() - new Date(run.start_time).getTime();
+  if (ms < 1000) {
+    return `${ms} ms`;
+  }
+  if (ms < 60_000) {
+    return `${(ms / 1000).toFixed(1)} s`;
+  }
+  return `${Math.round(ms / 60_000)} min`;
+}
+
+function RunRow({ run }: { run: SqlJobRun }) {
+  const [open, setOpen] = useState(false);
+  const started = run.start_time ? new Date(run.start_time) : null;
+  return (
+    <>
+      <TableRow
+        className="cursor-pointer"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+      >
+        <TableCell className="w-8 pr-0">
+          <ChevronRight
+            className={cn(
+              'size-4 text-muted-foreground transition-transform',
+              open && 'rotate-90',
+            )}
+          />
+        </TableCell>
+        <TableCell>
+          <RunStatusLabel status={run.status} />
+        </TableCell>
+        <TableCell>
+          {started ? (
+            <span className="whitespace-nowrap">
+              {format(started, 'd MMM, HH:mm')}
+              <span className="ml-2 text-muted-foreground text-xs">
+                {formatDistanceToNowStrict(started, { addSuffix: true })}
+              </span>
+            </span>
+          ) : (
+            '—'
+          )}
+        </TableCell>
+        <TableCell className="max-w-56 truncate font-mono text-muted-foreground text-xs">
+          {run.return_message ?? '—'}
+        </TableCell>
+        <TableCell className="whitespace-nowrap font-mono text-xs">
+          {runDuration(run)}
+        </TableCell>
+        <TableCell className="text-right font-mono text-muted-foreground text-xs">
+          #{run.runid}
+        </TableCell>
+      </TableRow>
+      {open && (
+        <TableRow className="hover:bg-transparent">
+          <TableCell />
+          <TableCell colSpan={5} className="pb-4">
+            <p className="mb-2 text-muted-foreground text-xs">Return message</p>
+            <div className="flex items-start justify-between gap-4 rounded-md border bg-muted/30 p-3">
+              <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                {run.return_message || 'No message'}
+              </pre>
+              <CopyToClipboardButton
+                textToCopy={run.return_message}
+                title="return message"
+              />
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
+const RUNS_PAGE_SIZE = 20;
+
 function SqlJobRunHistory({ job }: { job: SqlJob }) {
-  const [offset, setOffset] = useState(0);
-  const pageSize = 20;
-  const runs = useSqlJobRuns(job, offset, pageSize + 1);
-  if (offset > 0 && runs.data?.length === 0 && !runs.isFetching) {
-    setOffset(0);
+  const [filter, setFilter] = useState<SqlJobRunFilter>('all');
+  const [page, setPage] = useState(1);
+  const offset = (page - 1) * RUNS_PAGE_SIZE;
+  const runs = useSqlJobRuns(job, offset, RUNS_PAGE_SIZE, filter);
+  const counts = useSqlJobRunCounts(job);
+  const total = counts.data?.[filter] ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / RUNS_PAGE_SIZE));
+  if (page > totalPages && counts.data) {
+    setPage(totalPages);
   }
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <p className="text-muted-foreground text-sm">
-          Times in your browser&apos;s time zone
-        </p>
-        <SidebarIconAction
-          label="Refresh"
-          disabled={runs.isFetching}
-          onClick={() => runs.refetch()}
-        >
-          <RefreshCw />
-        </SidebarIconAction>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`failed-only-${job.jobid}`}
+            checked={filter === 'failed'}
+            onCheckedChange={(checked) => {
+              setFilter(checked === true ? 'failed' : 'all');
+              setPage(1);
+            }}
+          />
+          <Label
+            htmlFor={`failed-only-${job.jobid}`}
+            className="cursor-pointer font-normal text-sm"
+          >
+            Only failed runs
+            <span className="ml-1.5 text-muted-foreground text-xs">
+              {counts.data?.failed ?? ''}
+            </span>
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground text-sm">
+            Times in your time zone
+          </p>
+          <SidebarIconAction
+            label="Refresh"
+            disabled={runs.isFetching}
+            onClick={() => {
+              runs.refetch();
+              counts.refetch();
+            }}
+          >
+            <RefreshCw />
+          </SidebarIconAction>
+        </div>
       </div>
       {runs.isError ? (
         <Alert variant="destructive">
@@ -231,74 +437,55 @@ function SqlJobRunHistory({ job }: { job: SqlJob }) {
         </Alert>
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Run</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead aria-sort="descending">
-                    <span className="inline-flex items-center gap-1">
-                      Started
-                      <ArrowDown className="size-3.5" aria-hidden="true" />
-                    </span>
-                  </TableHead>
-                  <TableHead>Finished</TableHead>
-                  <TableHead>Result</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody aria-busy={runs.isLoading}>
-                {runs.isLoading
-                  ? [1, 2, 3, 4].map((row) => (
-                      <TableRow key={row}>
-                        <TableCell colSpan={5}>
-                          <Skeleton className="h-4 w-full" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : runs.data?.slice(0, pageSize).map((run) => (
-                      <TableRow key={run.runid}>
-                        <TableCell className="font-mono">{run.runid}</TableCell>
-                        <TableCell>
-                          <RunStatus status={run.status} />
-                        </TableCell>
-                        <TableCell>{runTime(run.start_time)}</TableCell>
-                        <TableCell>{runTime(run.end_time)}</TableCell>
-                        <TableCell className="max-w-xs whitespace-pre-wrap break-words">
-                          {run.return_message ?? '—'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-              </TableBody>
-            </Table>
-          </div>
-          {runs.data?.length === 0 && (
-            <p className="py-6 text-center text-muted-foreground text-sm">
-              No recorded runs yet.
+          {runs.data?.length === 0 ? (
+            <p className="rounded-lg border py-10 text-center text-muted-foreground text-sm">
+              {filter === 'failed'
+                ? 'No failed runs.'
+                : 'No recorded runs yet.'}
             </p>
-          )}
-          {!runs.isLoading && Boolean(runs.data?.length) && (
-            <div className="mt-4 flex items-center justify-end gap-3">
-              <span className="text-muted-foreground text-sm">
-                Page {Math.floor(offset / pageSize) + 1}
-              </span>
-              <Button
-                variant="outline"
-                disabled={offset === 0 || runs.isFetching}
-                onClick={() => setOffset((value) => value - pageSize)}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                disabled={
-                  (runs.data?.length ?? 0) <= pageSize || runs.isFetching
-                }
-                onClick={() => setOffset((value) => value + pageSize)}
-              >
-                Next
-              </Button>
+          ) : (
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader className="[&_th]:text-foreground">
+                  <TableRow>
+                    <TableHead className="w-8 pr-0" />
+                    <TableHead>Status</TableHead>
+                    <TableHead aria-sort="descending">Started</TableHead>
+                    <TableHead>Result</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead className="text-right">Run</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody aria-busy={runs.isLoading}>
+                  {runs.isLoading
+                    ? [1, 2, 3, 4].map((row) => (
+                        <TableRow key={row}>
+                          <TableCell colSpan={6}>
+                            <Skeleton className="h-4 w-full" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : runs.data?.map((run) => (
+                        <RunRow key={run.runid} run={run} />
+                      ))}
+                </TableBody>
+              </Table>
             </div>
+          )}
+          {totalPages > 1 && (
+            <Pagination
+              className="mt-4 flex-row-reverse"
+              totalNrOfPages={totalPages}
+              elementsPerPage={RUNS_PAGE_SIZE}
+              totalNrOfElements={total}
+              itemsLabel="runs"
+              currentPageNumber={page}
+              onPrevPageClick={() => setPage((value) => Math.max(1, value - 1))}
+              onNextPageClick={() =>
+                setPage((value) => Math.min(totalPages, value + 1))
+              }
+              onPageChange={setPage}
+            />
           )}
         </>
       )}

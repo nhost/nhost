@@ -9,14 +9,17 @@ import {
 } from '@/features/orgs/projects/events/sql-jobs/api';
 import {
   CRON_STATE_SQL,
+  getJobRunCountsSql,
   getJobRunsSql,
   SQL_JOBS_SQL,
+  type SqlJobRunFilter,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
 import type {
   CronState,
   SqlJob,
   SqlJobChange,
   SqlJobRun,
+  SqlJobRunCounts,
 } from '@/features/orgs/projects/events/sql-jobs/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -47,7 +50,12 @@ export function useSqlJobs(enabled: boolean) {
   });
 }
 
-export function useSqlJobRuns(job: SqlJob, offset: number, limit: number) {
+export function useSqlJobRuns(
+  job: SqlJob,
+  offset: number,
+  limit: number,
+  filter: SqlJobRunFilter = 'all',
+) {
   const target = useAdminApiTarget();
   const { project } = useProject();
   return useQuery({
@@ -56,14 +64,32 @@ export function useSqlJobRuns(job: SqlJob, offset: number, limit: number) {
       project?.subdomain,
       'runs',
       job.jobid,
+      filter,
       offset,
       limit,
     ],
     queryFn: () =>
       fetchSqlJobRows<SqlJobRun>(
         target!,
-        getJobRunsSql(job.jobid, offset, limit),
+        getJobRunsSql(job.jobid, offset, limit, filter),
       ),
+    enabled: Boolean(target),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useSqlJobRunCounts(job: SqlJob) {
+  const target = useAdminApiTarget();
+  const { project } = useProject();
+  return useQuery({
+    queryKey: [SQL_JOBS_QUERY_KEY, project?.subdomain, 'run-counts', job.jobid],
+    queryFn: async () => {
+      const [counts] = await fetchSqlJobRows<SqlJobRunCounts>(
+        target!,
+        getJobRunCountsSql(job.jobid),
+      );
+      return counts ?? { all: 0, failed: 0 };
+    },
     enabled: Boolean(target),
     refetchInterval: 10_000,
   });
