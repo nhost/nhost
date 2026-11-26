@@ -6,7 +6,9 @@ DOCKER_DEV_ENV_PATH=build/dev/docker
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+	# --wait blocks until every service with a healthcheck is healthy, so the
+	# e2e suite never races container startup (no sleep-based synchronization).
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d --wait
 
 
 .PHONY: _dev-env-down

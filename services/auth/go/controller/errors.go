@@ -40,6 +40,7 @@ var (
 	ErrUserAlreadyExists               = &APIError{api.UserAlreadyExists}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
+	ErrOIDCEmailRequired               = &APIError{api.OidcEmailRequired}
 	ErrInvalidEmailPassword            = &APIError{api.InvalidEmailPassword}
 	ErrPasswordTooShort                = &APIError{api.PasswordTooShort}
 	ErrPasswordInHibpDatabase          = &APIError{api.PasswordInHibpDatabase}
@@ -117,6 +118,32 @@ func (response ErrorResponse) VisitSignInPATResponse(w http.ResponseWriter) erro
 }
 
 func (response ErrorResponse) VisitSignInProviderResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignInOidcResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpOidcResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignInOidcCallbackResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+//nolint:revive // The generated interface uses IdToken.
+func (response ErrorResponse) VisitSignInOidcIdTokenResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+//nolint:revive // The generated interface uses IdToken.
+func (response ErrorResponse) VisitSignUpOidcIdTokenResponse(
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 
@@ -439,6 +466,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.DisabledEndpoint,
 		api.InternalServerError,
 		api.InvalidRequest,
+		api.OidcEmailRequired,
 		api.LocaleNotAllowed,
 		api.PasswordTooShort,
 		api.PasswordInHibpDatabase,
@@ -525,6 +553,12 @@ func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
 			Status:  http.StatusUnauthorized,
 			Error:   err.t,
 			Message: "Invalid or expired personal access token",
+		}
+	case api.OidcEmailRequired:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "An email claim is required for a new OIDC identity",
 		}
 	case api.InvalidRequest:
 	case api.LocaleNotAllowed:
@@ -690,6 +724,10 @@ func (response ErrorRedirectResponse) visit(w http.ResponseWriter) error {
 }
 
 func (response ErrorRedirectResponse) VisitVerifyTicketResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorRedirectResponse) VisitSignInOidcCallbackResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

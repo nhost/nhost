@@ -276,7 +276,9 @@ COMMENT ON TABLE auth.provider_requests IS 'Oauth requests, inserted before redi
 --
 
 CREATE TABLE auth.providers (
-    id text NOT NULL
+    id text NOT NULL,
+    oidc_issuer text,
+    CONSTRAINT providers_oidc_issuer_check CHECK (((oidc_issuer IS NULL) OR ((id ~~ 'oidc:%'::text) AND (oidc_issuer <> ''::text))))
 );
 
 
@@ -402,7 +404,9 @@ CREATE TABLE auth.user_providers (
     access_token text NOT NULL,
     refresh_token text,
     provider_id text NOT NULL,
-    provider_user_id text NOT NULL
+    provider_user_id text NOT NULL,
+    issuer text,
+    CONSTRAINT user_providers_oidc_issuer_check CHECK (((provider_id ~~ 'oidc:%'::text) = (issuer IS NOT NULL)))
 );
 
 
@@ -576,6 +580,14 @@ ALTER TABLE ONLY auth.pkce_authorization_codes
 
 ALTER TABLE ONLY auth.provider_requests
     ADD CONSTRAINT provider_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: providers providers_id_oidc_issuer_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.providers
+    ADD CONSTRAINT providers_id_oidc_issuer_key UNIQUE (id, oidc_issuer);
 
 
 --
@@ -790,6 +802,13 @@ CREATE UNIQUE INDEX schema_migration_catalog_one_active_root ON auth.schema_migr
 
 
 --
+-- Name: user_providers_oidc_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX user_providers_oidc_user_id_idx ON auth.user_providers USING btree (user_id) WHERE (provider_id ~~ 'oidc:%'::text);
+
+
+--
 -- Name: users_new_phone_number_idx; Type: INDEX; Schema: auth; Owner: postgres
 --
 
@@ -979,6 +998,14 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 ALTER TABLE ONLY auth.schema_migration_catalog
     ADD CONSTRAINT schema_migration_catalog_previous_id_fkey FOREIGN KEY (previous_id) REFERENCES auth.schema_migration_catalog(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: user_providers user_providers_oidc_issuer_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.user_providers
+    ADD CONSTRAINT user_providers_oidc_issuer_fkey FOREIGN KEY (provider_id, issuer) REFERENCES auth.providers(id, oidc_issuer);
 
 
 --

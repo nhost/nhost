@@ -486,6 +486,173 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /signin/oidc/{provider}:
+    get:
+      summary: Sign In with a custom OIDC provider
+      description: >-
+        Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+        A new custom-OIDC identity (one not already bound to a user by issuer and subject)
+        requires an email claim to sign in or sign up; otherwise authentication fails with
+        oidc-email-required. Request the email scope and ensure the provider returns email
+        in the ID token or UserInfo. Existing issuer-bound identities can sign in without
+        an email claim. Email alone never links a custom-OIDC identity to an existing account.
+      operationId: signInOidc
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OidcProvider"
+        - $ref: "#/components/parameters/OIDCSignInCodeChallenge"
+        - name: connect
+          in: query
+          description: Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 8192
+        - $ref: "#/components/parameters/OIDCRedirectTo"
+        - $ref: "#/components/parameters/OIDCState"
+        - name: allowedRoles
+          in: query
+          description: Allowed roles for a new user
+          style: form
+          explode: false
+          schema:
+            type: array
+            maxItems: 16
+            items:
+              type: string
+              maxLength: 64
+        - $ref: "#/components/parameters/OIDCDefaultRole"
+        - $ref: "#/components/parameters/OIDCDisplayName"
+        - $ref: "#/components/parameters/OIDCLocale"
+        - name: metadata
+          in: query
+          description: JSON-encoded metadata for a new user
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      responses:
+        "302":
+          description: Redirect to the configured identity provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Short-lived browser binding for the OIDC callback
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signin/oidc/{provider}/callback:
+    get:
+      summary: Custom OIDC browser callback
+      description: Verify the signed authorization response and redirect to the allowed application URL with an Auth authorization code.
+      operationId: signInOidcCallback
+      tags:
+        - authentication
+        - excludeme
+      parameters:
+        - $ref: "#/components/parameters/OidcProvider"
+        - name: state
+          in: query
+          required: true
+          description: Signed Auth flow state
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 4096
+        - name: code
+          in: query
+          description: Authorization code returned by the identity provider
+          schema:
+            type: string
+            maxLength: 4096
+        - name: iss
+          in: query
+          description: Issuer identifier returned by the identity provider (RFC 9207); must match the configured issuer when present and is required when discovery requires it
+          schema:
+            type: string
+            maxLength: 2048
+        - name: error
+          in: query
+          description: Error returned by the identity provider
+          schema:
+            type: string
+            maxLength: 256
+        - name: error_description
+          in: query
+          description: Error detail returned by the identity provider
+          schema:
+            type: string
+            maxLength: 1024
+        - name: error_uri
+          in: query
+          description: Error information URL returned by the identity provider
+          schema:
+            type: string
+            maxLength: 2048
+      responses:
+        "302":
+          description: Redirect to the application with an authorization code or an authentication error
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Expiration of the short-lived browser binding
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signin/oidc/{provider}/idtoken:
+    post:
+      summary: Sign In with a custom OIDC ID token
+      description: >-
+        Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+        A new custom-OIDC identity (one not already bound to a user by issuer and subject)
+        requires an email claim to sign in or sign up; otherwise authentication fails with
+        oidc-email-required. Request the email scope and ensure the provider returns email
+        in the ID token or UserInfo. Existing issuer-bound identities can sign in without
+        an email claim. Email alone never links a custom-OIDC identity to an existing account.
+      operationId: signInOidcIdToken
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OidcProvider"
+      requestBody:
+        required: true
+        description: The signed ID token and original nonce
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInOidcIdTokenRequest"
+      responses:
+        "200":
+          description: Authentication processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /signin/mfa/totp:
     post:
       summary: Verify TOTP for MFA
@@ -1290,6 +1457,106 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
+
+  /signup/oidc/{provider}:
+    get:
+      summary: Sign Up with a custom OIDC provider
+      description: >-
+        Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+        A new custom-OIDC identity (one not already bound to a user by issuer and subject)
+        requires an email claim to sign in or sign up; otherwise authentication fails with
+        oidc-email-required. Request the email scope and ensure the provider returns email
+        in the ID token or UserInfo. Existing issuer-bound identities can sign in without
+        an email claim. Email alone never links a custom-OIDC identity to an existing account.
+      operationId: signUpOidc
+      x-ts-required-url-params: true
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OidcProvider"
+        - name: codeChallenge
+          in: query
+          required: true
+          description: Base64url-encoded S256 challenge for the Auth authorization code.
+          schema:
+            $ref: "#/components/schemas/OIDCCodeChallenge"
+        - $ref: "#/components/parameters/OIDCRedirectTo"
+        - $ref: "#/components/parameters/OIDCState"
+        - name: allowedRoles
+          in: query
+          description: Allowed roles for a new user
+          style: form
+          explode: false
+          schema:
+            type: array
+            maxItems: 16
+            items:
+              type: string
+              maxLength: 64
+        - $ref: "#/components/parameters/OIDCDefaultRole"
+        - $ref: "#/components/parameters/OIDCDisplayName"
+        - $ref: "#/components/parameters/OIDCLocale"
+        - name: metadata
+          in: query
+          description: JSON-encoded metadata for a new user
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      responses:
+        "302":
+          description: Redirect to the configured identity provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Short-lived browser binding for the OIDC callback
+              schema:
+                type: string
+          content: {}
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signup/oidc/{provider}/idtoken:
+    post:
+      summary: Sign Up with a custom OIDC ID token
+      description: >-
+        Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+        A new custom-OIDC identity (one not already bound to a user by issuer and subject)
+        requires an email claim to sign in or sign up; otherwise authentication fails with
+        oidc-email-required. Request the email scope and ensure the provider returns email
+        in the ID token or UserInfo. Existing issuer-bound identities can sign in without
+        an email claim. Email alone never links a custom-OIDC identity to an existing account.
+      operationId: signUpOidcIdToken
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/OidcProvider"
+      requestBody:
+        required: true
+        description: The signed ID token and original nonce
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpOidcIdTokenRequest"
+      responses:
+        "200":
+          description: Authentication processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          description: An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /signup/provider/{provider}:
     get:
@@ -2644,6 +2911,7 @@ components:
             - forbidden-anonymous
             - internal-server-error
             - invalid-email-password
+            - oidc-email-required
             - invalid-request
             - locale-not-allowed
             - password-too-short
@@ -3066,6 +3334,49 @@ components:
           $ref: "#/components/schemas/Session"
         mfa:
           $ref: "#/components/schemas/MFAChallengePayload"
+
+    OIDCCodeChallenge:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{43}$'
+      example: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+
+    SignInOidcIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        idToken:
+          type: string
+          description: Signed ID token issued by the configured OIDC provider
+          minLength: 1
+          maxLength: 16384
+        nonce:
+          type: string
+          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+          minLength: 1
+          maxLength: 256
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - idToken
+
+    SignUpOidcIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        idToken:
+          type: string
+          description: Signed ID token issued by the configured OIDC provider
+          minLength: 1
+          maxLength: 16384
+        nonce:
+          type: string
+          description: Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+          minLength: 1
+          maxLength: 256
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - idToken
 
     SignInIdTokenRequest:
       type: object
@@ -4112,6 +4423,67 @@ components:
         type: string
         format: uri
         example: https://my-app.com/catch-redirection
+
+    OidcProvider:
+      in: path
+      name: provider
+      required: true
+      description: Name of a custom OIDC provider configured in Auth
+      schema:
+        type: string
+        pattern: '^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$'
+        example: authentik
+
+    OIDCSignInCodeChallenge:
+      in: query
+      name: codeChallenge
+      required: false
+      description: Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+      schema:
+        $ref: "#/components/schemas/OIDCCodeChallenge"
+
+    OIDCRedirectTo:
+      in: query
+      name: redirectTo
+      description: Allowed application URL to receive the Auth authorization code
+      schema:
+        type: string
+        maxLength: 512
+        example: https://app.example.com/auth/callback
+
+    OIDCState:
+      in: query
+      name: state
+      description: Application state to include in the callback redirect
+      schema:
+        type: string
+        maxLength: 256
+
+    OIDCDefaultRole:
+      in: query
+      name: defaultRole
+      description: Default role for a new user
+      schema:
+        type: string
+        maxLength: 64
+
+    OIDCDisplayName:
+      in: query
+      name: displayName
+      description: Display name for a new user
+      schema:
+        type: string
+        pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+        maxLength: 32
+
+    OIDCLocale:
+      in: query
+      name: locale
+      description: Locale for a new user
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 3
 
     SignInProvider:
       in: path

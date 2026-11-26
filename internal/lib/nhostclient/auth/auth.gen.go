@@ -192,6 +192,7 @@ const (
 	OauthProfileFetchFailed         ErrorResponseError = "oauth-profile-fetch-failed"
 	OauthProviderError              ErrorResponseError = "oauth-provider-error"
 	OauthTokenEchangeFailed         ErrorResponseError = "oauth-token-echange-failed"
+	OidcEmailRequired               ErrorResponseError = "oidc-email-required"
 	OtpTooManyAttempts              ErrorResponseError = "otp-too-many-attempts"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
@@ -251,6 +252,8 @@ func (e ErrorResponseError) Valid() bool {
 	case OauthProviderError:
 		return true
 	case OauthTokenEchangeFailed:
+		return true
+	case OidcEmailRequired:
 		return true
 	case OtpTooManyAttempts:
 		return true
@@ -1287,6 +1290,9 @@ type OAuth2UserinfoResponse struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
+// OIDCCodeChallenge defines model for OIDCCodeChallenge.
+type OIDCCodeChallenge = string
+
 // OKResponse defines model for OKResponse.
 type OKResponse string
 
@@ -1457,6 +1463,16 @@ type SignInOTPEmailVerifyResponse struct {
 	Session *Session `json:"session,omitempty"`
 }
 
+// SignInOidcIdTokenRequest defines model for SignInOidcIdTokenRequest.
+type SignInOidcIdTokenRequest struct {
+	// IdToken Signed ID token issued by the configured OIDC provider
+	IdToken string `json:"idToken"`
+
+	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+	Nonce   *string        `json:"nonce,omitempty"`
+	Options *SignUpOptions `json:"options,omitempty"`
+}
+
 // SignInPATRequest defines model for SignInPATRequest.
 type SignInPATRequest struct {
 	// PersonalAccessToken PAT
@@ -1552,6 +1568,16 @@ type SignUpOTPEmailRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignUpOidcIdTokenRequest defines model for SignUpOidcIdTokenRequest.
+type SignUpOidcIdTokenRequest struct {
+	// IdToken Signed ID token issued by the configured OIDC provider
+	IdToken string `json:"idToken"`
+
+	// Nonce Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+	Nonce   *string        `json:"nonce,omitempty"`
+	Options *SignUpOptions `json:"options,omitempty"`
 }
 
 // SignUpOptions defines model for SignUpOptions.
@@ -1806,6 +1832,27 @@ type VerifyTokenRequest struct {
 	Token *string `json:"token,omitempty"`
 }
 
+// OIDCDefaultRole defines model for OIDCDefaultRole.
+type OIDCDefaultRole = string
+
+// OIDCDisplayName defines model for OIDCDisplayName.
+type OIDCDisplayName = string
+
+// OIDCLocale defines model for OIDCLocale.
+type OIDCLocale = string
+
+// OIDCRedirectTo defines model for OIDCRedirectTo.
+type OIDCRedirectTo = string
+
+// OIDCSignInCodeChallenge defines model for OIDCSignInCodeChallenge.
+type OIDCSignInCodeChallenge = OIDCCodeChallenge
+
+// OIDCState defines model for OIDCState.
+type OIDCState = string
+
+// OidcProvider defines model for OidcProvider.
+type OidcProvider = string
+
 // RedirectToQuery Target URL for the redirect
 type RedirectToQuery = string
 
@@ -1880,6 +1927,57 @@ type Oauth2AuthorizePostFormdataBody struct {
 type Oauth2LoginGetParams struct {
 	// RequestId The pending authorization request identifier.
 	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
+// SignInOidcParams defines parameters for SignInOidc.
+type SignInOidcParams struct {
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+	CodeChallenge *OIDCSignInCodeChallenge `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
+
+	// Connect Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
+	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
+
+	// RedirectTo Allowed application URL to receive the Auth authorization code
+	RedirectTo *OIDCRedirectTo `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Application state to include in the callback redirect
+	State *OIDCState `form:"state,omitempty" json:"state,omitempty"`
+
+	// AllowedRoles Allowed roles for a new user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for a new user
+	DefaultRole *OIDCDefaultRole `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for a new user
+	DisplayName *OIDCDisplayName `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale Locale for a new user
+	Locale *OIDCLocale `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata JSON-encoded metadata for a new user
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+}
+
+// SignInOidcCallbackParams defines parameters for SignInOidcCallback.
+type SignInOidcCallbackParams struct {
+	// State Signed Auth flow state
+	State string `form:"state" json:"state"`
+
+	// Code Authorization code returned by the identity provider
+	Code *string `form:"code,omitempty" json:"code,omitempty"`
+
+	// Iss Issuer identifier returned by the identity provider (RFC 9207); must match the configured issuer when present and is required when discovery requires it
+	Iss *string `form:"iss,omitempty" json:"iss,omitempty"`
+
+	// Error Error returned by the identity provider
+	Error *string `form:"error,omitempty" json:"error,omitempty"`
+
+	// ErrorDescription Error detail returned by the identity provider
+	ErrorDescription *string `form:"error_description,omitempty" json:"error_description,omitempty"`
+
+	// ErrorUri Error information URL returned by the identity provider
+	ErrorUri *string `form:"error_uri,omitempty" json:"error_uri,omitempty"`
 }
 
 // SignInProviderParams defines parameters for SignInProvider.
@@ -1981,6 +2079,33 @@ type SignInProviderCallbackPostParamsProvider string
 
 // GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
 type GetProviderTokensParamsProvider string
+
+// SignUpOidcParams defines parameters for SignUpOidc.
+type SignUpOidcParams struct {
+	// CodeChallenge Base64url-encoded S256 challenge for the Auth authorization code.
+	CodeChallenge OIDCCodeChallenge `form:"codeChallenge" json:"codeChallenge"`
+
+	// RedirectTo Allowed application URL to receive the Auth authorization code
+	RedirectTo *OIDCRedirectTo `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Application state to include in the callback redirect
+	State *OIDCState `form:"state,omitempty" json:"state,omitempty"`
+
+	// AllowedRoles Allowed roles for a new user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for a new user
+	DefaultRole *OIDCDefaultRole `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for a new user
+	DisplayName *OIDCDisplayName `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale Locale for a new user
+	Locale *OIDCLocale `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata JSON-encoded metadata for a new user
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+}
 
 // SignUpProviderParams defines parameters for SignUpProvider.
 type SignUpProviderParams struct {
@@ -2084,6 +2209,9 @@ type SignInIdTokenJSONRequestBody = SignInIdTokenRequest
 // VerifySignInMfaTotpJSONRequestBody defines body for VerifySignInMfaTotp for application/json ContentType.
 type VerifySignInMfaTotpJSONRequestBody = SignInMfaTotpRequest
 
+// SignInOidcIdTokenJSONRequestBody defines body for SignInOidcIdToken for application/json ContentType.
+type SignInOidcIdTokenJSONRequestBody = SignInOidcIdTokenRequest
+
 // SignInOTPEmailJSONRequestBody defines body for SignInOTPEmail for application/json ContentType.
 type SignInOTPEmailJSONRequestBody = SignInOTPEmailRequest
 
@@ -2119,6 +2247,9 @@ type SignUpEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
 // SignUpIdTokenJSONRequestBody defines body for SignUpIdToken for application/json ContentType.
 type SignUpIdTokenJSONRequestBody = SignUpIdTokenRequest
+
+// SignUpOidcIdTokenJSONRequestBody defines body for SignUpOidcIdToken for application/json ContentType.
+type SignUpOidcIdTokenJSONRequestBody = SignUpOidcIdTokenRequest
 
 // SignUpOTPEmailJSONRequestBody defines body for SignUpOTPEmail for application/json ContentType.
 type SignUpOTPEmailJSONRequestBody = SignUpOTPEmailRequest
@@ -2795,6 +2926,17 @@ type ClientInterface interface {
 
 	VerifySignInMfaTotp(ctx context.Context, body VerifySignInMfaTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SignInOidc request
+	SignInOidc(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignInOidcCallback request
+	SignInOidcCallback(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignInOidcIdTokenWithBody request with any body
+	SignInOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignInOidcIdToken(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SignInOTPEmailWithBody request with any body
 	SignInOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2863,6 +3005,14 @@ type ClientInterface interface {
 	SignUpIdTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpOidc request
+	SignUpOidc(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpOidcIdTokenWithBody request with any body
+	SignUpOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignUpOidcIdToken(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignUpOTPEmailWithBody request with any body
 	SignUpOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3515,6 +3665,54 @@ func (c *Client) VerifySignInMfaTotp(ctx context.Context, body VerifySignInMfaTo
 	return c.Client.Do(req)
 }
 
+func (c *Client) SignInOidc(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInOidcRequest(c.Server, provider, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignInOidcCallback(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInOidcCallbackRequest(c.Server, provider, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignInOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInOidcIdTokenRequestWithBody(c.Server, provider, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignInOidcIdToken(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInOidcIdTokenRequest(c.Server, provider, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SignInOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignInOTPEmailRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -3829,6 +4027,42 @@ func (c *Client) SignUpIdTokenWithBody(ctx context.Context, contentType string, 
 
 func (c *Client) SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpIdTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpOidc(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpOidcRequest(c.Server, provider, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpOidcIdTokenWithBody(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpOidcIdTokenRequestWithBody(c.Server, provider, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpOidcIdToken(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpOidcIdTokenRequest(c.Server, provider, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5506,6 +5740,325 @@ func NewVerifySignInMfaTotpRequestWithBody(server string, contentType string, bo
 	return req, nil
 }
 
+// NewSignInOidcRequest generates requests for SignInOidc
+func NewSignInOidcRequest(server string, provider OidcProvider, params *SignInOidcParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "provider", provider, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signin/oidc/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.CodeChallenge != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "codeChallenge", *params.CodeChallenge, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Connect != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "connect", *params.Connect, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.RedirectTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "redirectTo", *params.RedirectTo, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.State != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "state", *params.State, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.AllowedRoles != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "allowedRoles", *params.AllowedRoles, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.DefaultRole != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "defaultRole", *params.DefaultRole, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.DisplayName != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "displayName", *params.DisplayName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Locale != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "locale", *params.Locale, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Metadata != nil {
+
+			if queryParamBuf, err := json.Marshal(*params.Metadata); err != nil {
+				return nil, err
+			} else {
+				queryValues.Add("metadata", string(queryParamBuf))
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSignInOidcCallbackRequest generates requests for SignInOidcCallback
+func NewSignInOidcCallbackRequest(server string, provider OidcProvider, params *SignInOidcCallbackParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "provider", provider, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signin/oidc/%s/callback", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "state", params.State, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			return nil, err
+		} else {
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
+			}
+		}
+
+		if params.Code != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "code", *params.Code, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Iss != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "iss", *params.Iss, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Error != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error", *params.Error, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ErrorDescription != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error_description", *params.ErrorDescription, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ErrorUri != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "error_uri", *params.ErrorUri, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSignInOidcIdTokenRequest calls the generic SignInOidcIdToken builder with application/json body
+func NewSignInOidcIdTokenRequest(server string, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignInOidcIdTokenRequestWithBody(server, provider, "application/json", bodyReader)
+}
+
+// NewSignInOidcIdTokenRequestWithBody generates requests for SignInOidcIdToken with any type of body
+func NewSignInOidcIdTokenRequestWithBody(server string, provider OidcProvider, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "provider", provider, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signin/oidc/%s/idtoken", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSignInOTPEmailRequest calls the generic SignInOTPEmail builder with application/json body
 func NewSignInOTPEmailRequest(server string, body SignInOTPEmailJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -6328,6 +6881,192 @@ func NewSignUpIdTokenRequestWithBody(server string, contentType string, body io.
 	}
 
 	operationPath := fmt.Sprintf("/signup/idtoken")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSignUpOidcRequest generates requests for SignUpOidc
+func NewSignUpOidcRequest(server string, provider OidcProvider, params *SignUpOidcParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "provider", provider, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/oidc/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "codeChallenge", params.CodeChallenge, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			return nil, err
+		} else {
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
+			}
+		}
+
+		if params.RedirectTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "redirectTo", *params.RedirectTo, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.State != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "state", *params.State, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.AllowedRoles != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "allowedRoles", *params.AllowedRoles, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.DefaultRole != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "defaultRole", *params.DefaultRole, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.DisplayName != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "displayName", *params.DisplayName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Locale != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "locale", *params.Locale, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Metadata != nil {
+
+			if queryParamBuf, err := json.Marshal(*params.Metadata); err != nil {
+				return nil, err
+			} else {
+				queryValues.Add("metadata", string(queryParamBuf))
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSignUpOidcIdTokenRequest calls the generic SignUpOidcIdToken builder with application/json body
+func NewSignUpOidcIdTokenRequest(server string, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignUpOidcIdTokenRequestWithBody(server, provider, "application/json", bodyReader)
+}
+
+// NewSignUpOidcIdTokenRequestWithBody generates requests for SignUpOidcIdToken with any type of body
+func NewSignUpOidcIdTokenRequestWithBody(server string, provider OidcProvider, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "provider", provider, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/oidc/%s/idtoken", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7607,6 +8346,17 @@ type ClientWithResponsesInterface interface {
 
 	VerifySignInMfaTotpWithResponse(ctx context.Context, body VerifySignInMfaTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifySignInMfaTotpR, error)
 
+	// SignInOidcWithResponse request
+	SignInOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error)
+
+	// SignInOidcCallbackWithResponse request
+	SignInOidcCallbackWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error)
+
+	// SignInOidcIdTokenWithBodyWithResponse request with any body
+	SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
+
+	SignInOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error)
+
 	// SignInOTPEmailWithBodyWithResponse request with any body
 	SignInOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOTPEmailR, error)
 
@@ -7675,6 +8425,14 @@ type ClientWithResponsesInterface interface {
 	SignUpIdTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error)
 
 	SignUpIdTokenWithResponse(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error)
+
+	// SignUpOidcWithResponse request
+	SignUpOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error)
+
+	// SignUpOidcIdTokenWithBodyWithResponse request with any body
+	SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
+
+	SignUpOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error)
 
 	// SignUpOTPEmailWithBodyWithResponse request with any body
 	SignUpOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error)
@@ -8713,6 +9471,97 @@ func (r VerifySignInMfaTotpR) ContentType() string {
 	return ""
 }
 
+type SignInOidcR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignInOidcR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignInOidcR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SignInOidcR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SignInOidcCallbackR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignInOidcCallbackR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignInOidcCallbackR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SignInOidcCallbackR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SignInOidcIdTokenR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionPayload
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignInOidcIdTokenR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignInOidcIdTokenR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SignInOidcIdTokenR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type SignInOTPEmailR struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -9169,6 +10018,67 @@ func (r SignUpIdTokenR) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r SignUpIdTokenR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SignUpOidcR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpOidcR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpOidcR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SignUpOidcR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SignUpOidcIdTokenR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionPayload
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpOidcIdTokenR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpOidcIdTokenR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SignUpOidcIdTokenR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -10310,6 +11220,41 @@ func (c *ClientWithResponses) VerifySignInMfaTotpWithResponse(ctx context.Contex
 	return ParseVerifySignInMfaTotpR(rsp)
 }
 
+// SignInOidcWithResponse request returning *SignInOidcR
+func (c *ClientWithResponses) SignInOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcParams, reqEditors ...RequestEditorFn) (*SignInOidcR, error) {
+	rsp, err := c.SignInOidc(ctx, provider, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInOidcR(rsp)
+}
+
+// SignInOidcCallbackWithResponse request returning *SignInOidcCallbackR
+func (c *ClientWithResponses) SignInOidcCallbackWithResponse(ctx context.Context, provider OidcProvider, params *SignInOidcCallbackParams, reqEditors ...RequestEditorFn) (*SignInOidcCallbackR, error) {
+	rsp, err := c.SignInOidcCallback(ctx, provider, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInOidcCallbackR(rsp)
+}
+
+// SignInOidcIdTokenWithBodyWithResponse request with arbitrary body returning *SignInOidcIdTokenR
+func (c *ClientWithResponses) SignInOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
+	rsp, err := c.SignInOidcIdTokenWithBody(ctx, provider, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInOidcIdTokenR(rsp)
+}
+
+func (c *ClientWithResponses) SignInOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignInOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInOidcIdTokenR, error) {
+	rsp, err := c.SignInOidcIdToken(ctx, provider, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInOidcIdTokenR(rsp)
+}
+
 // SignInOTPEmailWithBodyWithResponse request with arbitrary body returning *SignInOTPEmailR
 func (c *ClientWithResponses) SignInOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInOTPEmailR, error) {
 	rsp, err := c.SignInOTPEmailWithBody(ctx, contentType, body, reqEditors...)
@@ -10539,6 +11484,32 @@ func (c *ClientWithResponses) SignUpIdTokenWithResponse(ctx context.Context, bod
 		return nil, err
 	}
 	return ParseSignUpIdTokenR(rsp)
+}
+
+// SignUpOidcWithResponse request returning *SignUpOidcR
+func (c *ClientWithResponses) SignUpOidcWithResponse(ctx context.Context, provider OidcProvider, params *SignUpOidcParams, reqEditors ...RequestEditorFn) (*SignUpOidcR, error) {
+	rsp, err := c.SignUpOidc(ctx, provider, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpOidcR(rsp)
+}
+
+// SignUpOidcIdTokenWithBodyWithResponse request with arbitrary body returning *SignUpOidcIdTokenR
+func (c *ClientWithResponses) SignUpOidcIdTokenWithBodyWithResponse(ctx context.Context, provider OidcProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
+	rsp, err := c.SignUpOidcIdTokenWithBody(ctx, provider, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpOidcIdTokenR(rsp)
+}
+
+func (c *ClientWithResponses) SignUpOidcIdTokenWithResponse(ctx context.Context, provider OidcProvider, body SignUpOidcIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOidcIdTokenR, error) {
+	rsp, err := c.SignUpOidcIdToken(ctx, provider, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpOidcIdTokenR(rsp)
 }
 
 // SignUpOTPEmailWithBodyWithResponse request with arbitrary body returning *SignUpOTPEmailR
@@ -11871,6 +12842,91 @@ func ParseVerifySignInMfaTotpR(rsp *http.Response) (*VerifySignInMfaTotpR, error
 	return response, nil
 }
 
+// ParseSignInOidcR parses an HTTP response from a SignInOidcWithResponse call
+func ParseSignInOidcR(rsp *http.Response) (*SignInOidcR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignInOidcR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignInOidcCallbackR parses an HTTP response from a SignInOidcCallbackWithResponse call
+func ParseSignInOidcCallbackR(rsp *http.Response) (*SignInOidcCallbackR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignInOidcCallbackR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignInOidcIdTokenR parses an HTTP response from a SignInOidcIdTokenWithResponse call
+func ParseSignInOidcIdTokenR(rsp *http.Response) (*SignInOidcIdTokenR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignInOidcIdTokenR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionPayload
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseSignInOTPEmailR parses an HTTP response from a SignInOTPEmailWithResponse call
 func ParseSignInOTPEmailR(rsp *http.Response) (*SignInOTPEmailR, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -12321,6 +13377,65 @@ func ParseSignUpIdTokenR(rsp *http.Response) (*SignUpIdTokenR, error) {
 	}
 
 	response := &SignUpIdTokenR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionPayload
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpOidcR parses an HTTP response from a SignUpOidcWithResponse call
+func ParseSignUpOidcR(rsp *http.Response) (*SignUpOidcR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpOidcR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpOidcIdTokenR parses an HTTP response from a SignUpOidcIdTokenWithResponse call
+func ParseSignUpOidcIdTokenR(rsp *http.Response) (*SignUpOidcIdTokenR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpOidcIdTokenR{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

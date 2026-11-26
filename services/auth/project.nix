@@ -52,6 +52,9 @@ let
       ./.env.example
       ./go/sql/query.sql
       ./test
+      # Public test CA used by the OIDC e2e suite to trust the Dex/Auth TLS
+      # fixtures (private keys are never needed by the test runner).
+      ./build/dev/docker/oidc/certs/ca.crt
     ];
   };
 

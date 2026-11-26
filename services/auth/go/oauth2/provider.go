@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -136,7 +137,13 @@ func NewProvider(
 		if config.CIMDAllowInsecureTransport {
 			httpClient = newInsecureHTTPClient()
 		} else {
-			httpClient = newSafeHTTPClient()
+			httpClient = safehttp.New(safehttp.Config{
+				Timeout:      CIMDFetchTimeout,
+				MaxRedirects: cimdMaxRedirects,
+				// FetchCIMDMetadata reads one extra byte to report an oversized document.
+				MaxResponseBodyBytes: CIMDMaxResponseSize + 1,
+				AllowPrivateIPs:      false,
+			})
 		}
 	}
 

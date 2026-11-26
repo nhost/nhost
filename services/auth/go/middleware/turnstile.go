@@ -83,9 +83,11 @@ func makeTurnstileRequest(
 //   - Verification endpoints (/verify suffix, or the SMS OTP verify endpoint
 //     which ends in /otp)
 //   - OAuth callback endpoints (/callback suffix)
-//   - OAuth GET redirect initiators (/signin/provider/* and /signup/provider/*):
-//     the browser cannot attach custom headers to a window.location redirect,
-//     so a Turnstile token cannot be delivered on these paths.
+//   - OAuth GET redirect initiators (/signin/provider/*, /signup/provider/*,
+//     and /signup/oidc/{slug}): the browser cannot attach custom headers to a
+//     window.location redirect, so a Turnstile token cannot be delivered on these
+//     paths. For OIDC, only the single-segment browser initiator is exempt;
+//     /signup/oidc/{slug}/idtoken still requires Turnstile, as /signup/idtoken does.
 func requiresTurnstile(path, prefix string) bool {
 	if strings.HasSuffix(path, "/verify") ||
 		strings.HasSuffix(path, "/callback") ||
@@ -95,6 +97,11 @@ func requiresTurnstile(path, prefix string) bool {
 
 	if strings.HasPrefix(path, prefix+"/signin/provider/") ||
 		strings.HasPrefix(path, prefix+"/signup/provider/") {
+		return false
+	}
+
+	if slug, ok := strings.CutPrefix(path, prefix+"/signup/oidc/"); ok &&
+		slug != "" && !strings.Contains(slug, "/") {
 		return false
 	}
 

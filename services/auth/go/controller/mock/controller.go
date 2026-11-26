@@ -626,6 +626,21 @@ func (mr *MockDBClientUserProviderMockRecorder) FindUserProviderByProviderId(ctx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserProviderByProviderId", reflect.TypeOf((*MockDBClientUserProvider)(nil).FindUserProviderByProviderId), ctx, arg)
 }
 
+// GetUserByOIDCIdentity mocks base method.
+func (m *MockDBClientUserProvider) GetUserByOIDCIdentity(ctx context.Context, arg sql.GetUserByOIDCIdentityParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByOIDCIdentity", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByOIDCIdentity indicates an expected call of GetUserByOIDCIdentity.
+func (mr *MockDBClientUserProviderMockRecorder) GetUserByOIDCIdentity(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByOIDCIdentity", reflect.TypeOf((*MockDBClientUserProvider)(nil).GetUserByOIDCIdentity), ctx, arg)
+}
+
 // GetUserByProviderID mocks base method.
 func (m *MockDBClientUserProvider) GetUserByProviderID(ctx context.Context, arg sql.GetUserByProviderIDParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -654,6 +669,21 @@ func (m *MockDBClientUserProvider) InsertUserProvider(ctx context.Context, arg s
 func (mr *MockDBClientUserProviderMockRecorder) InsertUserProvider(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProvider", reflect.TypeOf((*MockDBClientUserProvider)(nil).InsertUserProvider), ctx, arg)
+}
+
+// InsertUserProviderByEmail mocks base method.
+func (m *MockDBClientUserProvider) InsertUserProviderByEmail(ctx context.Context, arg sql.InsertUserProviderByEmailParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertUserProviderByEmail", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertUserProviderByEmail indicates an expected call of InsertUserProviderByEmail.
+func (mr *MockDBClientUserProviderMockRecorder) InsertUserProviderByEmail(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProviderByEmail", reflect.TypeOf((*MockDBClientUserProvider)(nil).InsertUserProviderByEmail), ctx, arg)
 }
 
 // InsertUserWithUserProvider mocks base method.
@@ -1074,6 +1104,21 @@ func (mr *MockDBClientMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmail), ctx, email)
 }
 
+// GetUserByOIDCIdentity mocks base method.
+func (m *MockDBClient) GetUserByOIDCIdentity(ctx context.Context, arg sql.GetUserByOIDCIdentityParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByOIDCIdentity", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByOIDCIdentity indicates an expected call of GetUserByOIDCIdentity.
+func (mr *MockDBClientMockRecorder) GetUserByOIDCIdentity(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByOIDCIdentity", reflect.TypeOf((*MockDBClient)(nil).GetUserByOIDCIdentity), ctx, arg)
+}
+
 // GetUserByPhoneNumber mocks base method.
 func (m *MockDBClient) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -1252,6 +1297,21 @@ func (m *MockDBClient) InsertUserProvider(ctx context.Context, arg sql.InsertUse
 func (mr *MockDBClientMockRecorder) InsertUserProvider(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProvider", reflect.TypeOf((*MockDBClient)(nil).InsertUserProvider), ctx, arg)
+}
+
+// InsertUserProviderByEmail mocks base method.
+func (m *MockDBClient) InsertUserProviderByEmail(ctx context.Context, arg sql.InsertUserProviderByEmailParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertUserProviderByEmail", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertUserProviderByEmail indicates an expected call of InsertUserProviderByEmail.
+func (mr *MockDBClientMockRecorder) InsertUserProviderByEmail(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProviderByEmail", reflect.TypeOf((*MockDBClient)(nil).InsertUserProviderByEmail), ctx, arg)
 }
 
 // InsertUserWithRefreshToken mocks base method.

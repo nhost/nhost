@@ -58,6 +58,47 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 	}
 
 	cases := []testRequest[api.SignInIdTokenRequestObject, api.SignInIdTokenResponseObject]{
+		{
+			name:   "signin - email found - OIDC-bound account refuses linking",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl // Keep each refusal case self-contained across session and PKCE paths.
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(gomock.Any(), sql.GetUserByProviderIDParams{
+					ProviderID: "fake", ProviderUserID: "106964149809169421082",
+				}).Return(sql.AuthUser{}, pgx.ErrNoRows)
+				mock.EXPECT().GetUserByEmail(gomock.Any(), sql.Text("jane@myapp.local")).
+					Return(getSigninUser(userID), nil)
+				mock.EXPECT().
+					InsertUserProviderByEmail(gomock.Any(), sql.InsertUserProviderByEmailParams{
+						UserID: userID, ProviderID: "fake", ProviderUserID: "106964149809169421082",
+					}).
+					Return(uuid.Nil, pgx.ErrNoRows)
+
+				// Refusal must not create a session or an authorization code.
+				mock.EXPECT().GetUserRoles(gomock.Any(), gomock.Any()).Times(0)
+				mock.EXPECT().InsertRefreshtoken(gomock.Any(), gomock.Any()).Times(0)
+				mock.EXPECT().UpdateUserLastSeen(gomock.Any(), gomock.Any()).Times(0)
+				mock.EXPECT().InsertPKCEAuthorizationCode(gomock.Any(), gomock.Any()).Times(0)
+
+				return mock
+			},
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken: token, Nonce: ptr(nonce), Options: nil, Provider: "fake",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
 		{ //nolint:dupl
 			name:   "signup - simple",
 			config: getConfig,
@@ -670,25 +711,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
+				mock.EXPECT().InsertUserProviderByEmail(gomock.Any(),
+					sql.InsertUserProviderByEmailParams{
 						UserID:         userID,
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(
-					sql.AuthUserProvider{
-						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "106964149809169421082",
-					}, nil,
-				)
+				).Return(userID, nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"log/slog"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -37,21 +38,36 @@ func getLogger(debug bool, formatTEXT bool) *slog.Logger {
 			Level:       logLevel,
 			TimeFormat:  time.StampMilli,
 			NoColor:     false,
-			ReplaceAttr: nil,
+			ReplaceAttr: redactOIDCLogAttr,
 		})
 	} else {
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			AddSource:   addSource,
 			Level:       logLevel,
-			ReplaceAttr: nil,
+			ReplaceAttr: redactOIDCLogAttr,
 		})
 	}
 
 	return slog.New(handler)
 }
 
+func redactOIDCLogAttr(groups []string, attr slog.Attr) slog.Attr {
+	if len(groups) == 1 && groups[0] == "request" && attr.Key == "url" {
+		path, _, _ := strings.Cut(attr.Value.String(), "?")
+
+		decoded, err := url.PathUnescape(path)
+		if err == nil && (strings.Contains(decoded, "/signin/oidc/") ||
+			strings.Contains(decoded, "/signup/oidc/")) {
+			return slog.String(attr.Key, path)
+		}
+	}
+
+	return attr
+}
+
 func isSecret(name string) bool {
-	return strings.Contains(name, "pass") ||
+	return name == flagOIDCProviders ||
+		strings.Contains(name, "pass") ||
 		strings.Contains(name, "token") ||
 		strings.Contains(name, "secret") ||
 		strings.Contains(name, "key") ||

@@ -331,6 +331,18 @@ WITH user_providers AS (
 SELECT * FROM auth.users
 WHERE id = (SELECT user_id FROM user_providers) LIMIT 1;
 
+-- name: RegisterOIDCProviders :exec
+INSERT INTO auth.providers (id, oidc_issuer)
+SELECT id, issuer FROM unnest(@provider_ids::text[], @issuers::text[]) AS config(id, issuer)
+ON CONFLICT (id) DO UPDATE
+SET oidc_issuer = EXCLUDED.oidc_issuer
+WHERE providers.oidc_issuer IS DISTINCT FROM EXCLUDED.oidc_issuer;
+
+-- name: GetUserByOIDCIdentity :one
+SELECT u.* FROM auth.users u
+JOIN auth.user_providers up ON up.user_id = u.id
+WHERE up.provider_id = @provider_id AND up.issuer = @issuer AND up.provider_user_id = @subject;
+
 
 -- name: InsertUser :one
 WITH inserted_user AS (
@@ -459,9 +471,9 @@ WITH inserted_user AS (
     RETURNING id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', @provider_id, @provider_user_id)
+        ($1, 'unset', @provider_id, @provider_user_id, sqlc.narg(issuer))
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -495,9 +507,9 @@ WITH inserted_user AS (
     RETURNING id , user_id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', @provider_id, @provider_user_id)
+        ($1, 'unset', @provider_id, @provider_user_id, sqlc.narg(issuer))
 ), inserted_user_role AS (
     INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -786,9 +798,18 @@ SELECT * FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2;
 
 -- name: InsertUserProvider :one
-INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
-VALUES ($1, $2, $3, 'unset')
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, issuer, access_token)
+VALUES ($1, $2, $3, sqlc.narg(issuer), 'unset')
 RETURNING *;
+
+-- name: InsertUserProviderByEmail :one
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
+SELECT @user_id::uuid, @provider_id::text, @provider_user_id::text, 'unset'
+WHERE NOT EXISTS (
+    SELECT 1 FROM auth.user_providers
+    WHERE user_id = @user_id AND provider_id LIKE 'oidc:%'
+)
+RETURNING id;
 
 -- name: UpdateUserTotpSecret :exec
 UPDATE auth.users

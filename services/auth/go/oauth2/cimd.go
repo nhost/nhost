@@ -1,12 +1,10 @@
 package oauth2
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -16,6 +14,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -23,13 +22,8 @@ const (
 	CIMDMaxResponseSize = 5 * 1024
 	CIMDFetchTimeout    = 5 * time.Second
 	CIMDCacheTTL        = 1 * time.Hour
+	cimdMaxRedirects    = 2
 	schemeHTTPS         = "https"
-)
-
-var (
-	errPrivateIP   = errors.New("resolved IP is a private/loopback address")
-	errTooManyRdir = errors.New("too many redirects")
-	errNonHTTPS    = errors.New("redirect to non-HTTPS URL")
 )
 
 type CIMDMetadata struct {
@@ -100,7 +94,7 @@ func ValidateCIMDURL(
 		}
 	}
 
-	if !allowInsecure && isBlockedHost(ctx, u.Hostname()) {
+	if !allowInsecure && safehttp.IsBlockedHost(ctx, u.Hostname()) {
 		return nil, &Error{
 			Err:         "invalid_client",
 			Description: "Client ID metadata document URL must not point to a private address",
@@ -115,88 +109,6 @@ func hasDotSegments(path string) bool {
 		strings.Contains(path, "/../") ||
 		strings.HasSuffix(path, "/.") ||
 		strings.HasSuffix(path, "/..")
-}
-
-// embeddedIPv4 returns the IPv4 address wrapped by an IPv6 transition address,
-// or nil if there is none. Go's net.IP predicates only look at the IPv6 bits,
-// so 64:ff9b::a9fe:a9fe passes IsLinkLocalUnicast while still routing to
-// 169.254.169.254.
-func embeddedIPv4(ip net.IP) net.IP {
-	ip16 := ip.To16()
-	if ip16 == nil || ip.To4() != nil {
-		// IPv4-mapped (::ffff:a.b.c.d) also lands here, via To4.
-		return nil
-	}
-
-	// Prefixes carrying the IPv4 address in the last 32 bits.
-	for _, prefix := range [][]byte{
-		{0x00, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0}, // NAT64, RFC 6052
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},             // IPv4-compatible, RFC 4291
-		{0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0},       // IPv4-translated, RFC 6145
-	} {
-		if bytes.HasPrefix(ip16, prefix) {
-			return net.IPv4(ip16[12], ip16[13], ip16[14], ip16[15])
-		}
-	}
-
-	switch {
-	case ip16[0] == 0x20 && ip16[1] == 0x02: // 6to4, RFC 3056
-		return net.IPv4(ip16[2], ip16[3], ip16[4], ip16[5])
-	case ip16[0] == 0x20 && ip16[1] == 0x01 &&
-		ip16[2] == 0x00 && ip16[3] == 0x00: // Teredo, RFC 4380
-		return net.IPv4(^ip16[12], ^ip16[13], ^ip16[14], ^ip16[15])
-	default:
-		return nil
-	}
-}
-
-func isBlockedIP(ip net.IP) bool {
-	if ip == nil {
-		return true
-	}
-
-	// 64:ff9b:1::/48 is NAT64 local use (RFC 8215): the embedded IPv4 sits at
-	// an offset that varies with the deployment's prefix length, so the whole
-	// range is blocked rather than decoded.
-	if bytes.HasPrefix(ip.To16(), []byte{0x00, 0x64, 0xff, 0x9b, 0x00, 0x01}) {
-		return true
-	}
-
-	for _, candidate := range []net.IP{ip, embeddedIPv4(ip)} {
-		if candidate == nil {
-			continue
-		}
-
-		if candidate.IsUnspecified() || candidate.IsLoopback() ||
-			candidate.IsPrivate() || candidate.IsLinkLocalUnicast() ||
-			candidate.IsMulticast() {
-			return true
-		}
-	}
-
-	return false
-}
-
-func isBlockedHost(ctx context.Context, host string) bool {
-	if ip := net.ParseIP(host); ip != nil {
-		return isBlockedIP(ip)
-	}
-
-	resolver := net.DefaultResolver
-
-	// Resolve hostnames so that e.g. "localhost" is correctly detected.
-	ips, err := resolver.LookupIPAddr(ctx, host)
-	if err != nil {
-		return false
-	}
-
-	for _, resolved := range ips {
-		if isBlockedIP(resolved.IP) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func FetchCIMDMetadata(
@@ -497,57 +409,6 @@ func (p *Provider) ResolveCIMDClient(
 	}
 
 	return client, nil
-}
-
-func newSafeHTTPClient() *http.Client {
-	dialer := &net.Dialer{ //nolint:exhaustruct
-		Timeout: CIMDFetchTimeout,
-	}
-
-	transport := &http.Transport{ //nolint:exhaustruct
-		DialContext: func(
-			ctx context.Context, network, addr string,
-		) (net.Conn, error) {
-			host, port, err := net.SplitHostPort(addr)
-			if err != nil {
-				return nil, fmt.Errorf("invalid address: %w", err)
-			}
-
-			ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
-			if err != nil {
-				return nil, fmt.Errorf("DNS lookup failed: %w", err)
-			}
-
-			for _, ip := range ips {
-				if isBlockedIP(ip.IP) {
-					return nil, fmt.Errorf(
-						"%w: %s", errPrivateIP, ip.IP.String(),
-					)
-				}
-			}
-
-			return dialer.DialContext(
-				ctx, network, net.JoinHostPort(ips[0].IP.String(), port),
-			)
-		},
-	}
-
-	return &http.Client{ //nolint:exhaustruct
-		Transport: transport,
-		Timeout:   CIMDFetchTimeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			const maxRedirects = 3
-			if len(via) >= maxRedirects {
-				return fmt.Errorf("%w (max %d)", errTooManyRdir, maxRedirects)
-			}
-
-			if req.URL.Scheme != schemeHTTPS {
-				return fmt.Errorf("%w: %s", errNonHTTPS, req.URL.String())
-			}
-
-			return nil
-		},
-	}
 }
 
 // newInsecureHTTPClient creates an HTTP client without SSRF protections.

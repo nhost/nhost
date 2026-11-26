@@ -111,6 +111,9 @@ type DBClientUserProvider interface {
 	GetUserByProviderID(
 		ctx context.Context, arg sql.GetUserByProviderIDParams,
 	) (sql.AuthUser, error)
+	GetUserByOIDCIdentity(
+		ctx context.Context, arg sql.GetUserByOIDCIdentityParams,
+	) (sql.AuthUser, error)
 	FindUserProviderByProviderId(
 		ctx context.Context, arg sql.FindUserProviderByProviderIdParams,
 	) (sql.AuthUserProvider, error)
@@ -123,6 +126,9 @@ type DBClientUserProvider interface {
 	InsertUserProvider(
 		ctx context.Context, arg sql.InsertUserProviderParams,
 	) (sql.AuthUserProvider, error)
+	InsertUserProviderByEmail(
+		ctx context.Context, arg sql.InsertUserProviderByEmailParams,
+	) (uuid.UUID, error)
 }
 
 type DBClient interface { //nolint:interfacebloat
@@ -171,6 +177,7 @@ type Controller struct {
 	config           Config
 	Webauthn         *Webauthn
 	Providers        providers.Map
+	oidcProviders    *providers.OIDCRegistry
 	version          string
 	jwtGetter        *JWTGetter
 	oauth2           *oauth2provider.Provider
@@ -184,6 +191,7 @@ func New(
 	sms SMSer,
 	hibp HIBPClient,
 	providers providers.Map,
+	oidcProviders *providers.OIDCRegistry,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
 	totp *Totp,
 	encrypter Encrypter,
@@ -222,6 +230,7 @@ func New(
 		encrypter:        encrypter,
 		version:          version,
 		Providers:        providers,
+		oidcProviders:    oidcProviders,
 		jwtGetter:        jwtGetter,
 		oauth2:           nil,
 	}

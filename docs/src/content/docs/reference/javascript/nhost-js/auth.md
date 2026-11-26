@@ -1233,6 +1233,62 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
+#### signInOidcIdToken()
+
+```ts
+signInOidcIdToken(
+   provider: string,
+   body: SignInOidcIdTokenRequest,
+   options?: RequestInit
+): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign In with a custom OIDC ID token
+Authenticate a native application using an ID token issued to an allowed audience of the configured provider. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                                    |
+| ---------- | ------------------------------------------------------- |
+| `provider` | `string`                                                |
+| `body`     | [`SignInOidcIdTokenRequest`](#signinoidcidtokenrequest) |
+| `options?` | `RequestInit`                                           |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signInOidcURL()
+
+```ts
+signInOidcURL(
+   provider: string,
+   params?: SignInOidcParams,
+   options?: RequestInit
+): string;
+```
+
+Summary: Sign In with a custom OIDC provider
+Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                    |
+| ---------- | --------------------------------------- |
+| `provider` | `string`                                |
+| `params?`  | [`SignInOidcParams`](#signinoidcparams) |
+| `options?` | `RequestInit`                           |
+
+##### Returns
+
+`string`
+
 #### signInOTPEmail()
 
 ```ts
@@ -1461,6 +1517,62 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpOidcIdToken()
+
+```ts
+signUpOidcIdToken(
+   provider: string,
+   body: SignUpOidcIdTokenRequest,
+   options?: RequestInit
+): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign Up with a custom OIDC ID token
+Authenticate a native application using an ID token issued to an allowed audience of the configured provider. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                                    |
+| ---------- | ------------------------------------------------------- |
+| `provider` | `string`                                                |
+| `body`     | [`SignUpOidcIdTokenRequest`](#signupoidcidtokenrequest) |
+| `options?` | `RequestInit`                                           |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpOidcURL()
+
+```ts
+signUpOidcURL(
+   provider: string,
+   params: SignUpOidcParams,
+   options?: RequestInit
+): string;
+```
+
+Summary: Sign Up with a custom OIDC provider
+Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                    |
+| ---------- | --------------------------------------- |
+| `provider` | `string`                                |
+| `params`   | [`SignUpOidcParams`](#signupoidcparams) |
+| `options?` | `RequestInit`                           |
+
+##### Returns
+
+`string`
 
 #### signUpOTPEmail()
 
@@ -3645,6 +3757,119 @@ ticket: string;
 
 ---
 
+## SignInOidcIdTokenRequest
+
+### Properties
+
+#### idToken
+
+```ts
+idToken: string;
+```
+
+(`string`) - Signed ID token issued by the configured OIDC provider
+
+- MinLength - 1
+- MaxLength - 16384
+
+#### nonce?
+
+```ts
+nonce?: string;
+```
+
+Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+MinLength - 1
+MaxLength - 256
+
+#### options?
+
+```ts
+options?: SignUpOptions;
+```
+
+---
+
+## SignInOidcParams
+
+Parameters for the signInOidc method.
+
+### Properties
+
+#### allowedRoles?
+
+```ts
+allowedRoles?: string[];
+```
+
+Allowed roles for a new user
+
+#### codeChallenge?
+
+```ts
+codeChallenge?: string;
+```
+
+Base64url-encoded S256 challenge for the Auth authorization code. Required unless linking an identity with connect.
+
+#### connect?
+
+```ts
+connect?: string;
+```
+
+Auth access token for the account to link to this provider. Requires an elevated token when the elevated-claim policy applies.
+
+#### defaultRole?
+
+```ts
+defaultRole?: string;
+```
+
+Default role for a new user
+
+#### displayName?
+
+```ts
+displayName?: string;
+```
+
+Display name for a new user
+
+#### locale?
+
+```ts
+locale?: string;
+```
+
+Locale for a new user
+
+#### metadata?
+
+```ts
+metadata?: Record<string, unknown>;
+```
+
+JSON-encoded metadata for a new user
+
+#### redirectTo?
+
+```ts
+redirectTo?: string;
+```
+
+Allowed application URL to receive the Auth authorization code
+
+#### state?
+
+```ts
+state?: string;
+```
+
+Application state to include in the callback redirect
+
+---
+
 ## SignInOTPEmailRequest
 
 ### Properties
@@ -4067,6 +4292,111 @@ provider: IdTokenProvider;
 ```
 
 (`IdTokenProvider`) -
+
+---
+
+## SignUpOidcIdTokenRequest
+
+### Properties
+
+#### idToken
+
+```ts
+idToken: string;
+```
+
+(`string`) - Signed ID token issued by the configured OIDC provider
+
+- MinLength - 1
+- MaxLength - 16384
+
+#### nonce?
+
+```ts
+nonce?: string;
+```
+
+Original random nonce whose SHA-256 hex digest was sent to the identity provider. Required unless the provider disables nonce checks.
+MinLength - 1
+MaxLength - 256
+
+#### options?
+
+```ts
+options?: SignUpOptions;
+```
+
+---
+
+## SignUpOidcParams
+
+Parameters for the signUpOidc method.
+
+### Properties
+
+#### allowedRoles?
+
+```ts
+allowedRoles?: string[];
+```
+
+Allowed roles for a new user
+
+#### codeChallenge
+
+```ts
+codeChallenge: string;
+```
+
+(string) - Base64url-encoded S256 challenge for the Auth authorization code.
+
+#### defaultRole?
+
+```ts
+defaultRole?: string;
+```
+
+Default role for a new user
+
+#### displayName?
+
+```ts
+displayName?: string;
+```
+
+Display name for a new user
+
+#### locale?
+
+```ts
+locale?: string;
+```
+
+Locale for a new user
+
+#### metadata?
+
+```ts
+metadata?: Record<string, unknown>;
+```
+
+JSON-encoded metadata for a new user
+
+#### redirectTo?
+
+```ts
+redirectTo?: string;
+```
+
+Allowed application URL to receive the Auth authorization code
+
+#### state?
+
+```ts
+state?: string;
+```
+
+Application state to include in the callback redirect
 
 ---
 
@@ -5062,6 +5392,7 @@ type ErrorResponseError =
   | "forbidden-anonymous"
   | "internal-server-error"
   | "invalid-email-password"
+  | "oidc-email-required"
   | "invalid-request"
   | "locale-not-allowed"
   | "password-too-short"
@@ -5129,6 +5460,70 @@ type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
 
 ```ts
 type OAuth2TokenRequestGrant_type = "authorization_code" | "refresh_token";
+```
+
+---
+
+## OIDCCodeChallenge
+
+```ts
+type OIDCCodeChallenge = string;
+```
+
+---
+
+## OIDCDefaultRole
+
+```ts
+type OIDCDefaultRole = string;
+```
+
+---
+
+## OIDCDisplayName
+
+```ts
+type OIDCDisplayName = string;
+```
+
+---
+
+## OIDCLocale
+
+```ts
+type OIDCLocale = string;
+```
+
+---
+
+## OidcProvider
+
+```ts
+type OidcProvider = string;
+```
+
+---
+
+## OIDCRedirectTo
+
+```ts
+type OIDCRedirectTo = string;
+```
+
+---
+
+## OIDCSignInCodeChallenge
+
+```ts
+type OIDCSignInCodeChallenge = string;
+```
+
+---
+
+## OIDCState
+
+```ts
+type OIDCState = string;
 ```
 
 ---

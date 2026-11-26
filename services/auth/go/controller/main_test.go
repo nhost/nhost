@@ -188,6 +188,7 @@ type getControllerOpts struct {
 	sms                       func(*gomock.Controller) *mock.MockSMSer
 	hibp                      func(*gomock.Controller) *mock.MockHIBPClient
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
+	oidcProviders             *providers.OIDCRegistry
 	totp                      *controller.Totp
 	encrypter                 controller.Encrypter
 	elevationMode             string
@@ -336,6 +337,7 @@ func getController(
 				[]string{"openid", "email", "profile"},
 			),
 		},
+		controllerOpts.oidcProviders,
 		idTokenValidator,
 		controllerOpts.totp,
 		controllerOpts.encrypter,

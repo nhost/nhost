@@ -1508,33 +1508,24 @@ func (wf *Workflows) getIDTokenValidator(
 	return validator, nil
 }
 
-func (wf *Workflows) InsertUserProvider(
+func (wf *Workflows) insertUserProvider(
 	ctx context.Context,
 	userID uuid.UUID,
-	providerID string,
+	provider providerIdentity,
 	providerUserID string,
 	logger *slog.Logger,
-) (sql.AuthUserProvider, *APIError) {
-	userP, err := wf.db.InsertUserProvider(
+) *APIError {
+	_, err := wf.db.InsertUserProvider(
 		ctx,
 		sql.InsertUserProviderParams{
 			UserID:         userID,
-			ProviderID:     providerID,
+			ProviderID:     provider.id,
 			ProviderUserID: providerUserID,
+			Issuer:         provider.issuer,
 		},
 	)
-	if err != nil {
-		if sqlIsDuplcateError(err, "user_providers_provider_id_provider_user_id_key") {
-			logger.ErrorContext(ctx, "user provider id already in use", logError(err))
-			return sql.AuthUserProvider{}, ErrProviderAccountAlreadyLinked
-		}
 
-		logger.ErrorContext(ctx, "error inserting user provider", logError(err))
-
-		return sql.AuthUserProvider{}, ErrInternalServerError
-	}
-
-	return userP, nil
+	return providerInsertError(ctx, err, logger)
 }
 
 func (wf *Workflows) UpdateUserConfirmChangeEmail(

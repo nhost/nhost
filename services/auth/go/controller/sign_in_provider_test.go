@@ -1,12 +1,15 @@
 package controller_test
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
 
@@ -226,22 +229,73 @@ func TestSignInProvider(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			assertRequest(
+			response := assertRequest(
 				t.Context(),
 				t,
 				c.SignInProvider,
 				tc.request,
 				tc.expectedResponse,
-				cmp.FilterPath(func(p cmp.Path) bool {
-					if last := p.Last(); last != nil {
-						return last.String() == ".Location" || last.String() == ".SetCookie"
-					}
+				testhelpers.FilterPathLast([]string{".Location"}, RegexpComparer()),
+				testhelpers.FilterPathLast([]string{".SetCookie"}, RegexpComparer()),
+			)
 
-					return false
-				}, RegexpComparer()),
+			redirect, ok := response.(api.SignInProvider302Response)
+			if !ok {
+				return
+			}
+
+			params := tc.request.Params
+			assertProviderRedirectState(
+				t, jwtGetter, redirect.Headers.Location, tc.config().ClientURL.String(),
+				providers.State{
+					Connect: params.Connect,
+					Options: &api.SignUpOptions{
+						AllowedRoles: params.AllowedRoles,
+						DefaultRole:  params.DefaultRole,
+						DisplayName:  params.DisplayName,
+						Locale:       params.Locale,
+						Metadata:     params.Metadata,
+						RedirectTo:   params.RedirectTo,
+					},
+					State:         params.State,
+					Flow:          providers.FlowSignin,
+					CodeChallenge: params.CodeChallenge,
+				},
 			)
 		})
+	}
+}
+
+func assertProviderRedirectState(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	location, defaultRedirectTo string,
+	want providers.State,
+) {
+	t.Helper()
+
+	if want.Options.RedirectTo == nil {
+		want.Options.RedirectTo = &defaultRedirectTo
+	}
+
+	providerURL, err := url.Parse(location)
+	if err != nil {
+		t.Fatalf("parse provider URL: %v", err)
+	}
+
+	token, err := jwtGetter.Validate(providerURL.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("validate provider state token: %v", err)
+	}
+
+	var got providers.State
+	if err := got.Decode(token.Claims); err != nil {
+		t.Fatalf("decode provider state: %v", err)
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("provider state mismatch (-want +got):\n%s", diff)
 	}
 }

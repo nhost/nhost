@@ -208,6 +208,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"refresh_token":    "refreshToken",
 						"provider_id":      "providerId",
 						"provider_user_id": "providerUserId",
+						"issuer":           "issuer",
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
@@ -424,7 +425,8 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthProvider",
 					},
 					CustomColumnNames: map[string]string{
-						"id": "id",
+						"id":          "id",
+						"oidc_issuer": "oidcIssuer",
 					},
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
