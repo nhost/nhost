@@ -9,14 +9,6 @@ import { FormSwitch } from '@/components/form/FormSwitch';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
-import {
   Form,
   FormControl,
   FormDescription,
@@ -24,6 +16,15 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/v3/form';
+import { Separator } from '@/components/ui/v3/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/v3/sheet';
 import { CronScheduleInput } from '@/features/orgs/projects/events/common/components/CronScheduleInput';
 import {
   createSqlJobChange,
@@ -122,20 +123,27 @@ export default function SqlJobForm({
 
   return (
     <>
-      <Dialog open onOpenChange={(open) => !open && close()}>
-        <DialogContent
-          className="max-h-[90vh] max-w-2xl overflow-y-auto"
-          disableOutsideClick
+      <Sheet open onOpenChange={(open) => !open && close()}>
+        <SheetContent
+          showOverlay
+          className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
         >
-          <DialogHeader>
-            <DialogTitle>{job ? 'Edit SQL job' : 'Create SQL job'}</DialogTitle>
-            <DialogDescription>
+          <SheetHeader className="p-6">
+            <SheetTitle className="text-lg">
+              {job ? 'Edit SQL job' : 'Create SQL job'}
+            </SheetTitle>
+            <SheetDescription>
               Schedule SQL commands with pg_cron. Commands execute with the
               permissions of the selected database role.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
+          <Separator />
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(submit)} className="space-y-5">
+            <form
+              id="sql-job-form"
+              onSubmit={form.handleSubmit(submit)}
+              className="flex flex-auto flex-col gap-5 overflow-y-auto p-6"
+            >
               <fieldset disabled={mutation.isPending} className="space-y-5">
                 <FormInput
                   control={form.control}
@@ -203,23 +211,29 @@ export default function SqlJobForm({
                   </AlertDescription>
                 </Alert>
               )}
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={close}
-                  disabled={mutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <ButtonWithLoading type="submit" loading={mutation.isPending}>
-                  {job ? 'Save changes' : 'Create job'}
-                </ButtonWithLoading>
-              </DialogFooter>
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
+          <SheetFooter className="flex-shrink-0 border-t p-2">
+            <div className="flex flex-1 flex-row items-start justify-between gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={close}
+                disabled={mutation.isPending}
+              >
+                Cancel
+              </Button>
+              <ButtonWithLoading
+                type="submit"
+                form="sql-job-form"
+                loading={mutation.isPending}
+              >
+                {job ? 'Save changes' : 'Create job'}
+              </ButtonWithLoading>
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
       <DiscardChangesDialog
         open={discardOpen}
         onOpenChange={setDiscardOpen}

@@ -725,7 +725,7 @@ describe('SQL Jobs', () => {
 
     expect(await screen.findByLabelText('Time zone')).toBeInTheDocument();
     expect(
-      screen.getByLabelText('Maximum concurrent jobs'),
+      screen.getByLabelText(/^Maximum concurrent jobs/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('switch', { name: 'Record job runs' }),
@@ -748,7 +748,7 @@ describe('SQL Jobs', () => {
       const user = new TestUserEvent();
       await page('settings');
       await user.click(
-        await screen.findByRole('button', { name: 'Create retention job' }),
+        await screen.findByRole('button', { name: 'Create cleanup job' }),
       );
       const dialog = within(await screen.findByRole('dialog'));
 
@@ -789,7 +789,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page('settings');
     await user.click(
-      await screen.findByRole('button', { name: 'Create retention job' }),
+      await screen.findByRole('button', { name: 'Create cleanup job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(dialog.getByRole('button', { name: 'Cancel' }));
@@ -819,7 +819,7 @@ describe('SQL Jobs', () => {
       await page('settings');
       if (condition === 'not preloaded') {
         expect(
-          await screen.findByRole('button', { name: 'Create retention job' }),
+          await screen.findByRole('button', { name: 'Create cleanup job' }),
         ).toBeDisabled();
       } else {
         await screen.findByRole('button', {
@@ -829,7 +829,7 @@ describe('SQL Jobs', () => {
               : 'Different database',
         });
         expect(
-          screen.queryByRole('button', { name: 'Create retention job' }),
+          screen.queryByRole('button', { name: 'Create cleanup job' }),
         ).not.toBeInTheDocument();
       }
       expect(writes).toHaveLength(0);
@@ -854,7 +854,7 @@ describe('SQL Jobs', () => {
   it('rejects concurrency settings outside the live server bounds', async () => {
     const user = new TestUserEvent();
     await page('settings');
-    const maximum = await screen.findByLabelText('Maximum concurrent jobs');
+    const maximum = await screen.findByLabelText(/^Maximum concurrent jobs/);
     await user.clear(maximum);
     await user.type(maximum, '101');
     await user.click(screen.getByRole('button', { name: 'Save settings' }));

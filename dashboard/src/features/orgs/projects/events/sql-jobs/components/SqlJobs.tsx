@@ -193,6 +193,10 @@ export default function SqlJobs() {
     );
   }
 
+  const retentionJob = jobs.data?.find((job) =>
+    /delete\s+from\s+cron\.job_run_details/i.test(job.command),
+  );
+
   function renderPane() {
     if (typeof cronTriggerSlug === 'string') {
       return (
@@ -257,6 +261,10 @@ export default function SqlJobs() {
             canCreateJob={canCreateJob}
             canDisable={Boolean(jobs.data) && !mutation.isPending}
             onDisable={confirmDisable}
+            retentionJob={retentionJob}
+            retentionJobHref={
+              retentionJob ? `${basePath}/sql/${retentionJob.jobid}` : undefined
+            }
             onCreateRetentionJob={() =>
               setForm({
                 initialValues: {

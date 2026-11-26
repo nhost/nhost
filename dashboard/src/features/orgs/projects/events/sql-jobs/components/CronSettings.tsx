@@ -1,8 +1,10 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Plus } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { useController, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormInput } from '@/components/form/FormInput';
 import {
   SettingsCard,
@@ -17,7 +19,10 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { Switch } from '@/components/ui/v3/switch';
 import { GitHubConnectedNotice } from '@/features/orgs/projects/common/components/settings/GitHubConnectedNotice';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import type { CronState } from '@/features/orgs/projects/events/sql-jobs/types';
+import type {
+  CronState,
+  SqlJob,
+} from '@/features/orgs/projects/events/sql-jobs/types';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -31,18 +36,14 @@ export const cronSettingsSchema = Yup.object({
   timezone: Yup.string()
     .trim()
     .required()
-    .test(
-      'timezone',
-      'Enter a valid IANA timezone, such as Europe/Stockholm.',
-      (value) => {
-        try {
-          new Intl.DateTimeFormat('en', { timeZone: value });
-          return true;
-        } catch {
-          return false;
-        }
-      },
-    ),
+    .test('timezone', 'Select a time zone.', (value) => {
+      try {
+        new Intl.DateTimeFormat('en', { timeZone: value });
+        return true;
+      } catch {
+        return false;
+      }
+    }),
   maxRunningJobs: Yup.number()
     .typeError('Enter a number.')
     .integer()
@@ -60,13 +61,60 @@ interface CronSettingsProps {
   onCreateRetentionJob: VoidFunction;
   canDisable: boolean;
   onDisable: VoidFunction;
+  retentionJob?: SqlJob;
+  retentionJobHref?: string;
+}
+
+function utcOffset(zone: string) {
+  const name =
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      timeZoneName: 'shortOffset',
+    })
+      .formatToParts(new Date())
+      .find(({ type }) => type === 'timeZoneName')?.value ?? 'GMT';
+  const match = name.match(/GMT([+-])(\d+)(?::(\d+))?/);
+  if (!match) {
+    return { label: 'UTC+0', minutes: 0 };
+  }
+  const [, sign, hours, minutes = '00'] = match;
+  const total =
+    (Number(hours) * 60 + Number(minutes)) * (sign === '-' ? -1 : 1);
+  const label = `UTC${sign}${Number(hours)}${minutes === '00' ? '' : `:${minutes}`}`;
+  return { label, minutes: total };
+}
+
+function timezoneOptions(current: string) {
+  const zones = new Set(['UTC', 'GMT', ...Intl.supportedValuesOf('timeZone')]);
+  zones.add(current);
+  return [...zones]
+    .map((zone) => {
+      const offset = utcOffset(zone);
+      return {
+        value: zone,
+        label: `${zone.replaceAll('_', ' ')} (${offset.label})`,
+        keywords: [zone, offset.label],
+        minutes: offset.minutes,
+      };
+    })
+    .sort((a, b) => a.minutes - b.minutes || a.value.localeCompare(b.value))
+    .map(({ minutes: _minutes, ...option }) => option);
 }
 
 function CronConfigForm({
   state,
   canCreateJob,
   onCreateRetentionJob,
-}: Pick<CronSettingsProps, 'state' | 'canCreateJob' | 'onCreateRetentionJob'>) {
+  retentionJob,
+  retentionJobHref,
+}: Pick<
+  CronSettingsProps,
+  | 'state'
+  | 'canCreateJob'
+  | 'onCreateRetentionJob'
+  | 'retentionJob'
+  | 'retentionJobHref'
+>) {
   const concurrencySetting = state.settings.find(
     ({ name }) => name === 'cron.max_running_jobs',
   );
@@ -146,9 +194,11 @@ function CronConfigForm({
     );
   }
 
+  const zones = timezoneOptions(form.getValues('timezone') || values.timezone);
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(submit)}>
         <SettingsCard>
           <SettingsCardHeader
             title="Scheduler"
@@ -159,20 +209,76 @@ function CronConfigForm({
             }
           />
           <SettingsCardContent className="mt-4">
-            <fieldset className="grid gap-4" disabled={saving}>
-              <FormInput
-                control={form.control}
-                name="timezone"
-                label="Time zone"
-                helperText="For example, GMT, UTC or Europe/Stockholm."
-              />
-              <FormInput
-                control={form.control}
-                name="maxRunningJobs"
-                label="Maximum concurrent jobs"
-                type="number"
-                helperText={`This server accepts ${minJobs}–${maxJobs} concurrent jobs. Zero stops jobs from running.`}
-              />
+            <fieldset className="grid gap-6" disabled={saving}>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <FormCombobox
+                  control={form.control}
+                  name="timezone"
+                  label="Time zone"
+                  placeholder="Select a time zone"
+                  searchPlaceholder="Search time zones"
+                  emptyText="No time zone found."
+                  options={zones}
+                  className="w-full"
+                  disabled={saving}
+                />
+                <FormInput
+                  control={form.control}
+                  name="maxRunningJobs"
+                  label={`Maximum concurrent jobs (${minJobs} to ${maxJobs})`}
+                  type="number"
+                />
+              </div>
+              <div className="mt-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-medium text-sm">Record job runs</p>
+                  <p className="text-muted-foreground text-sm">
+                    Keeps a run history for every SQL job.
+                  </p>
+                </div>
+                <Switch
+                  type="button"
+                  aria-label="Record job runs"
+                  checked={logRun.value}
+                  onCheckedChange={logRun.onChange}
+                  onBlur={logRun.onBlur}
+                  ref={logRun.ref}
+                  disabled={saving}
+                />
+              </div>
+              {logRun.value && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/30 p-4 text-sm">
+                  {retentionJob && retentionJobHref ? (
+                    <>
+                      <p className="text-muted-foreground">
+                        Old run history is deleted by{' '}
+                        <span className="font-medium text-foreground">
+                          {retentionJob.jobname ?? `Job ${retentionJob.jobid}`}
+                        </span>
+                        .
+                      </p>
+                      <Button asChild variant="link" size="inline">
+                        <Link href={retentionJobHref}>View job</Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground">
+                        Run history is never deleted, so it keeps growing.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!canCreateJob || saving}
+                        onClick={onCreateRetentionJob}
+                      >
+                        <Plus />
+                        Create cleanup job
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
             </fieldset>
           </SettingsCardContent>
           <SettingsCardFooter>
@@ -185,41 +291,6 @@ function CronConfigForm({
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Record job runs"
-            description="Keeps a run history for every SQL job."
-            control={
-              <Switch
-                type="button"
-                aria-label="Record job runs"
-                checked={logRun.value}
-                onCheckedChange={logRun.onChange}
-                onBlur={logRun.onBlur}
-                ref={logRun.ref}
-                disabled={saving}
-              />
-            }
-          />
-          {logRun.value && (
-            <SettingsCardContent className="mt-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/30 p-4 text-sm">
-                <p className="text-muted-foreground">
-                  Run history is not cleaned up automatically.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!canCreateJob || saving}
-                  onClick={onCreateRetentionJob}
-                >
-                  <Plus />
-                  Create retention job
-                </Button>
-              </div>
-            </SettingsCardContent>
-          )}
-        </SettingsCard>
       </form>
     </Form>
   );
@@ -231,6 +302,8 @@ export default function CronSettings({
   state,
   canCreateJob,
   onCreateRetentionJob,
+  retentionJob,
+  retentionJobHref,
 }: CronSettingsProps) {
   const settingsDisabled = useSettingsDisabled();
   const isPlatform = useIsPlatform();
@@ -257,6 +330,8 @@ export default function CronSettings({
           state={state}
           canCreateJob={canCreateJob}
           onCreateRetentionJob={onCreateRetentionJob}
+          retentionJob={retentionJob}
+          retentionJobHref={retentionJobHref}
         />
       )}
       <SettingsCard>

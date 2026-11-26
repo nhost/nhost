@@ -92,7 +92,6 @@ export default function SqlJobDetails({
       <CronJobPaneHeader
         title={job.jobname ?? `Job ${job.jobid}`}
         subtitle={`SQL job · ${schedule}`}
-        paused={!job.active}
         actions={
           <>
             <JobIconButton
