@@ -325,23 +325,8 @@ func parseOnConflictUpdateColumnName(value *ast.Value, variables map[string]any)
 	return columnValue.Raw, nil
 }
 
-// NestedFKSource describes where a nested-insert FK column reads its value
-// from. CTEName is the source CTE alias and ColumnName is the column selected
-// from that CTE.
-type NestedFKSource struct {
-	CTEName    string
-	ColumnName string
-}
-
-// NestedFKSources maps the insert-row FK column to the CTE column that supplies
-// its value.
-type NestedFKSources map[string]NestedFKSource
-
 // NestedInsert is a single nested insert spec parsed from a relationship field
-// inside an insert object. The CTE-building method that consumes this lives in
-// the parent queries package because it needs queries-internal table state
-// (buildSingleInsertCTE) — NestedInsert itself is pure data plus the
-// FK-application helper.
+// inside an insert object. The dependent step planner consumes this data.
 //
 // NestedObjects holds one element for object relationships and one-or-more
 // elements for array relationships (Hasura accepts both `data: {...}` and
@@ -355,96 +340,16 @@ type NestedInsert struct {
 	ForeignKeyColumns       []string
 	ForeignKeySourceColumns map[string]string
 	IsArrayRelationship     bool
-}
-
-// ApplyArrayFKColumn appends the FK columns to every nested object (so they
-// appear in the INSERT column list) and registers each one against the parent
-// CTE. Only array relationships need this; for object relationships the parent
-// owns the FK. Composite FKs are handled by iterating every FK/source-column
-// mapping.
-//
-// The FK-index entry is added unconditionally for array relationships, even
-// when ColumnFromSQLName can't resolve a given FK column on the child table.
-// The asymmetry is deliberate, per column: downstream consumers
-// (buildInsertFromClause in the parent queries package) iterate the returned
-// map to add the parent CTE to the FROM clause so that Postgres actually
-// executes it. Skipping the map entry when the column resolution fails would
-// drop the parent CTE from FROM and silently break the nested-insert chain.
-// The buildInsertSelectClause iterates the column list (not the FK index) so
-// a missing FK column there simply produces a SELECT that does not reference
-// the parent — which is the correct outcome when the schema says no such FK
-// column exists.
-func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) (NestedFKSources, error) {
-	nestedFKIndex := make(NestedFKSources)
-	if !n.IsArrayRelationship {
-		return nestedFKIndex, nil
-	}
-
-	for _, fkName := range n.foreignKeyColumnsToPopulate() {
-		sourceColumn, ok := n.ForeignKeySourceColumns[fkName]
-		if !ok || sourceColumn == "" {
-			return nil, fmt.Errorf(
-				"%w: nested insert %s: missing source column for FK %s",
-				ErrInvalidArgument,
-				n.RelationshipName,
-				fkName,
-			)
-		}
-
-		fkColumn := n.TargetTable.ColumnFromSQLName(fkName)
-		if fkColumn != nil {
-			for i := range n.NestedObjects {
-				n.NestedObjects[i].Columns = append(n.NestedObjects[i].Columns, InsertColumn{
-					Column: fkColumn,
-					Value:  nil,
-				})
-			}
-		}
-
-		nestedFKIndex[fkName] = NestedFKSource{
-			CTEName:    parentCTEName,
-			ColumnName: sourceColumn,
-		}
-	}
-
-	return nestedFKIndex, nil
-}
-
-func (n *NestedInsert) foreignKeyColumnsToPopulate() []string {
-	if len(n.ForeignKeySourceColumns) == 0 {
-		return append([]string{}, n.ForeignKeyColumns...)
-	}
-
-	columns := make([]string, 0, len(n.ForeignKeySourceColumns))
-	seen := make(map[string]struct{}, len(n.ForeignKeySourceColumns))
-
-	for _, fkName := range n.ForeignKeyColumns {
-		if _, ok := n.ForeignKeySourceColumns[fkName]; !ok {
-			continue
-		}
-
-		columns = append(columns, fkName)
-		seen[fkName] = struct{}{}
-	}
-
-	extraColumns := make([]string, 0, len(n.ForeignKeySourceColumns)-len(columns))
-	for fkName := range n.ForeignKeySourceColumns {
-		if _, ok := seen[fkName]; ok {
-			continue
-		}
-
-		extraColumns = append(extraColumns, fkName)
-	}
-
-	slices.Sort(extraColumns)
-
-	return append(columns, extraColumns...)
+	InsertAfterParent       bool
 }
 
 // InsertColumn is a column/value pair in an insert object.
 type InsertColumn struct {
 	Column *core.Column
 	Value  any
+	// Preset distinguishes server-supplied values from parsed client fields.
+	// Both may be present when BuildQuery is called without schema validation.
+	Preset bool
 }
 
 // InsertObject is a parsed insert object: the columns to insert plus any
@@ -545,14 +450,19 @@ func ParseInsertCollection(
 
 	insertObjs := make([]InsertObject, 0, len(children))
 
-	for _, child := range children {
-		if child.Value.Kind != ast.ObjectValue {
+	for i, child := range children {
+		objectValue, err := values.ResolveVariable(child.Value, variables)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve object at index %d: %w", i, err)
+		}
+
+		if objectValue.Kind != ast.ObjectValue {
 			return nil, nil, fmt.Errorf(
 				"%w: each element in objects must be an object", ErrInvalidArgument,
 			)
 		}
 
-		insertObj, err := parseInsertObject(t, child.Value, variables, role, sessionVariables)
+		insertObj, err := parseInsertObject(t, objectValue, variables, role, sessionVariables)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -587,8 +497,20 @@ func parseInsertObject(
 
 		relationship := t.Relationship(customFieldName)
 		if relationship != nil {
+			fieldValue, err := values.ResolveVariable(child.Value, variables)
+			if err != nil {
+				return InsertObject{}, fmt.Errorf(
+					"failed to resolve nested insert for %s: %w", customFieldName, err,
+				)
+			}
+
+			// A null relationship wrapper requests no related insert.
+			if fieldValue.Kind == ast.NullValue {
+				continue
+			}
+
 			nested, err := parseNestedInsert(
-				t, child, customFieldName, relationship, variables, role, sessionVariables,
+				fieldValue, customFieldName, relationship, variables, role, sessionVariables,
 			)
 			if err != nil {
 				return InsertObject{}, fmt.Errorf(
@@ -658,6 +580,7 @@ func parseInsertColumn(
 	return InsertColumn{
 		Column: column,
 		Value:  value,
+		Preset: false,
 	}, nil
 }
 
@@ -697,7 +620,15 @@ func ApplyInsertPresets(
 			)
 		}
 
-		value, err := permissions.SubstituteSessionVariable(presetValue, sessionVariables)
+		// Coerce metadata before substitution, like permission predicates: JSONB
+		// session references must retain the distinction between user strings
+		// and the already-serialized JSON supplied by a session header.
+		value, err := values.CoerceSQLValue(col.SQLType, presetValue)
+		if err != nil {
+			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+		}
+
+		value, err = permissions.SubstituteSessionVariable(value, sessionVariables)
 		if err != nil {
 			return fmt.Errorf(
 				"failed to substitute session variable for preset column %s: %w",
@@ -708,12 +639,13 @@ func ApplyInsertPresets(
 
 		value, err = values.CoerceSQLValue(col.SQLType, value)
 		if err != nil {
-			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+			return fmt.Errorf("failed to coerce resolved preset column %s: %w", colName, err)
 		}
 
 		insertObj.Columns = append(insertObj.Columns, InsertColumn{
 			Column: col,
 			Value:  value,
+			Preset: true,
 		})
 	}
 
@@ -721,31 +653,19 @@ func ApplyInsertPresets(
 }
 
 // parseNestedInsert parses a nested insert via a relationship.
-func parseNestedInsert( //nolint:funlen
-	_ Table,
-	child *ast.ChildValue,
+func parseNestedInsert(
+	fieldValue *ast.Value,
 	fieldName string,
 	relationship Relationship,
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
 ) (NestedInsert, error) {
-	// Resolve the field value (could be a variable)
-	fieldValue, err := values.ResolveVariable(child.Value, variables)
-	if err != nil {
-		return NestedInsert{}, fmt.Errorf(
-			"failed to resolve nested insert for %s: %w",
-			fieldName,
-			err,
-		)
-	}
-
 	// Nested inserts have the format: {data: {...} | [{...}, ...], on_conflict: {...}}
 	if fieldValue.Kind != ast.ObjectValue {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: nested insert for %s must be an object",
-			ErrInvalidArgument,
-			fieldName,
+			ErrInvalidArgument, fieldName,
 		)
 	}
 
@@ -753,8 +673,7 @@ func parseNestedInsert( //nolint:funlen
 	if dataChild == nil {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: missing data field for nested insert on relationship %s",
-			ErrInvalidArgument,
-			fieldName,
+			ErrInvalidArgument, fieldName,
 		)
 	}
 
@@ -799,6 +718,7 @@ func parseNestedInsert( //nolint:funlen
 		ForeignKeyColumns:       relationship.FKColumns(),
 		ForeignKeySourceColumns: relationship.FKSourceColumns(),
 		IsArrayRelationship:     isArray,
+		InsertAfterParent:       relationship.InsertAfterParent(),
 	}, nil
 }
 
@@ -848,15 +768,20 @@ func parseNestedDataObjects(
 
 	objects := make([]InsertObject, 0, len(children))
 
-	for _, c := range children {
-		if c.Value.Kind != ast.ObjectValue {
+	for i, c := range children {
+		objectValue, err := values.ResolveVariable(c.Value, variables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve %s data[%d]: %w", fieldName, i, err)
+		}
+
+		if objectValue.Kind != ast.ObjectValue {
 			return nil, fmt.Errorf(
 				"%w: each element of data for array relationship %s must be an object",
 				ErrInvalidArgument, fieldName,
 			)
 		}
 
-		obj, err := parseInsertObject(target, c.Value, variables, role, sessionVariables)
+		obj, err := parseInsertObject(target, objectValue, variables, role, sessionVariables)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse nested insert for %s: %w", fieldName, err)
 		}

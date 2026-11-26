@@ -154,6 +154,21 @@ func (mr *MockDBClientGetUserMockRecorder) GetUser(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUser), ctx, id)
 }
 
+// GetUserByActiveTicket mocks base method.
+func (m *MockDBClientGetUser) GetUserByActiveTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByActiveTicket", ctx, ticket)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByActiveTicket indicates an expected call of GetUserByActiveTicket.
+func (mr *MockDBClientGetUserMockRecorder) GetUserByActiveTicket(ctx, ticket any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByActiveTicket", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByActiveTicket), ctx, ticket)
+}
+
 // GetUserByEmail mocks base method.
 func (m *MockDBClientGetUser) GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -740,21 +755,6 @@ func (mr *MockDBClientMockRecorder) ConsumePKCEAuthorizationCode(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).ConsumePKCEAuthorizationCode), ctx, arg)
 }
 
-// CountSecurityKeysUser mocks base method.
-func (m *MockDBClient) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountSecurityKeysUser", ctx, userID)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountSecurityKeysUser indicates an expected call of CountSecurityKeysUser.
-func (mr *MockDBClientMockRecorder) CountSecurityKeysUser(ctx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSecurityKeysUser", reflect.TypeOf((*MockDBClient)(nil).CountSecurityKeysUser), ctx, userID)
-}
-
 // DeleteExpiredOAuth2AuthRequests mocks base method.
 func (m *MockDBClient) DeleteExpiredOAuth2AuthRequests(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -924,6 +924,21 @@ func (mr *MockDBClientMockRecorder) FindUserProviderByProviderId(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserProviderByProviderId", reflect.TypeOf((*MockDBClient)(nil).FindUserProviderByProviderId), ctx, arg)
 }
 
+// GetElevationMethods mocks base method.
+func (m *MockDBClient) GetElevationMethods(ctx context.Context, id uuid.UUID) (sql.GetElevationMethodsRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetElevationMethods", ctx, id)
+	ret0, _ := ret[0].(sql.GetElevationMethodsRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElevationMethods indicates an expected call of GetElevationMethods.
+func (mr *MockDBClientMockRecorder) GetElevationMethods(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElevationMethods", reflect.TypeOf((*MockDBClient)(nil).GetElevationMethods), ctx, id)
+}
+
 // GetOAuth2AuthRequest mocks base method.
 func (m *MockDBClient) GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (sql.AuthOauth2AuthRequest, error) {
 	m.ctrl.T.Helper()
@@ -1027,6 +1042,21 @@ func (m *MockDBClient) GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser,
 func (mr *MockDBClientMockRecorder) GetUser(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockDBClient)(nil).GetUser), ctx, id)
+}
+
+// GetUserByActiveTicket mocks base method.
+func (m *MockDBClient) GetUserByActiveTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByActiveTicket", ctx, ticket)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByActiveTicket indicates an expected call of GetUserByActiveTicket.
+func (mr *MockDBClientMockRecorder) GetUserByActiveTicket(ctx, ticket any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByActiveTicket", reflect.TypeOf((*MockDBClient)(nil).GetUserByActiveTicket), ctx, ticket)
 }
 
 // GetUserByEmail mocks base method.

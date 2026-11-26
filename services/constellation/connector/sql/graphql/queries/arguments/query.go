@@ -2,6 +2,7 @@ package arguments
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -247,6 +248,8 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 	var intVal int
 
 	switch value.Kind { //nolint:exhaustive
+	case ast.NullValue:
+		return nil, nil //nolint:nilnil // A nullable limit/offset applies no modifier.
 	case ast.IntValue:
 		_, err := fmt.Sscanf(value.Raw, "%d", &intVal)
 		if err != nil {
@@ -284,9 +287,13 @@ func ParseOrderBy(
 	sessionVariables map[string]any,
 	parentSource string,
 ) ([]OrderByItem, error) {
-	value, err := values.ResolveVariable(value, variables)
+	value, err := values.ResolveVariables(value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving order_by: %w", err)
+	}
+
+	if value.Kind == ast.NullValue {
+		return nil, nil
 	}
 
 	gen := &orderByAliasGen{n: 0}
@@ -323,6 +330,8 @@ func ParseOrderBy(
 // ordering (`<rel>_aggregate: <target>_aggregate_order_by`). The latter two
 // emit correlated-subquery ordering terms; everything else errors, matching the
 // schema, which only advertises those three shapes.
+//
+//nolint:funlen // Column, scalar, table aggregate and relationship terms share input order.
 func appendOrderByObject(
 	t Table,
 	orderBy []OrderByItem,
@@ -333,6 +342,10 @@ func appendOrderByObject(
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	for _, field := range value.Children {
+		if isNullOrderByLeaf(t, field, role) {
+			continue
+		}
+
 		if column := t.ColumnFromGraphqlName(field.Name); column != nil {
 			direction, err := orderByDirection(field.Value)
 			if err != nil {
@@ -348,6 +361,37 @@ func appendOrderByObject(
 			continue
 		}
 
+		if computed := t.ComputedScalarFromGraphqlName(field.Name, role); computed != nil {
+			direction, err := orderByDirection(field.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			orderBy = append(orderBy, OrderByItem{
+				Column: "", Direction: direction,
+				term: &computedOrderTerm{
+					expression: computed, source: parentSource, sessionVariables: sessionVariables,
+				},
+			})
+
+			continue
+		}
+
+		if name, ok := strings.CutSuffix(field.Name, "_aggregate"); ok {
+			if computed := t.ComputedTableFromGraphqlName(name, role); computed != nil {
+				items, err := appendComputedTableOrderBy(
+					t, computed, field.Value, parentSource, role, sessionVariables, gen,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				orderBy = append(orderBy, items...)
+
+				continue
+			}
+		}
+
 		items, err := appendRelationshipOrderBy(
 			t, field, parentSource, role, sessionVariables, gen,
 		)
@@ -359,6 +403,14 @@ func appendOrderByObject(
 	}
 
 	return orderBy, nil
+}
+
+// isNullOrderByLeaf skips only recognized nullable directions. Unknown fields
+// and computed fields without a role grant must still reach validation.
+func isNullOrderByLeaf(t Table, field *ast.ChildValue, role string) bool {
+	return field.Value.Kind == ast.NullValue &&
+		(t.ColumnFromGraphqlName(field.Name) != nil ||
+			t.ComputedScalarFromGraphqlName(field.Name, role) != nil)
 }
 
 // orderByDirection resolves an order_by leaf value to a typed direction. The
@@ -404,9 +456,13 @@ func ParseDistinctOn(
 	value *ast.Value,
 	variables map[string]any,
 ) ([]string, error) {
-	value, err := values.ResolveVariable(value, variables)
+	value, err := values.ResolveVariables(value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving distinct_on: %w", err)
+	}
+
+	if value.Kind == ast.NullValue {
+		return nil, nil
 	}
 
 	// GraphQL allows passing either a single enum value or an array of enum

@@ -7,7 +7,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -88,6 +87,10 @@ export default function DeploymentBranchSettings() {
           <SettingsCardHeader
             title="Deployment Branch"
             description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/deployments#deployment-branch',
+              topic: 'Deployment Branch',
+            }}
           />
 
           <SettingsCardContent className="lg:grid-cols-5">
@@ -107,11 +110,6 @@ export default function DeploymentBranchSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
-              title="Deployment Branch"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty || !project?.automaticDeploys}

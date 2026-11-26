@@ -1,12 +1,12 @@
 import { formatDistanceToNow } from 'date-fns';
 import {
   BoxIcon,
-  CopyIcon,
   Ellipsis as DotsHorizontalIcon,
   EyeIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -25,7 +25,6 @@ import type { RunService } from '@/features/orgs/projects/common/hooks/useRunSer
 import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { getServiceFormInitialData } from '@/features/orgs/projects/services/utils/getServiceFormInitialData';
-import { copy } from '@/utils/copy';
 
 interface ServicesListProps {
   /**
@@ -118,37 +117,33 @@ export default function ServicesList({
                 <span className="font-mono text-muted-foreground text-xs">
                   {serviceID}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copy(serviceID!, 'Service Id')}
-                  aria-label="Service Id"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <CopyToClipboardButton
+                  textToCopy={serviceID}
+                  title="Service ID"
+                />
               </div>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label={`More options for ${serviceName}`}
                 >
                   <DotsHorizontalIcon />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 p-0">
+              <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem
                   onClick={() => viewService(service)}
-                  className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  className="cursor-pointer gap-2"
                 >
                   <EyeIcon className="h-4 w-4" />
                   <span>View Service</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                   onClick={() => deleteService(service)}
                   disabled={!isPlatform}
                 >

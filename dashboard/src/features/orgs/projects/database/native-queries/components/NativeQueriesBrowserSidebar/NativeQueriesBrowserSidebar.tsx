@@ -85,7 +85,7 @@ function NativeQueriesBrowserSidebarContent() {
             placeholder="Search objects..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-10 pl-8 text-sm"
+            className="pl-8"
           />
         </div>
       </div>
@@ -113,9 +113,9 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-primary"
+                      variant="subtle"
+                      size="icon-xs"
+                      className="text-primary"
                       aria-label="New native query"
                       onClick={() =>
                         openDrawer({
@@ -167,9 +167,9 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-primary"
+                      variant="subtle"
+                      size="icon-xs"
+                      className="text-primary"
                       aria-label="New logical model"
                       onClick={() =>
                         openDrawer({

@@ -1,5 +1,5 @@
 import { Slot } from '@radix-ui/react-slot';
-import * as React from 'react';
+import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface SettingsCardProps extends React.HTMLAttributes<HTMLElement> {
@@ -10,22 +10,24 @@ export interface SettingsCardProps extends React.HTMLAttributes<HTMLElement> {
   asChild?: boolean;
 }
 
-const SettingsCard = React.forwardRef<HTMLElement, SettingsCardProps>(
-  ({ className, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'section';
+const SettingsCard = ({
+  className,
+  asChild = false,
+  ref,
+  ...props
+}: SettingsCardProps & { ref?: React.Ref<HTMLElement> }) => {
+  const Comp = asChild ? Slot : 'section';
 
-    return (
-      <Comp
-        ref={ref}
-        className={cn(
-          'grid grid-flow-row gap-4 overflow-hidden rounded-lg border py-6',
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-);
-SettingsCard.displayName = 'SettingsCard';
+  return (
+    <Comp
+      ref={ref}
+      className={cn(
+        'grid grid-flow-row gap-4 overflow-hidden rounded-lg border py-6 has-[[data-settings-card-footer]]:pb-0',
+        className,
+      )}
+      {...props}
+    />
+  );
+};
 
 export { SettingsCard };

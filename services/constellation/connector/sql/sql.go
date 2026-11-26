@@ -61,11 +61,12 @@ type Driver interface {
 // Required fields have no sensible zero value; direct struct-literal
 // construction is unsupported. Use [NewConnector].
 type Connector struct {
-	driver       Driver
-	schemas      map[string]*graph.Schema
-	roots        queries.Roots
-	groupedAggOp *groupedaggdispatch.Ops
-	dbMeta       *metadata.DatabaseMetadata
+	driver        Driver
+	schemas       map[string]*graph.Schema
+	roots         queries.Roots
+	groupedAggOp  *groupedaggdispatch.Ops
+	dbMeta        *metadata.DatabaseMetadata
+	setofJoinKeys map[string]bool
 }
 
 // NewConnector creates a Connector by introspecting the database, reconciling
@@ -74,13 +75,16 @@ type Connector struct {
 // / columns / functions / relationships / enum tables that exist in metadata
 // but not in the source) are recorded on inconsistencies and dropped from
 // the effective metadata so the rest of the source keeps serving. Pass nil
-// for inconsistencies to drop those records on the floor.
+// for inconsistencies to drop those records on the floor. Optional capabilities
+// override only the PostgreSQL scalar selection gate for focused tests;
+// production uses the backend's enabled scalar-selection capability.
 func NewConnector(
 	ctx context.Context,
 	driver Driver,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
+	capabilities ...schema.Capabilities,
 ) (*Connector, error) {
 	dial := driver.Dialect()
 
@@ -91,22 +95,47 @@ func NewConnector(
 
 	effectiveMeta := reconcileMetadata(ctx, logger, inconsistencies, dbMeta, objects)
 
-	roots, groupedAggOp, err := queries.BuildRoots(objects, effectiveMeta, dial)
+	kind, err := schema.ParseDBKind(effectiveMeta.Kind)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load schema: parsing database kind: %w", err)
+	}
+
+	caps := schema.NewCapabilities(kind, dial)
+	if len(capabilities) == 1 && caps.SupportsComputedFields {
+		caps.SupportsComputedScalarSelection = capabilities[0].SupportsComputedScalarSelection
+	}
+
+	roots, groupedAggOp, err := queries.BuildRoots(objects, effectiveMeta, dial, caps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build GraphQL roots: %w", err)
 	}
 
-	schemas, err := reloadSchema(objects, effectiveMeta, dial)
+	schemas, err := reloadSchema(objects, effectiveMeta, dial, caps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load schema: %w", err)
 	}
 
+	setofJoinKeys := make(map[string]bool)
+	for _, table := range effectiveMeta.Tables {
+		for _, field := range table.ComputedFields {
+			lookup, found := objects.GetComputedFunction(
+				table.Table.Schema,
+				table.Table.Name,
+				field.Name,
+			)
+			if found && lookup.Function != nil && lookup.Function.ReturnSet {
+				setofJoinKeys[table.Table.Schema+"\x00"+table.Table.Name+"\x00"+field.Name] = true
+			}
+		}
+	}
+
 	return &Connector{
-		driver:       driver,
-		schemas:      schemas,
-		roots:        roots,
-		groupedAggOp: groupedAggOp,
-		dbMeta:       effectiveMeta,
+		driver:        driver,
+		schemas:       schemas,
+		roots:         roots,
+		groupedAggOp:  groupedAggOp,
+		dbMeta:        effectiveMeta,
+		setofJoinKeys: setofJoinKeys,
 	}, nil
 }
 
@@ -126,23 +155,80 @@ func (c *Connector) GetSchema() (map[string]*graph.Schema, error) {
 // GetTypeName returns the GraphQL type name for a table identified as "schema.table".
 // Uses the custom name if configured, otherwise the table name.
 func (c *Connector) GetTypeName(identifier string) string {
-	schema, table, ok := strings.Cut(identifier, ".")
+	tableSchema, table, ok := strings.Cut(identifier, ".")
 	if !ok {
 		return ""
 	}
 
 	for i := range c.dbMeta.Tables {
 		t := &c.dbMeta.Tables[i]
-		if t.Table.Schema == schema && t.Table.Name == table {
+		if t.Table.Schema == tableSchema && t.Table.Name == table {
 			if t.Configuration.CustomName != "" {
 				return t.Configuration.CustomName
 			}
 
-			return t.Table.Name
+			return schema.DefaultTypeName(t.Table.Schema, t.Table.Name)
 		}
 	}
 
 	return ""
+}
+
+// HasComputedJoinKey reports whether a non-SETOF table-owned computed scalar
+// survived PostgreSQL reconciliation. The composer uses this to distinguish a
+// valid scalar key from an invalid definition or a physical column with the
+// same name; a SETOF result cannot identify one target row per parent.
+func (c *Connector) HasComputedJoinKey(tableSchema, tableName, key string) bool {
+	if c.dbMeta.Kind != "postgres" && c.dbMeta.Kind != "" {
+		return false
+	}
+
+	for i := range c.dbMeta.Tables {
+		table := &c.dbMeta.Tables[i]
+		if table.Table.Schema != tableSchema || table.Table.Name != tableName {
+			continue
+		}
+
+		for _, field := range table.ComputedFields {
+			if field.Name == key {
+				return !c.setofJoinKeys[tableSchema+"\x00"+tableName+"\x00"+key]
+			}
+		}
+	}
+
+	return false
+}
+
+// HasSelectableJoinColumn authorizes only role-selectable physical columns on
+// the specified reconciled table. The select_column enum is generated directly
+// from introspected columns and role grants, unlike the output object type,
+// which can also contain relationships and computed scalar fields.
+func (c *Connector) HasSelectableJoinColumn(identifier, role, name string) bool {
+	typeName := c.GetTypeName(identifier)
+	if typeName == "" {
+		return false
+	}
+
+	roleSchema := c.schemas[role]
+	if roleSchema == nil {
+		return false
+	}
+
+	for _, enum := range roleSchema.Enums {
+		if enum.Name != typeName+"_select_column" {
+			continue
+		}
+
+		for _, value := range enum.Values {
+			if value.Name == name {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return false
 }
 
 // NewSubscriptionHandler creates a subscription handler for this backend.
@@ -160,6 +246,7 @@ func reloadSchema(
 	objects *introspection.Objects,
 	dbMeta *metadata.DatabaseMetadata,
 	dial dialect.Dialect,
+	capabilities ...schema.Capabilities,
 ) (map[string]*graph.Schema, error) {
 	roles := collectRolesFromDatabaseMetadata(dbMeta)
 
@@ -171,6 +258,11 @@ func reloadSchema(
 	}
 
 	caps := schema.NewCapabilities(kind, dial)
+	if len(capabilities) == 1 && caps.SupportsComputedFields {
+		// Keep the optional PostgreSQL scalar-selection override aligned with
+		// query roots. Production uses the enabled backend default.
+		caps.SupportsComputedScalarSelection = capabilities[0].SupportsComputedScalarSelection
+	}
 
 	for _, role := range roles {
 		sch, err := schema.GenerateForRole(

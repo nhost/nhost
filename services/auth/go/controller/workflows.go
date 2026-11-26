@@ -456,6 +456,30 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
+// GetUserByActiveTicket is like GetUserByTicket but does not consume the ticket.
+func (wf *Workflows) GetUserByActiveTicket(
+	ctx context.Context,
+	ticket string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByActiveTicket(ctx, sql.Text(ticket))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return sql.AuthUser{}, ErrInvalidTicket
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
+		return user, apiErr
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) VerifyEmailOTP(
 	ctx context.Context,
 	email string,
@@ -506,6 +530,65 @@ func (wf *Workflows) VerifyEmailOTP(
 
 	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
 		return user, apiErr
+	}
+
+	return user, nil
+}
+
+func smsVerificationError(ctx context.Context, err error, logger *slog.Logger) *APIError {
+	switch {
+	case sqlIsDuplcateError(err, "users_phone_number_key"):
+		logger.ErrorContext(
+			ctx,
+			"phone number promotion conflict during SMS passwordless verification",
+			slog.String("constraint", "users_phone_number_key"),
+			logError(err),
+		)
+
+		return ErrInvalidOTP
+	case sqlIsForeignKeyError(err, "fk_role"),
+		sqlIsForeignKeyError(err, "fk_default_role"):
+		logger.ErrorContext(
+			ctx,
+			"staged deanonymization carries a role that no longer exists",
+			logError(err),
+		)
+
+		return ErrRoleNotAllowed
+	default:
+		logger.ErrorContext(ctx, "error verifying SMS OTP", logError(err))
+
+		return ErrInternalServerError
+	}
+}
+
+func (wf *Workflows) VerifySMSOTP(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, status, err := wf.sms.CheckVerificationCode(ctx, phoneNumber, otp)
+	if err != nil {
+		return sql.AuthUser{}, smsVerificationError(ctx, err, logger)
+	}
+
+	switch status {
+	case sql.OTPStatusOK:
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "sms otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "invalid OTP")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx,
+			"unexpected SMS OTP verification status",
+			slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	return user, nil

@@ -30,6 +30,26 @@ func (d *PostgresDialect) TypeCast(placeholder string, sqlType string) string {
 	return placeholder + "::" + sqlType
 }
 
+func (d *PostgresDialect) SupportsDependentInsertSteps() bool { return true }
+
+func (d *PostgresDialect) SupportsZeroColumnSelect() bool { return true }
+
+func (d *PostgresDialect) DependentInsertCapture() string {
+	return `COALESCE(json_agg(row_to_json("_physical")), '[]'::json)`
+}
+
+func (d *PostgresDialect) DependentInsertRowsSource(index int) string {
+	return `json_array_elements(` + d.TypeCast(d.Placeholder(index), "json") + `) AS "_rows"(value)`
+}
+
+func (d *PostgresDialect) DependentInsertRowValue(column string) string {
+	return "(value ->> '" + strings.ReplaceAll(column, "'", "''") + "')"
+}
+
+func (d *PostgresDialect) DependentInsertAffectedRows(index int) string {
+	return "generate_series(1, " + d.TypeCast(d.Placeholder(index), "integer") + ")"
+}
+
 func (d *PostgresDialect) WriteArrayIn(
 	b *strings.Builder, source, sqlName, sqlType string,
 	values []any, params []any, paramIndex int,
@@ -194,7 +214,7 @@ func (d *PostgresDialect) WriteSpatialArrayInExpression(
 	values []any, params []any, paramIndex int,
 ) ([]any, int) {
 	return d.writeSpatialArrayComparisonExpression(
-		b, leftExpr, sqlType, values, params, paramIndex, " = ANY", false,
+		b, leftExpr, sqlType, values, params, paramIndex, false,
 	)
 }
 
@@ -203,7 +223,7 @@ func (d *PostgresDialect) WriteSpatialArrayNotInExpression(
 	values []any, params []any, paramIndex int,
 ) ([]any, int) {
 	return d.writeSpatialArrayComparisonExpression(
-		b, leftExpr, sqlType, values, params, paramIndex, " != ALL", true,
+		b, leftExpr, sqlType, values, params, paramIndex, true,
 	)
 }
 
@@ -214,22 +234,18 @@ func (d *PostgresDialect) writeSpatialArrayComparisonExpression(
 	values []any,
 	params []any,
 	paramIndex int,
-	operator string,
-	emptyMatchesAll bool,
+	negated bool,
 ) ([]any, int) {
-	if len(values) == 0 {
-		if emptyMatchesAll {
-			b.WriteString("1 = 1")
-		} else {
-			b.WriteString("1 = 0")
-		}
-
-		return params, paramIndex
+	// Use equality for both types: older PostGIS lacks geometry <>, and
+	// geography inequality can resolve through an implicit bytea cast.
+	if negated {
+		b.WriteString("NOT (")
 	}
 
+	// Keep the left expression even for empty arrays: a computed call may
+	// already have allocated parameters that must remain referenced in SQL.
 	b.WriteString(leftExpr)
-	b.WriteString(operator)
-	b.WriteString("(ARRAY[")
+	b.WriteString(" = ANY(ARRAY[")
 
 	for i, value := range values {
 		if i > 0 {
@@ -245,6 +261,10 @@ func (d *PostgresDialect) writeSpatialArrayComparisonExpression(
 	b.WriteString("]::")
 	b.WriteString(pgtypes.SpatialScalarName(sqlType))
 	b.WriteString("[])")
+
+	if negated {
+		b.WriteByte(')')
+	}
 
 	return params, paramIndex
 }

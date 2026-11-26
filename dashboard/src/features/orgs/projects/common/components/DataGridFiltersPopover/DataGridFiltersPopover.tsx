@@ -13,9 +13,9 @@ import DataGridFiltersProvider, {
 } from './DataGridFiltersProvider';
 import DataGridFiltersTrigger from './DataGridFiltersTrigger';
 
-type DataGridFiltersPopoverImplProps = {
+interface DataGridFiltersPopoverImplProps {
   isFetching: boolean;
-};
+}
 
 function DataGridFiltersPopoverImpl({
   isFetching,
@@ -52,10 +52,10 @@ function DataGridFiltersPopoverImpl({
   );
 }
 
-type DataGridFiltersPopoverProps = {
+interface DataGridFiltersPopoverProps {
   storageKey: string;
   isFetching: boolean;
-};
+}
 
 function DataGridFiltersPopover({
   storageKey,

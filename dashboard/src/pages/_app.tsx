@@ -1,8 +1,11 @@
+import { CookieConsent } from '@/components/common/CookieConsent';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
+import { loadAnalytics } from '@/lib/segment';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import {
   ThemeColorMeta,
@@ -14,6 +17,7 @@ import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import { THEME_STORAGE_KEY } from '@/utils/constants/common';
+import { isPlatform } from '@/utils/env';
 import { nhost } from '@/utils/nhost';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
@@ -64,12 +68,18 @@ function MyApp({ Component, pageProps }: MyAppProps) {
               <RetryableErrorBoundary>
                 <TooltipProvider>
                   <DialogProvider>
-                    <ProgressBar
-                      height="2px"
-                      color="#0052cd"
-                      options={{ showSpinner: false }}
-                    />
-                    {getLayout(<Component {...pageProps} />)}
+                    <ElevationProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
+                      {getLayout(<Component {...pageProps} />)}
+                      {/* Segment, and the Google Ads tag it loads, only start after consent. */}
+                      {isPlatform() && (
+                        <CookieConsent onAccept={loadAnalytics} />
+                      )}
+                    </ElevationProvider>
                   </DialogProvider>
                 </TooltipProvider>
               </RetryableErrorBoundary>

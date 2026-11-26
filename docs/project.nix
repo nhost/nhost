@@ -59,12 +59,15 @@ let
       ../vendor/cuelang.org/go
       ../vendor/github.com/cockroachdb/apd
       ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
+      # Shared Vale styles.
+      ../.vale/styles
     ];
   };
 
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
     vale
+    jq # check_broken_links.sh parses the linkinator JSON report with it
   ];
 
   buildInputs = with pkgs; [

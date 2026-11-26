@@ -65,7 +65,7 @@ func (r *mutationResolver) changeDatabaseVersion(
 		AppID:          oldApp.AppID,
 		Config:         oldApp.Config.Clone(),
 		resolvedConfig: nil,
-		SystemConfig:   oldApp.SystemConfig,
+		SystemConfig:   oldApp.SystemConfig.Clone(),
 		Secrets:        oldApp.Secrets,
 		Services:       oldApp.Services,
 	}
@@ -73,11 +73,11 @@ func (r *mutationResolver) changeDatabaseVersion(
 	newApp.Config.Postgres.Version = new(version)
 	newApp.SystemConfig.Postgres.MajorVersion = new(version[:2])
 
-	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
+	if err := newApp.validateConfig(r.schema); err != nil {
 		return false, err
 	}
 
-	if _, err := newApp.ResolveSystemConfig(r.schema); err != nil {
+	if err := newApp.validateSystemConfig(r.schema); err != nil {
 		return false, err
 	}
 

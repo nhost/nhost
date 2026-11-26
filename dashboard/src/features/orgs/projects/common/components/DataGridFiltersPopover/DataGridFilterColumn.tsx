@@ -11,11 +11,11 @@ import { isNotEmptyValue } from '@/lib/utils';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { useGetDataColumns } from './useGetDataColumns';
 
-type DataFilterColumnProps = {
+interface DataFilterColumnProps {
   value: string;
   index: number;
   currentOp: string;
-};
+}
 
 function DataGridFilterColumn({
   value,
@@ -45,7 +45,7 @@ function DataGridFilterColumn({
         }
       }}
     >
-      <SelectTrigger className="h-8 w-32" ref={selectRef}>
+      <SelectTrigger className="w-32" ref={selectRef}>
         <span
           className="!inline-block w-4/5 overflow-ellipsis text-left"
           title={value}

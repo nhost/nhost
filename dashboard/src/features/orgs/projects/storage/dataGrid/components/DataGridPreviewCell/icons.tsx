@@ -1,6 +1,6 @@
-type IconProps = {
+interface IconProps {
   className?: string;
-};
+}
 
 const baseProps = {
   viewBox: '0 0 16 16',

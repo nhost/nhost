@@ -1,4 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { Unlink } from 'lucide-react';
 import { useState } from 'react';
 import {
   SettingsCardContent,
@@ -59,7 +60,9 @@ function ConfirmDisconnectGithubModal({
   return (
     <div className="text-foreground">
       <DialogHeader>
-        <DialogTitle>Disconnect GitHub</DialogTitle>
+        <DialogTitle className="text-xl leading-7 tracking-normal">
+          Disconnect GitHub
+        </DialogTitle>
       </DialogHeader>
       <DialogDescription className="mt-2 text-muted-foreground text-sm">
         You can connect a different GitHub account afterwards. If you use GitHub
@@ -78,7 +81,7 @@ function ConfirmDisconnectGithubModal({
         </Label>
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-2">
+      <div className="mt-12 flex items-center justify-end gap-2">
         <Button variant="outline" onClick={close}>
           Cancel
         </Button>
@@ -155,7 +158,7 @@ export default function SocialProvidersSettings() {
         ) : (
           <Button
             variant="outline"
-            className="flex w-fit flex-row gap-2 text-sm+"
+            className="flex w-fit flex-row gap-2"
             onClick={handleConnectGithub}
           >
             <GitHubIcon />
@@ -171,15 +174,12 @@ export default function SocialProvidersSettings() {
             onOpenChange={setDisconnectDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-9 gap-2 border-destructive px-2 text-destructive hover:bg-destructive hover:text-white"
-                disabled={deletingGitHubUserProvider}
-              >
+              <Button variant="outline" disabled={deletingGitHubUserProvider}>
+                <Unlink className="mr-2 h-4 w-4" />
                 Disconnect GitHub
               </Button>
             </DialogTrigger>
-            <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+            <DialogContent className="z-[9999] p-12 text-foreground">
               <ConfirmDisconnectGithubModal
                 close={() => setDisconnectDialogOpen(false)}
                 onDisconnect={handleDisconnectGithub}

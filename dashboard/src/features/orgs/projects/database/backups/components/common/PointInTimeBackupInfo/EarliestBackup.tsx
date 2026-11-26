@@ -27,7 +27,7 @@ function EarliestBackupDateTime({ dateTime }: EarliestBackupDateTimeProps) {
         selectedTimezone={selectedTimezone}
         onTimezoneSelect={handleSelect}
         button={
-          <Button className="h-auto p-0" variant="link">
+          <Button variant="link" size="inline">
             Change timezone
           </Button>
         }

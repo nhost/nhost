@@ -30,13 +30,15 @@ func generateForTable( //nolint:funlen
 	neededEnums map[string]struct{},
 	generatedAggregateOrderBy map[string]struct{},
 	generatedAggregateBoolExp map[string]struct{},
-	tablesWithObjRelInsert map[string]struct{},
-	tablesWithArrRelInsert map[string]struct{},
+	insertableTables map[string]struct{},
+	objRelTargets map[string]struct{},
+	arrRelTargets map[string]struct{},
 	caps Capabilities,
 ) {
 	customTableName := getCustomOrDefaultTypeName(tableMeta)
 	qualifiedName := getQualifiedName(tableMeta.Table.Schema, tableMeta.Table.Name)
 	allowedColumns := getAllowedColumns(tableMeta, tableInfo, role)
+	_, hasInsertInput := insertableTables[customTableName]
 
 	collectSelectColumnTypeUses(
 		tableInfo,
@@ -49,15 +51,40 @@ func generateForTable( //nolint:funlen
 		caps,
 	)
 	collectMutationColumnTypeUses(
-		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums,
+		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums, hasInsertInput,
 	)
+
+	computedFields := scalarComputedFields(schema, tableMeta, objects, role, caps, usedScalars)
+
+	tableFields := tableComputedFields(
+		schema,
+		tableMeta,
+		objects,
+		md,
+		role,
+		caps,
+		usedScalars,
+		generatedAggregateOrderBy,
+	)
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				selectUsedScalars[field.Type.NamedType] = struct{}{}
+			}
+		}
+	}
 
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
-		objects, generatedAggregateOrderBy, caps,
+		objects, generatedAggregateOrderBy, caps, append(computedFields, tableFields...),
 	)
 
-	generateTableQueryFields(
+	queryRoots, subscriptionRoots := selectRootAllowlists(tableMeta, role)
+	if queryRoots != nil || subscriptionRoots != nil {
+		schema.RestrictedReadRoots = true
+	}
+
+	generateTableSelectFields(
 		queryFields,
 		tableMeta,
 		tableInfo,
@@ -67,11 +94,26 @@ func generateForTable( //nolint:funlen
 		role,
 		md,
 		caps,
+		queryRoots,
 	)
 
+	mutationFieldCount := len(*mutationFields)
+
 	generateTableMutationFields(
-		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role, md,
+		mutationFields,
+		tableMeta,
+		tableInfo,
+		customTableName,
+		qualifiedName,
+		role,
+		md,
+		hasInsertInput,
 	)
+
+	// Every emitted table mutation family includes a bulk root using this response.
+	if len(*mutationFields) > mutationFieldCount {
+		generateTableMutationResponseType(schema, customTableName, qualifiedName)
+	}
 
 	generateTableSubscriptionFields(
 		subscriptionFields,
@@ -83,11 +125,13 @@ func generateForTable( //nolint:funlen
 		role,
 		md,
 		caps,
+		subscriptionRoots,
 	)
 
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
 			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
+			computedFields,
 		)
 	}
 
@@ -103,6 +147,8 @@ func generateForTable( //nolint:funlen
 		generatedAggregateBoolExp,
 		selectUsedScalars,
 		caps,
+		computedFields,
+		tableFields,
 	)
 
 	if (tableInfo.IsInsertable || tableInfo.IsUpdatable) &&
@@ -111,8 +157,8 @@ func generateForTable( //nolint:funlen
 			getUpdatePermission(tableMeta, role) != nil ||
 			getDeletePermission(tableMeta, role) != nil) {
 		generateTableMutationInputTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, md, objects, role,
-			tablesWithObjRelInsert, tablesWithArrRelInsert,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, md, role,
+			insertableTables, objRelTargets, arrRelTargets,
 		)
 	}
 
@@ -124,6 +170,14 @@ func generateForTable( //nolint:funlen
 		qualifiedName,
 		allowedColumns,
 	)
+}
+
+func selectRootAllowlists(tableMeta *metadata.TableMetadata, role string) (*[]string, *[]string) {
+	if perm := getSelectPermission(tableMeta, role); role != roleAdmin && perm != nil {
+		return perm.Permission.QueryRootFields, perm.Permission.SubscriptionRootFields
+	}
+
+	return nil, nil
 }
 
 func collectSelectColumnTypeUses(
@@ -159,8 +213,8 @@ func collectMutationColumnTypeUses(
 	md *metadata.DatabaseMetadata,
 	usedScalars map[string]struct{},
 	neededEnums map[string]struct{},
+	hasInsertInput bool,
 ) {
-	insertPermission := hasInsertPermissionForRole(tableMeta, role)
 	updatePermission := hasUpdatePermissionForRole(tableMeta, role)
 	deletePermission := hasDeletePermissionForRole(tableMeta, role)
 
@@ -185,7 +239,7 @@ func collectMutationColumnTypeUses(
 			insertCols,
 			updateCols,
 			pkColumns,
-			insertPermission,
+			hasInsertInput,
 			setInputGenerated,
 			pkColumnsInputGenerated || deleteByPKGenerated,
 		) {
@@ -429,6 +483,7 @@ func generateTableObjectType(
 	objects *introspection.Objects,
 	generatedAggregateOrderBy map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
 ) {
 	fields := []*graph.Field{}
 
@@ -458,6 +513,7 @@ func generateTableObjectType(
 		fields = append(fields, field)
 	}
 
+	fields = append(fields, computedFields...)
 	fields = append(
 		fields, generateObjectRelationshipFields(tableMeta, tableInfo, role, md)...,
 	)

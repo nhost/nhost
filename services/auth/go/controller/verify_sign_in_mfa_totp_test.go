@@ -56,8 +56,16 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByActiveTicket(
+					gomock.Any(),
+					sql.Text("mfaTotp:123456"),
+				).Return(
+					getUserSigninMfaTotp(userID),
+					nil,
+				)
 
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
@@ -158,7 +166,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByTicket(
+				mock.EXPECT().GetUserByActiveTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
 				).Return(
@@ -177,6 +185,48 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-totp",
 				Message: "Invalid TOTP code",
+				Status:  401,
+			},
+			jwtTokenFn:  nil,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withTotp(controller.NewTotp(
+					"auth-test",
+					fakeNow(time.Date(2025, 3, 29, 14, 50, 0o0, 0, time.UTC)),
+				)),
+			},
+		},
+
+		{
+			name:   "ticket consumed by a concurrent request",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByActiveTicket(
+					gomock.Any(),
+					sql.Text("mfaTotp:123456"),
+				).Return(
+					getUserSigninMfaTotp(userID),
+					nil,
+				)
+
+				mock.EXPECT().GetUserByTicket(
+					gomock.Any(),
+					sql.Text("mfaTotp:123456"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				return mock
+			},
+			request: api.VerifySignInMfaTotpRequestObject{
+				Body: &api.VerifySignInMfaTotpJSONRequestBody{
+					Otp:    "373186",
+					Ticket: "mfaTotp:123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-ticket",
+				Message: "Invalid ticket",
 				Status:  401,
 			},
 			jwtTokenFn:  nil,
@@ -224,7 +274,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByTicket(
+				mock.EXPECT().GetUserByActiveTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
@@ -257,7 +307,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 				user := getUserSigninMfaTotp(userID)
 				user.Disabled = true
 
-				mock.EXPECT().GetUserByTicket(
+				mock.EXPECT().GetUserByActiveTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
 				).Return(user, nil)
@@ -295,7 +345,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 				user := getUserSigninMfaTotp(userID)
 				user.ActiveMfaType = sql.Text("sms")
 
-				mock.EXPECT().GetUserByTicket(
+				mock.EXPECT().GetUserByActiveTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
 				).Return(user, nil)
@@ -333,7 +383,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 				user := getUserSigninMfaTotp(userID)
 				user.TotpSecret = sql.Text("")
 
-				mock.EXPECT().GetUserByTicket(
+				mock.EXPECT().GetUserByActiveTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
 				).Return(user, nil)

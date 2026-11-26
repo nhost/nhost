@@ -5,10 +5,10 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import RemoveSecurityKeyButton from '@/features/account/settings/components/SecurityKeysSettings/components/RemoveSecurityKeyButton';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 
-type SecurityKeyProps = {
+interface SecurityKeyProps {
   id: string;
   nickname?: string | null;
-};
+}
 
 function SecurityKey({ id, nickname }: SecurityKeyProps) {
   return (

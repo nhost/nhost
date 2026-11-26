@@ -17,13 +17,13 @@ export default function AccountMenuTrigger({
     <PopoverTrigger asChild>
       <Button
         ref={triggerRef}
-        variant="ghost"
-        size="icon"
+        variant="subtle"
+        size="icon-sm"
         aria-label="Open account menu"
-        className="h-7 w-7 rounded-full p-0"
+        className="rounded-full"
       >
         {isPlatform ? (
-          <UserAvatar className="h-7 w-7 self-center rounded-full" />
+          <UserAvatar className="h-full w-full" />
         ) : (
           <UserIcon className="h-4 w-4" />
         )}

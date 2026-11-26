@@ -7,12 +7,12 @@ import { useDataGridFilters } from './DataGridFiltersProvider';
 import { DataGridFilterValue } from './DataGridFilterValue';
 import { useGetDataColumns } from './useGetDataColumns';
 
-type FilterProps = {
+interface FilterProps {
   column: string;
   op: DataGridFilterOperator;
   value: string;
   index: number;
-};
+}
 
 function DataGridFilter({ column, op, value, index }: FilterProps) {
   const { removeFilter } = useDataGridFilters();
@@ -36,10 +36,11 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 flex-i"
+        className="flex-none px-0"
+        aria-label="Remove filter"
         onClick={() => removeFilter(index)}
       >
-        <X className="size-3" />
+        <X />
       </Button>
     </div>
   );

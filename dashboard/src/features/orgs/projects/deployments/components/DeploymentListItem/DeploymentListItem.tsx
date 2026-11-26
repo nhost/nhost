@@ -3,8 +3,8 @@ import {
   RotateCcw as ArrowCounterclockwiseIcon,
   ChevronRightIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import type { MouseEvent } from 'react';
-import { NavLink } from '@/components/common/NavLink';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v3/avatar';
@@ -16,15 +16,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hooks/useScheduleDeployment';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
-import {
-  GetOrganizationsDocument,
-  useInsertPipelineRunMutation,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
+import CommitRef from './CommitRef';
 
 export interface DeploymentListItemProps {
   deployment: UnifiedDeploymentRowFragment;
@@ -41,7 +37,7 @@ export default function DeploymentListItem({
 }: DeploymentListItemProps) {
   const { project } = useProject();
   const { org } = useCurrentOrg();
-  const userData = useUserData();
+  const { schedule, scheduling } = useScheduleDeployment();
 
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
   const relativeDateOfDeployment = deploymentDate
@@ -50,51 +46,18 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
-    refetchQueries: [
-      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
-    ],
-  });
-
   async function redeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
-
-    const insertPromise = insertPipelineRun({
-      variables: {
-        object: {
-          input: {
-            name: 'nhost-backend-build',
-            app_id: project?.id,
-            commit_sha: deployment.commitSHA,
-            commit_user_name: deployment.commitUserName,
-            commit_user_avatar_url: deployment.commitUserAvatarUrl,
-            commit_message: deployment.commitMessage,
-          },
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await insertPromise;
-      },
-      {
-        loadingMessage: 'Scheduling deployment...',
-        successMessage: 'Deployment has been scheduled successfully.',
-        errorMessage: 'An error occurred when scheduling deployment.',
-      },
-    );
+    await schedule(deployment);
   }
 
   return (
     <li className="flex w-full list-none">
-      <NavLink
-        variant="ghost"
-        underline="none"
-        className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
+      <Link
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={deployment.commitMessage || 'No commit message'}
+        className="grid w-full grid-flow-col items-center justify-between gap-2 p-2 font-display font-medium text-accent-foreground text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <Avatar
@@ -126,10 +89,10 @@ export default function DeploymentListItem({
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    disabled={disableRedeploy || loading}
+                    size="xs"
+                    disabled={disableRedeploy || scheduling}
                     onClick={redeploy}
-                    className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
+                    className="rounded-full border-primary text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"
                   >
                     <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
@@ -148,15 +111,16 @@ export default function DeploymentListItem({
 
           {isLive && (
             <div className="hidden w-12 justify-end sm:flex">
-              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+              <Badge
+                variant="outline"
+                className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+              >
                 Live
               </Badge>
             </div>
           )}
 
-          <div className="hidden w-16 text-right font-medium font-mono text-foreground text-sm- sm:block">
-            {deployment.commitSHA?.substring(0, 7)}
-          </div>
+          <CommitRef commitRef={deployment.commitSHA} />
 
           <div className="text-right font-medium font-mono text-sm- sm:w-20">
             <DeploymentDurationLabel
@@ -169,7 +133,7 @@ export default function DeploymentListItem({
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
-      </NavLink>
+      </Link>
     </li>
   );
 }

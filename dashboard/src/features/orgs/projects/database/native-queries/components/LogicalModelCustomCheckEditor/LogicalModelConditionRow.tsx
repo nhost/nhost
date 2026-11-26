@@ -97,9 +97,9 @@ export default function LogicalModelConditionRow({
 
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="w-full text-destructive xl:w-auto"
+        className="w-full xl:w-auto"
         onClick={onRemove}
         aria-label="Delete condition"
       >

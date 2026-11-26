@@ -12,16 +12,17 @@ func cloneSchema(s *graph.Schema) *graph.Schema {
 	}
 
 	return &graph.Schema{
-		Types:            cloneObjectTypes(s.Types),
-		Scalars:          cloneScalars(s.Scalars),
-		Enums:            cloneEnums(s.Enums),
-		Interfaces:       cloneInterfaces(s.Interfaces),
-		Unions:           cloneUnions(s.Unions),
-		Inputs:           cloneInputs(s.Inputs),
-		Directives:       cloneDirectiveDefs(s.Directives),
-		QueryType:        cloneStringPtr(s.QueryType),
-		MutationType:     cloneStringPtr(s.MutationType),
-		SubscriptionType: cloneStringPtr(s.SubscriptionType),
+		Types:               cloneObjectTypes(s.Types),
+		Scalars:             cloneScalars(s.Scalars),
+		Enums:               cloneEnums(s.Enums),
+		Interfaces:          cloneInterfaces(s.Interfaces),
+		Unions:              cloneUnions(s.Unions),
+		Inputs:              cloneInputs(s.Inputs),
+		Directives:          cloneDirectiveDefs(s.Directives),
+		QueryType:           cloneStringPtr(s.QueryType),
+		MutationType:        cloneStringPtr(s.MutationType),
+		SubscriptionType:    cloneStringPtr(s.SubscriptionType),
+		RestrictedReadRoots: s.RestrictedReadRoots,
 	}
 }
 
@@ -204,10 +205,12 @@ func cloneInputs(inputs []*graph.InputObjectType) []*graph.InputObjectType {
 		}
 
 		out[i] = &graph.InputObjectType{
-			Name:        in.Name,
-			Description: in.Description,
-			Fields:      fields,
-			Directives:  cloneDirectives(in.Directives),
+			Name:             in.Name,
+			Description:      in.Description,
+			Fields:           fields,
+			Directives:       cloneDirectives(in.Directives),
+			ComputedArgument: in.ComputedArgument,
+			EmptySQLInsert:   in.EmptySQLInsert,
 		}
 	}
 

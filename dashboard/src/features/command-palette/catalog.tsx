@@ -283,6 +283,11 @@ export const projectDatabasePages = definePages([
     route: 'database/console/default',
   },
   {
+    name: 'Extensions',
+    slug: 'extensions',
+    route: 'database/extensions/default',
+  },
+  {
     name: 'Backups',
     slug: 'backups',
     route: 'database/backups',
@@ -317,12 +322,18 @@ export const orgPages = definePages([
   { name: 'Settings', slug: 'settings', route: 'settings', gate: 'platform' },
   { name: 'Members', slug: 'members', route: 'members', gate: 'platform' },
   { name: 'Billing', slug: 'billing', route: 'billing', gate: 'platform' },
+  {
+    name: 'Billing usage',
+    slug: 'billing-usage',
+    route: 'billing/usage',
+    gate: 'platform',
+  },
 ]);
 
-export type PaletteGating = {
+export interface PaletteGating {
   isNotPlatform: boolean;
   shouldDisableSettings: boolean;
-};
+}
 
 export const isHiddenFromPalette = (
   gate: PaletteGate | undefined,

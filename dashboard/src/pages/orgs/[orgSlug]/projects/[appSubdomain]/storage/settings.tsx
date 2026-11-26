@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -9,6 +9,10 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -72,6 +76,7 @@ function StorageRateLimitingSettings() {
       loading={loading}
       serviceName="storage"
       title="Storage"
+      description="Limit how many requests each IP address can send to Storage. Used requests come back gradually over the interval."
     />
   );
 }
@@ -109,38 +114,16 @@ function StorageSettingsSidebar() {
   );
 }
 
+const STORAGE_SETTINGS_TABS = {
+  storage: { title: 'Storage', Component: StorageGeneralSettings },
+  'rate-limiting': {
+    title: 'Rate Limiting',
+    Component: StorageRateLimitingSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function StorageSettingsPage() {
-  const router = useRouter();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' && (tab === 'storage' || tab === 'rate-limiting');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'storage' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  switch (tab) {
-    case 'rate-limiting':
-      return <StorageRateLimitingSettings />;
-    default:
-      return <StorageGeneralSettings />;
-  }
+  return <SettingsTabs tabs={STORAGE_SETTINGS_TABS} defaultTab="storage" />;
 }
 
 StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {

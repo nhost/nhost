@@ -9,16 +9,16 @@ import ConditionValue from './ConditionValue';
 import OperatorComboBox from './OperatorComboBox';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
-type ConditionRowProps = {
+interface ConditionRowProps {
   name: string;
   onRemove?: VoidFunction;
-};
+}
 
-type OnHandlerOptions = {
+interface OnHandlerOptions {
   value: string;
   columnMetadata: Record<string, unknown>;
   disableReset?: boolean;
-};
+}
 
 export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
   const { schema, table } = useCustomCheckEditor();
@@ -93,9 +93,9 @@ export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
       />
 
       <Button
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="w-full text-destructive xl:w-auto"
+        className="w-full xl:w-auto"
         onClick={onRemove}
         aria-label="Delete condition"
       >

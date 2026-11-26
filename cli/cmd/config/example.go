@@ -227,6 +227,9 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Email: &model.ConfigAuthMethodOtpEmail{
 						Enabled: new(true),
 					},
+					Sms: &model.ConfigAuthMethodOtpSms{
+						Enabled: new(true),
+					},
 				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
 					Enabled: new(true),

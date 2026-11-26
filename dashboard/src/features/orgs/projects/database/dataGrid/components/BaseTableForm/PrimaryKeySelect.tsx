@@ -46,7 +46,7 @@ export default function PrimaryKeySelect() {
             </FormLabel>
             <MultiSelect onValuesChange={field.onChange} values={field.value}>
               <FormControl>
-                <MultiSelectTrigger className="!mt-3 h-10 w-full rounded-sm hover:bg-accent">
+                <MultiSelectTrigger className="!mt-3 w-full rounded-sm hover:bg-accent">
                   <MultiSelectValue
                     placeholder="Add Primary Key"
                     placeHolderClassName="text-muted-foreground"

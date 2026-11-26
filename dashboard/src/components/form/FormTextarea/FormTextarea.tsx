@@ -1,10 +1,9 @@
-import {
-  type ChangeEventHandler,
-  type ComponentProps,
-  type FocusEventHandler,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
+import type {
+  ChangeEventHandler,
+  ComponentProps,
+  FocusEventHandler,
+  ReactNode,
+  Ref,
 } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
@@ -50,26 +49,26 @@ interface FormTextareaProps<
   onBlur?: FocusEventHandler<HTMLTextAreaElement>;
 }
 
-function FormTextareaImpl<
+function FormTextarea<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    className = '',
-    inline,
-    helperText,
-    transform,
-    autoComplete,
-    autoFocus,
-    onChange: onChangeProp,
-    onBlur: onBlurProp,
-  }: FormTextareaProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLTextAreaElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  className = '',
+  inline,
+  helperText,
+  transform,
+  autoComplete,
+  autoFocus,
+  onChange: onChangeProp,
+  onBlur: onBlurProp,
+  ref,
+}: FormTextareaProps<TFieldValues, TName> & {
+  ref?: Ref<HTMLTextAreaElement>;
+}) {
   return (
     <FormField
       control={control}
@@ -138,14 +137,5 @@ function FormTextareaImpl<
     />
   );
 }
-
-const FormTextarea = forwardRef(FormTextareaImpl) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormTextareaProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLTextAreaElement>;
-  },
-) => ReturnType<typeof FormTextareaImpl>;
 
 export default FormTextarea;

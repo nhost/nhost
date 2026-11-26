@@ -229,6 +229,7 @@ export default function BaseCronTriggerForm({
                     name="triggerName"
                     label="Cron Trigger Name"
                     placeholder="cron_trigger_name"
+                    autoFocus
                     disabled={isEditing}
                     className="max-w-lg"
                     autoComplete="off"

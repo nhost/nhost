@@ -8,29 +8,17 @@ import (
 	"log/slog"
 	"maps"
 	"slices"
-	"sync"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
-	"github.com/nhost/nhost/services/constellation/controller/resolver"
-	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/vektah/gqlparser/v2/validator"
-	"github.com/vektah/gqlparser/v2/validator/rules"
 )
-
-// defaultRules returns the cached default validator rules. We resolve them
-// once on first call instead of allocating a fresh set per request; using
-// sync.OnceValue keeps the value behind a function rather than a mutable
-// package variable.
-//
-//nolint:gochecknoglobals // sync.OnceValue is the idiomatic memoised-constant pattern.
-var defaultRules = sync.OnceValue(rules.NewDefaultRules)
 
 // GraphQLRequest is the JSON payload accepted by HandlerPost (and used as
 // the input to Resolve when invoked directly). Variables are unmarshalled
@@ -68,7 +56,8 @@ func (c *Controller) Resolve(
 ) (*GraphQLResponse, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	state := c.state.Load()
+	state, release := c.acquireState()
+	defer release()
 
 	session := middleware.SessionFromContext(ctx)
 	if session == nil {
@@ -170,23 +159,6 @@ func gqlValidationErrors(err error) (gqlerror.List, bool) {
 	return nil, false
 }
 
-func coerceVariables(
-	schema *ast.Schema,
-	operation *ast.OperationDefinition,
-	variables map[string]any,
-) (map[string]any, error) {
-	if operation == nil || (len(variables) == 0 && len(operation.VariableDefinitions) == 0) {
-		return variables, nil
-	}
-
-	validated, err := validator.VariableValues(schema, operation, variables)
-	if err != nil {
-		return nil, fmt.Errorf("coercing variables: %w", err)
-	}
-
-	return validated, nil
-}
-
 func (c *Controller) execute(
 	ctx context.Context,
 	state *controllerState,
@@ -214,17 +186,25 @@ func (c *Controller) execute(
 	)
 	fragments = pruneFragments(fragments, variables)
 
-	// Partition the normalized root fields into introspection meta-fields
-	// (__schema/__type/__typename), resolved locally, and connector-backed data
-	// fields, routed to their owning connector.
-	dataByConnector, metaSelections, resp := groupFieldsByConnector(state, operation)
+	// Remote plans retain selection subtrees but generated target operations lose
+	// the selected operation's definitions and validated argument metadata. Apply
+	// input presence while that provenance is still available, before either
+	// prevalidation or execution (including mutation response relationships).
+	operation, fragments, err := queries.NormalizeInputVariables(operation, fragments, variables)
+	if err != nil {
+		return errorsResponse(nil, c.classifyConnectorError(ctx, logger, err))
+	}
+
+	dataByConnector, localSelections, resp := groupFieldsByConnector(
+		state, operation, state.emptyQueryRoots[role],
+	)
 	if resp != nil {
 		return resp
 	}
 
-	if len(metaSelections) > 0 {
-		return c.executeWithMeta(
-			ctx, state, schema, query, operation, metaSelections,
+	if len(localSelections) > 0 {
+		return c.executeWithLocalFields(
+			ctx, state, schema, query, operation, localSelections,
 			dataByConnector, fragments, variables, role, sessionVariables, logger,
 		)
 	}
@@ -241,18 +221,16 @@ func (c *Controller) execute(
 	)
 }
 
-// executeWithMeta resolves introspection meta-fields locally and, for mixed
-// operations, merges the connector-backed data into the same payload.
-// Introspection produces Go maps, so the response is always marshalled (no raw
-// fast path); raw jsontext.Value data values still marshal correctly inside the
-// merged map.
-func (c *Controller) executeWithMeta(
+// executeWithLocalFields resolves introspection and the empty-query fallback.
+// Mixed operations merge connector results into the same map, which is always
+// marshalled rather than using the raw response fast path.
+func (c *Controller) executeWithLocalFields(
 	ctx context.Context,
 	state *controllerState,
 	schema *ast.Schema,
 	query *ast.QueryDocument,
 	operation *ast.OperationDefinition,
-	metaSelections []ast.Selection,
+	localSelections []ast.Selection,
 	dataByConnector map[string][]ast.Selection,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
@@ -260,10 +238,21 @@ func (c *Controller) executeWithMeta(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
-	metaOp := transform.BuildSubOperation(operation, metaSelections)
-	metaQuery := *query
-	metaQuery.Fragments = fragments
-	results := introspection.Execute(schema, metaOp, &metaQuery)
+	localOp := transform.BuildSubOperation(operation, localSelections)
+	localQuery := *query
+	localQuery.Fragments = fragments
+	results := introspection.Execute(schema, localOp, &localQuery)
+
+	for _, selection := range localSelections {
+		if field, ok := selection.(*ast.Field); ok && field.Name == schemamerge.EmptyQueryField {
+			name := field.Alias
+			if name == "" {
+				name = field.Name
+			}
+
+			results[name] = schemamerge.EmptyQueryMessage
+		}
+	}
 
 	if len(dataByConnector) == 0 {
 		return &GraphQLResponse{Data: results, Errors: nil, rawResponse: nil}
@@ -360,7 +349,7 @@ func (c *Controller) resolveData(
 	logger *slog.Logger,
 	requirePrevalidation bool,
 ) (map[string]any, []map[string]any, *GraphQLResponse) {
-	plan, err := state.queryPlanner.Plan(operation, fragments, role)
+	plan, err := state.queryPlanner.Plan(operation, fragments, role, variables)
 	if err != nil {
 		// validatedSchemas is checked upstream; Plan only errs on internal
 		// failures and ErrSchemaForRoleNotFound (which is unreachable here).
@@ -382,7 +371,16 @@ func (c *Controller) resolveData(
 	// already runs the same build/validation before touching the database.
 	if requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries() {
 		if resp := c.validateConnectors(
-			state, plan, operation, dataByConnector, fragments, variables, role, sessionVariables,
+			ctx,
+			logger,
+			state,
+			plan,
+			operation,
+			dataByConnector,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
 		); resp != nil {
 			return nil, nil, resp
 		}
@@ -396,16 +394,12 @@ func (c *Controller) resolveData(
 	if len(allErrors) > 0 {
 		// Strip phantom join columns even on the partial-error path so the
 		// internal join keys the planner injected never reach the client. The
-		// error branch skips resolveRemoteRelationships, so SQL results are still
-		// raw jsontext.Value; unmarshal them first because Path.Delete only
-		// traverses parsed maps/slices. Failure to unmarshal must not fail the
-		// already-degraded response — log and continue.
+		// error branch skips resolveRemoteRelationships, so SQL rows may still
+		// be raw JSON under a customized namespace. If decoding fails, discard
+		// partial data rather than returning unstripped role-hidden join keys.
 		if plan.HasRemoteQueries() {
 			if err := unmarshalRawResults(results); err != nil {
-				logger.WarnContext(
-					ctx, "could not unmarshal partial results for phantom cleanup",
-					slog.String("error", err.Error()),
-				)
+				return nil, nil, errorResponse(sanitizeConnectorError(ctx, logger, c.devMode, err))
 			}
 
 			removePhantomFieldsFromPlan(results, plan)
@@ -426,19 +420,16 @@ func (c *Controller) resolveData(
 	return results, nil, nil
 }
 
-// groupFieldsByConnector partitions the normalized root selection set into
-// introspection meta-fields (resolved locally) and per-connector data fields.
-// It assumes normalizeRootSelections already expanded root fragments, so every
-// selection is a plain *ast.Field. Meta-fields (__schema/__type/__typename) are
-// returned separately; every other field is routed to its owning connector.
-// Returns an error response when a data field has no connector.
+// groupFieldsByConnector separates locally resolved fields from connector data.
+// It assumes normalizeRootSelections has already expanded root fragments.
 func groupFieldsByConnector(
 	state *controllerState,
 	operation *ast.OperationDefinition,
+	emptyQueryRoot bool,
 ) (map[string][]ast.Selection, []ast.Selection, *GraphQLResponse) {
 	fieldsByConnector := make(map[string][]ast.Selection)
 
-	var metaSelections []ast.Selection
+	var localSelections []ast.Selection
 
 	for _, selection := range operation.SelectionSet {
 		field, ok := selection.(*ast.Field)
@@ -446,8 +437,9 @@ func groupFieldsByConnector(
 			continue
 		}
 
-		if isMetaField(field.Name) {
-			metaSelections = append(metaSelections, selection)
+		if isMetaField(field.Name) ||
+			(emptyQueryRoot && operation.Operation == ast.Query && field.Name == schemamerge.EmptyQueryField) {
+			localSelections = append(localSelections, selection)
 
 			continue
 		}
@@ -460,24 +452,24 @@ func groupFieldsByConnector(
 		fieldsByConnector[connName] = append(fieldsByConnector[connName], selection)
 	}
 
-	return fieldsByConnector, metaSelections, nil
+	return fieldsByConnector, localSelections, nil
 }
 
 // validateConnectors runs each owning connector's pre-execution validation over
 // its root operation slice plus every planned database-backed remote
-// relationship query. It returns a structured GraphQL response (no data) when
-// any connector reports a trusted argument error, so the whole request is
+// relationship query. It returns a GraphQL response (no data) for trusted
+// argument errors or deterministic grouped-aggregate build failures, so the request is
 // rejected before any connector executes — matching Hasura. Root validations
 // and remote-target validations are each sorted by connector/path so the
 // envelope is deterministic even though
 // the input connector map is not.
 //
-// Only structured argument errors short-circuit the request here. Any other
-// error a connector surfaces from validation (an unknown field, an internal
-// build failure) is left for executeConnectors/resolveRemoteRelationships to
-// report, so non-validation failures keep their existing wire shape and
-// per-connector partial-data semantics unchanged.
+// Root validation retains its structured-error-only behavior. Grouped remote
+// aggregate build failures also reject the request before executing root
+// mutations; they use the same sanitizer as post-execution remote failures.
 func (c *Controller) validateConnectors(
+	ctx context.Context,
+	logger *slog.Logger,
 	state *controllerState,
 	plan *planner.QueryPlan,
 	operation *ast.OperationDefinition,
@@ -517,7 +509,16 @@ func (c *Controller) validateConnectors(
 
 	allStructuredErrs = append(
 		allStructuredErrs,
-		c.validateRemoteTargets(state, plan, fragments, variables, role, sessionVariables)...,
+		c.validateRemoteTargets(
+			ctx,
+			logger,
+			state,
+			plan,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+		)...,
 	)
 
 	if len(allStructuredErrs) > 0 {
@@ -625,10 +626,8 @@ func (c *Controller) resolveRemoteRelationships(
 		return errorResponse(sanitizeConnectorError(ctx, logger, c.devMode, err))
 	}
 
-	pendingQueries := resolver.BuildRemoteQueriesFromPlan(
-		results,
-		plan,
-		fragments,
+	if err := state.remoteRelationshipResolver.ResolvePlanned(
+		ctx, results, plan, fragments,
 		func(connectorName, identifier string) string {
 			if conn := state.connectors[connectorName]; conn != nil {
 				return conn.GetTypeName(identifier)
@@ -636,15 +635,7 @@ func (c *Controller) resolveRemoteRelationships(
 
 			return ""
 		},
-	)
-
-	if len(pendingQueries) == 0 {
-		return nil
-	}
-
-	if err := state.remoteRelationshipResolver.Resolve(
-		ctx, results, pendingQueries,
-		fragments, variables, role, sessionVariables, logger,
+		variables, role, sessionVariables, logger,
 	); err != nil {
 		return &GraphQLResponse{
 			Data:        nil,
@@ -677,26 +668,6 @@ func errorsResponse(results map[string]any, errs []map[string]any) *GraphQLRespo
 		Errors:      errs,
 		rawResponse: nil,
 	}
-}
-
-// loadQuery parses and validates a GraphQL query, using the LRU cache to
-// avoid re-parsing identical queries for the same role.
-func loadQuery(
-	cache *queryCache,
-	schema *ast.Schema,
-	queryStr string,
-	role string,
-) (*ast.QueryDocument, gqlerror.List) {
-	key := queryCacheKey{query: queryStr, role: role}
-
-	if cached, ok := cache.Get(key); ok {
-		return cached.doc, cached.errs
-	}
-
-	doc, errs := gqlparser.LoadQueryWithRules(schema, queryStr, defaultRules())
-	cache.Put(key, queryCacheEntry{doc: doc, errs: errs})
-
-	return doc, errs
 }
 
 // buildRawResponse builds the complete JSON response bytes {"data":{...}} when

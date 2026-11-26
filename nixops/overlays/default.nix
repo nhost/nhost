@@ -7,6 +7,17 @@ final: prev: {
       doCheck = false;
     });
 
+    clamav = prev.clamav.overrideAttrs (
+      finalAttrs: previousAttrs: {
+        version = "1.5.5";
+
+        src = final.fetchurl {
+          url = "https://www.clamav.net/downloads/production/clamav-${finalAttrs.version}.tar.gz";
+          hash = "sha256-kChGROVWhzLBX8T0MS/Q8JrBTBTlsp+6OQnU2k4oGx4=";
+        };
+      }
+    );
+
     nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
 
     pi-agent = final.callPackage ./pi-agent.nix { inherit final; };

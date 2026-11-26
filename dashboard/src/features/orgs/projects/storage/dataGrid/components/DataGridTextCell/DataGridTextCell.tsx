@@ -2,6 +2,7 @@ import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { isSpatialType } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 import { CellResetButtons } from '@/features/orgs/projects/storage/dataGrid/components/CellResetButtons';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import {
@@ -34,7 +35,8 @@ export default function DataGridTextCell<
     baseType === 'character' ||
     baseType === 'character varying' ||
     baseType === 'json' ||
-    baseType === 'jsonb';
+    baseType === 'jsonb' ||
+    isSpatialType(baseType);
 
   const normalizedOptimisticValue =
     optimisticValue !== null && typeof optimisticValue === 'object'
@@ -167,7 +169,7 @@ export default function DataGridTextCell<
           onChange={handleChange}
           onKeyDown={handleInputKeyDown}
           wrapperClassName="h-full w-full"
-          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0"
+          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 md:h-full"
         />
         {(isNullable || hasDefault) && (
           <CellResetButtons

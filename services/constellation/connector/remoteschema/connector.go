@@ -226,7 +226,7 @@ func (c *Connector) GetTypeName(identifier string) string {
 
 		for _, field := range t.Fields {
 			if field.Name == identifier {
-				return graphBaseTypeName(field.Type)
+				return field.Type.BaseName()
 			}
 		}
 	}

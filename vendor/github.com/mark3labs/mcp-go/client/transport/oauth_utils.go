@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 // GenerateRandomString generates a random string of the specified length
@@ -51,9 +52,9 @@ func ValidateRedirectURI(redirectURI string) error {
 
 	// Check if it's a localhost URL
 	if parsedURL.Scheme == "http" {
-		hostname := parsedURL.Hostname()
+		hostname := strings.ToLower(parsedURL.Hostname())
 		// Check for various forms of localhost
-		if hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1" || hostname == "[::1]" {
+		if hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1" {
 			return nil
 		}
 		return fmt.Errorf("HTTP redirect URI must use localhost or 127.0.0.1")
@@ -65,4 +66,26 @@ func ValidateRedirectURI(redirectURI string) error {
 	}
 
 	return fmt.Errorf("redirect URI must use either HTTP with localhost or HTTPS")
+}
+
+// applicationType returns the OpenID Connect application_type for a client
+// registering redirectURI, which the MCP authorization spec requires during
+// dynamic client registration (SEP-837). An authorization server that
+// implements OIDC otherwise assumes "web" and may reject a loopback redirect
+// URI. OIDC Dynamic Client Registration §2 allows a native application only
+// custom-scheme redirect URIs and loopback ones using http, so those are
+// "native"; any other redirect URI, https://localhost included, is "web".
+func applicationType(redirectURI string) string {
+	parsedURL, err := url.Parse(redirectURI)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Scheme == "https" {
+		return "web"
+	}
+	if parsedURL.Scheme != "http" {
+		return "native"
+	}
+	switch strings.ToLower(parsedURL.Hostname()) {
+	case "localhost", "127.0.0.1", "::1":
+		return "native"
+	}
+	return "web"
 }

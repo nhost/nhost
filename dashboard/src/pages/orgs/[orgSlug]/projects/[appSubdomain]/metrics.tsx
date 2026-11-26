@@ -1,10 +1,11 @@
-import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
@@ -14,7 +15,6 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
-import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
   return (
@@ -115,14 +115,10 @@ function MetricsPageContent() {
                 </p>
 
                 {adminPassword && (
-                  <Button
-                    onClick={() => copy(adminPassword, 'Grafana password')}
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Copy password"
-                  >
-                    <CopyIcon className="h-4 w-4" />
-                  </Button>
+                  <CopyToClipboardButton
+                    textToCopy={adminPassword}
+                    title="Grafana password"
+                  />
                 )}
               </div>
             </div>

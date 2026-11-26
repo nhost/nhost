@@ -5,6 +5,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
@@ -19,35 +20,19 @@ func generateTableSubscriptionFields(
 	role string,
 	md *metadata.DatabaseMetadata,
 	caps Capabilities,
+	allowedRoots *[]string,
 ) {
-	// Collection subscription
-	*subscriptionFields = append(
-		*subscriptionFields,
-		generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
+	generateTableSelectFields(
+		subscriptionFields, tableMeta, tableInfo, customTableName, qualifiedName,
+		allowedColumns, role, md, caps, allowedRoots,
 	)
 
-	// By primary key subscription (only if the role can select all PK columns)
-	if len(tableInfo.PrimaryKeys) > 0 &&
-		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
+	if allowsRootField(allowedRoots, selectroots.SelectStream) {
 		*subscriptionFields = append(
 			*subscriptionFields,
-			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
+			generateStreamField(tableMeta, customTableName, qualifiedName),
 		)
 	}
-
-	// Aggregate subscription
-	if allowAggregations(tableMeta, role) {
-		*subscriptionFields = append(
-			*subscriptionFields,
-			generateAggregateField(tableMeta, customTableName, qualifiedName, caps),
-		)
-	}
-
-	// Stream subscription
-	*subscriptionFields = append(
-		*subscriptionFields,
-		generateStreamField(tableMeta, customTableName, qualifiedName),
-	)
 }
 
 // generateStreamField generates a streaming subscription field.

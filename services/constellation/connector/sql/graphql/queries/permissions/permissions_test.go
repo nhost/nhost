@@ -25,6 +25,21 @@ func (t hasInsertCheckTable) ColumnFromSQLName(name string) *core.Column {
 	return t.columns[name]
 }
 
+func (t hasInsertCheckTable) ColumnFromGraphqlName(name string) *core.Column {
+	return t.columns[name]
+}
+
+func (t hasInsertCheckTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
+func (t hasInsertCheckTable) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
+	return nil
+}
+
 func (t hasInsertCheckTable) LookupRelationship(_ string) permissions.Relationship {
 	return nil
 }
@@ -69,6 +84,17 @@ func (t permissionLikeTable) ColumnFromGraphqlName(name string) *core.Column {
 }
 
 func (t permissionLikeTable) LookupRelationship(_ string) permissions.Relationship {
+	return nil
+}
+
+func (t permissionLikeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
+func (t permissionLikeTable) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
 	return nil
 }
 

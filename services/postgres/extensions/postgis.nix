@@ -9,7 +9,7 @@ let
 in
 buildPGXSExtension rec {
   pname = "postgis";
-  version = "3.6.4";
+  version = "3.7.0";
 
   outputs = [
     "out"
@@ -20,11 +20,12 @@ buildPGXSExtension rec {
     owner = "postgis";
     repo = "postgis";
     tag = version;
-    hash = "sha256-ZRBrZ23s0w3noFU6L3Ke9G/Z8d7xGGg3qo/2GPDpbK4=";
+    hash = "sha256-38bL4TdzciqOtwCH3Lbxuz9ZTb6qEmLBrDXujgJ/A5s=";
   };
 
   buildInputs = [
     pkgs.geos
+    pkgs.gmp
     pkgs.proj
     gdal
     pkgs.json_c
@@ -89,6 +90,15 @@ buildPGXSExtension rec {
   postInstall = ''
     for prog in $out/bin/*; do # */
       ln -s $prog $prog-${version}
+    done
+
+    # The disabled bulk upgrade install omits old-version tags. Keep paths
+    # from every version shipped with PG17/PG18 via the upstream ANY scripts.
+    for extension in postgis postgis_raster postgis_topology; do
+      for previous in 3.5.0 3.5.2 3.5.3 3.6.1 3.6.2 3.6.4; do
+        ln -s "$extension--TEMPLATED--TO--ANY.sql" \
+          "$out/share/postgresql/extension/$extension--$previous--ANY.sql"
+      done
     done
 
     mkdir -p $doc/share/doc/postgis

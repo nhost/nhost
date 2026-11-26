@@ -73,7 +73,7 @@ export default function DisableAIServiceConfirmationDialog({
   }
 
   return (
-    <div className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
+    <div className={twMerge('w-full rounded-lg px-12 pb-12 text-left')}>
       <div className="grid grid-flow-row gap-1">
         <p className="text-muted-foreground text-sm">
           Are you sure you want to disable this service?
@@ -83,15 +83,7 @@ export default function DisableAIServiceConfirmationDialog({
           This cannot be undone.
         </p>
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading
-            variant="destructive"
-            onClick={handleClick}
-            loading={loading}
-          >
-            Disable
-          </ButtonWithLoading>
-
+        <div className="mt-11 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             variant="outline"
             onClick={() => {
@@ -101,6 +93,14 @@ export default function DisableAIServiceConfirmationDialog({
           >
             Cancel
           </Button>
+
+          <ButtonWithLoading
+            variant="destructive"
+            onClick={handleClick}
+            loading={loading}
+          >
+            Disable
+          </ButtonWithLoading>
         </div>
       </div>
     </div>

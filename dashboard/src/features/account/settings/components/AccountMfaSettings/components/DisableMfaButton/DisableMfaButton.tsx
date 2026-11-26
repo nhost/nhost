@@ -1,3 +1,4 @@
+import { ShieldOff } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
@@ -42,17 +43,16 @@ function DisableMfaButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={buttonDisabled}
-          className="h-9 gap-2 border-destructive px-2 py-1.5 text-destructive hover:bg-destructive hover:text-white"
-        >
+        <Button variant="outline" disabled={buttonDisabled}>
+          <ShieldOff className="mr-2 h-4 w-4" />
           Disable multi-factor authentication
         </Button>
       </DialogTrigger>
-      <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+      <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Disable multi-factor authentication</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Disable multi-factor authentication
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
           Disable multi-factor authentication

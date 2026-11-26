@@ -28,7 +28,7 @@ export {
 
 export const validationSchema = z.object({
   triggerName: z
-    .string({ required_error: 'Cron trigger name required' })
+    .string({ error: 'Cron trigger name required' })
     .min(1, { message: 'Cron trigger name required' }),
   comment: z.string().optional(),
   webhook: z.string().min(1, { message: 'Webhook URL required' }),
@@ -42,10 +42,10 @@ export const validationSchema = z.object({
       message: 'Payload must be valid json',
     }),
   retryConf: z.object({
-    numRetries: z.coerce.number().min(0),
-    intervalSec: z.coerce.number().min(0),
-    timeoutSec: z.coerce.number().min(0),
-    toleranceSec: z.coerce.number().min(0),
+    numRetries: z.coerce.number<number>().min(0),
+    intervalSec: z.coerce.number<number>().min(0),
+    timeoutSec: z.coerce.number<number>().min(0),
+    toleranceSec: z.coerce.number<number>().min(0),
   }),
   headers: z.array(
     z.object({

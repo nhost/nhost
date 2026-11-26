@@ -5,11 +5,11 @@ import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGr
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import DataGridFilterValuePopup from './DataGridFilterValuePopup';
 
-type FilterValueProps = {
+interface FilterValueProps {
   value: string;
   index: number;
   disabled: boolean;
-};
+}
 
 function DataGridFilterValue({ value, index, disabled }: FilterValueProps) {
   const { setValue, filters } = useDataGridFilters();
@@ -32,7 +32,7 @@ function DataGridFilterValue({ value, index, disabled }: FilterValueProps) {
   return (
     <div className="relative flex-1">
       <Input
-        className="h-8 p-2 pr-8"
+        className="p-2 pr-8"
         placeholder="Enter a value"
         value={value}
         onChange={handleValueChange}
