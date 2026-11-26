@@ -117,8 +117,7 @@ func (p *CustomProvider) Exchange(
 
 	token, err := config.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
-		// OAuth errors may include the entire response body and credentials.
-		return Profile{}, errTokenExchange
+		return Profile{}, tokenExchangeError(err)
 	}
 
 	raw, _ := token.Extra("id_token").(string)
@@ -133,6 +132,26 @@ func (p *CustomProvider) Exchange(
 	}
 
 	return p.userInfoProfile(ctx, doc.UserInfoEndpoint, token, profile)
+}
+
+func tokenExchangeError(err error) error {
+	// Never wrap the original error: bodies and request URLs may contain credentials.
+	retrieveErr, ok := errors.AsType[*oauth2.RetrieveError](err)
+	if !ok {
+		return fmt.Errorf("%w: request failed", errTokenExchange)
+	}
+
+	status := 0
+	if retrieveErr.Response != nil {
+		status = retrieveErr.Response.StatusCode
+	}
+
+	errorCode := retrieveErr.ErrorCode
+	if len(errorCode) > 128 || !validOAuthValue(errorCode) {
+		errorCode = "unknown"
+	}
+
+	return fmt.Errorf("%w: status %d, error %q", errTokenExchange, status, errorCode)
 }
 
 func (p *CustomProvider) userInfoProfile(

@@ -29,6 +29,8 @@ const (
 	fixtureSubject = "stable-subject"
 )
 
+var errOIDCFixtureTransport = errors.New("request failed with fixture-secret")
+
 type oidcFixture struct {
 	issuer               string
 	client               *http.Client
@@ -241,6 +243,79 @@ func TestOIDCBrowserProtocol(t *testing.T) {
 
 	if f.discoveryCalls.Load() != 1 || f.tokenCalls.Load() != 1 || f.keyCalls.Load() != 1 {
 		t.Error("discovery should be reused and invalid issuers should not be exchanged")
+	}
+}
+
+func TestOIDCTokenExchangeDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name         string
+		errorCode    string
+		requestFails bool
+		want         string
+	}{
+		{
+			name: "unauthorized client", errorCode: "invalid_client",
+			want: `OIDC token exchange failed: status 401, error "invalid_client"`,
+		},
+		{
+			name: "invalid error code", errorCode: "invalid_client\nsecret=fixture-secret",
+			want: `OIDC token exchange failed: status 401, error "unknown"`,
+		},
+		{
+			name: "oversized error code", errorCode: strings.Repeat("x", 129),
+			want: `OIDC token exchange failed: status 401, error "unknown"`,
+		},
+		{
+			name: "missing error code",
+			want: `OIDC token exchange failed: status 401, error "unknown"`,
+		},
+		{
+			name: "transport failure", requestFails: true,
+			want: "OIDC token exchange failed: request failed",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			fixture := newOIDCFixture(t, false)
+			transport := fixture.client.Transport
+			fixture.client.Transport = oidcMetadataTransport(
+				func(req *http.Request) (*http.Response, error) {
+					if !strings.HasSuffix(req.URL.Path, "/token/") {
+						return transport.RoundTrip(req)
+					}
+
+					if tc.requestFails {
+						return nil, errOIDCFixtureTransport
+					}
+
+					response := httptest.NewRecorder()
+					response.Header().Set("Content-Type", "application/json")
+					response.WriteHeader(http.StatusUnauthorized)
+					writeFixtureJSON(t, response, map[string]string{
+						"error": tc.errorCode, "error_description": "secret=fixture-secret",
+					})
+
+					return response.Result(), nil
+				},
+			)
+			provider := fixture.provider(t)
+			provider.config.ClientSecret = "fixture-secret"
+
+			_, err := provider.Exchange(
+				t.Context(), fixtureCode, fixture.verifier, fixtureNonce, &fixture.issuer,
+			)
+			if !errors.Is(err, errTokenExchange) {
+				t.Fatal("expected token exchange sentinel")
+			}
+
+			// Exact matching also rejects any leaked body, description, secret, or URL.
+			if err.Error() != tc.want {
+				t.Error("unexpected or unsafe token exchange diagnostic")
+			}
+		})
 	}
 }
 
