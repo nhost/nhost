@@ -46,6 +46,16 @@
           "isRequired": true
         },
         {
+          "name": "MCP_STORAGE_URL",
+          "description": "Storage URL for the same Nhost project, including /v1; enables the read-only storage-download tool",
+          "isRequired": false
+        },
+        {
+          "name": "MCP_STORAGE_MAX_TRANSFER_BYTES",
+          "description": "Maximum storage download response size in bytes; default 50000000 (50 MB)",
+          "isRequired": false
+        },
+        {
           "name": "MCP_AUTH_URL",
           "description": "Nhost Auth URL used as the OAuth2 authorization server, e.g. https://SUBDOMAIN.auth.REGION.nhost.run/v1",
           "isRequired": true
