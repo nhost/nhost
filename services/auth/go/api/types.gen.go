@@ -1957,6 +1957,9 @@ type SignInOidcCallbackParams struct {
 	// Code Authorization code returned by the identity provider
 	Code *string `form:"code,omitempty" json:"code,omitempty"`
 
+	// Iss Issuer identifier returned by the identity provider (RFC 9207); must match the configured issuer when present and is required when discovery requires it
+	Iss *string `form:"iss,omitempty" json:"iss,omitempty"`
+
 	// Error Error returned by the identity provider
 	Error *string `form:"error,omitempty" json:"error,omitempty"`
 

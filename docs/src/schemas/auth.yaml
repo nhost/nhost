@@ -569,6 +569,12 @@ paths:
           schema:
             type: string
             maxLength: 4096
+        - name: iss
+          in: query
+          description: Issuer identifier returned by the identity provider (RFC 9207); must match the configured issuer when present and is required when discovery requires it
+          schema:
+            type: string
+            maxLength: 2048
         - name: error
           in: query
           description: Error returned by the identity provider

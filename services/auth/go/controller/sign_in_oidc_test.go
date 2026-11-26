@@ -543,6 +543,63 @@ func expectOIDCBrowserIdentity(
 	return &user
 }
 
+func TestOIDCCallbackIssuerValidation(t *testing.T) {
+	t.Parallel()
+
+	fixture := newOIDCRouteFixture(t, true)
+	registry := fixture.registry(t, false)
+
+	for _, tt := range []struct {
+		name       string
+		issuer     string
+		wantStatus int
+		wantError  string
+	}{
+		{
+			name: "oversize issuer", issuer: strings.Repeat("a", 2049),
+			wantStatus: http.StatusBadRequest, wantError: "schema-validation-error",
+		},
+		{
+			name: "mismatched issuer", issuer: fixture.issuer(oidcSecondary),
+			wantStatus: http.StatusFound, wantError: "error=" + string(api.OauthTokenEchangeFailed),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := mock.NewMockDBClient(gomock.NewController(t))
+			handler, _ := fixture.router(t, registry, db)
+			challenge := pkce.ComputeS256Challenge(oauth2.GenerateVerifier())
+			start := oidcRouteRequest(t, handler, http.MethodGet,
+				"/v1/signin/oidc/authentik?codeChallenge="+challenge, nil)
+			callback, cookie := startOIDCBrowser(t, fixture, start)
+
+			target, err := url.Parse(callback)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			query := target.Query()
+			query.Set("iss", tt.issuer)
+			target.RawQuery = query.Encode()
+
+			response := oidcRouteRequest(t, handler, http.MethodGet, target.String(), nil, cookie)
+			if response.Code != tt.wantStatus {
+				t.Fatalf("expected HTTP %d, got HTTP %d: %s", tt.wantStatus, response.Code, response.Body)
+			}
+
+			if tt.wantStatus == http.StatusFound {
+				if !strings.Contains(response.Header().Get("Location"), tt.wantError) {
+					t.Fatalf("expected issuer mismatch error redirect, got %s", response.Header().Get("Location"))
+				}
+			} else if !strings.Contains(response.Body.String(), tt.wantError) ||
+				response.Header().Get("Location") != "" {
+				t.Fatalf("expected schema rejection before the callback handler: %s", response.Body)
+			}
+		})
+	}
+}
+
 func assertOIDCCallbackBindings(
 	t *testing.T, handler http.Handler, slug, callback string, cookie *http.Cookie,
 ) {
