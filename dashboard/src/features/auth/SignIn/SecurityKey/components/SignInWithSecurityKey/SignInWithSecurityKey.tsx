@@ -32,7 +32,7 @@ function SignInWithSecurityKey({
         aria-describedby={ariaDescribedBy}
       >
         <Fingerprint />
-        Continue with a security key
+        Continue with a passkey
       </Button>
     </>
   );

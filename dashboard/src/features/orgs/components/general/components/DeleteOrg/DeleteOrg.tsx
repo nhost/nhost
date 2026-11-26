@@ -112,7 +112,6 @@ export default function DeleteOrg() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        size="lg"
         title="Delete organization"
         description="Proceed with caution, as this action is irreversible and will permanently remove the organization."
         control={

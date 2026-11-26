@@ -15,7 +15,7 @@ describe('SigninPage - last sign-in method badge', () => {
       screen.getByRole('button', { name: /continue with github/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /continue with a security key/i }),
+      screen.getByRole('button', { name: /continue with a passkey/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /continue with email/i }),
@@ -25,7 +25,7 @@ describe('SigninPage - last sign-in method badge', () => {
 
   it.each([
     ['github', /continue with github/i, 'button'],
-    ['security-key', /continue with a security key/i, 'button'],
+    ['security-key', /continue with a passkey/i, 'button'],
     ['email', /continue with email/i, 'link'],
   ] as const)(
     'marks the %s option as last used',

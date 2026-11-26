@@ -43,7 +43,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
           )}
         />
         <Button type="submit" className="mt-8 justify-self-end">
-          Add new security key
+          Add passkey
         </Button>
       </form>
     </Form>

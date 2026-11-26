@@ -5,10 +5,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 
 export default function HeaderNavigation() {
   const isPlatform = useIsPlatform();
-  const { query } = useRouter();
+  const { query, pathname } = useRouter();
   const { appSubdomain } = query;
 
-  if (!isPlatform) {
+  if (!isPlatform || pathname === '/account') {
     return null;
   }
 

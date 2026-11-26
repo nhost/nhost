@@ -24,8 +24,10 @@ export type ChangePasswordFormValues = z.infer<typeof validationSchema>;
 
 function useChangePasswordForm() {
   const form = useForm<ChangePasswordFormValues>({
-    mode: 'onTouched',
-    reValidateMode: 'onBlur',
+    // Errors show only after Save, so clicking in and out of an empty field
+    // doesn't flag it. After that they update live as you fix them.
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: {
       newPassword: '',
       confirmPassword: '',
