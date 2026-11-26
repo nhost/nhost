@@ -69,9 +69,8 @@ export default function ComputeStepper({
                 <span>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="h-9 w-9"
                     disabled={disabled || atMin}
                     aria-label={`Decrease ${ariaLabel}`}
                     onClick={() => updateValue(clampedValue - step)}
@@ -97,9 +96,8 @@ export default function ComputeStepper({
                 <span>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="h-9 w-9"
                     disabled={disabled || atMax}
                     aria-label={`Increase ${ariaLabel}`}
                     onClick={() => updateValue(clampedValue + step)}

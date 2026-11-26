@@ -23,7 +23,9 @@ function getCspHeader() {
         "frame-ancestors 'none'",
         "frame-src 'self' js.stripe.com challenges.cloudflare.com",
         'block-all-mixed-content',
-        'upgrade-insecure-requests',
+        ...(process.env.NODE_ENV === 'development'
+          ? []
+          : ['upgrade-insecure-requests']),
       ].join('; ')};`;
   }
 }

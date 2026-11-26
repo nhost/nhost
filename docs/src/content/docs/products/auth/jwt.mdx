@@ -268,6 +268,27 @@ Don't use `claims_map` to supply missing roles for tokens signed by Nhost Auth. 
 
 The complete `#JWTSecret` schema, with every field and default, is documented in the [configuration reference](/reference/configuration#jwtsecret).
 
+## Token Types and Claims
+
+Nhost Auth issues four kinds of JWT: first-party session tokens for your app, OAuth2 access tokens for delegated API access, OIDC ID tokens that identify users to OAuth2 clients, and short-lived provider-state tokens used by provider callbacks. All four use the same configured signing key and algorithm (`alg`), include a `kid` header when a key ID is configured, and carry the Auth issuer in `iss` and the issuance time in `iat`.
+
+The table below compares their headers and claims. `typ` is a JWT header field; the remaining rows describe payload claims. See [Tokens and Scopes](/products/auth/oauth2-provider/tokens-and-scopes) for more about the OAuth2 claims and their scope requirements.
+
+| Field | First-party session token | OAuth2 access token | OIDC ID token | Provider-state token |
+|-------|---------------------------|---------------------|---------------|----------------------|
+| `typ` (header) | `nhost-session+jwt` | `at+jwt` | `JWT` | `nhost-provider-state+jwt` |
+| `sub` | User ID | User ID | User ID | — |
+| `aud` | Project audience when configured; otherwise omitted | Project audience when configured; otherwise OAuth2 client ID | OAuth2 client ID | Project audience with the `/auth/provider-callback` suffix when configured; otherwise omitted |
+| `client_id` | — | OAuth2 client ID | — | — |
+| `sid` | Session refresh-token record ID | OAuth2 refresh-token record ID | — | — |
+| `jti` | Unique access-token ID | Unique access-token ID | — | — |
+| `exp` | `iat` plus `auth.session.accessToken.expiresIn` | `iat` plus `auth.oauth2Provider.accessToken.expiresIn` | Same as the OAuth2 access token | `iat` plus one minute |
+| `scope` | — | Granted scopes as a space-separated string | — | — |
+| `https://hasura.io/jwt/claims` (default namespace) | User ID, allowed and default roles, anonymous status, custom claims, and `x-hasura-auth-elevated` after elevation | Included for `graphql` or `graphql:role:…`; roles follow the granted scopes | — | — |
+| Other claims | — | — | Identity claims; see [ID Token](/products/auth/oauth2-provider/tokens-and-scopes#id-token) | Internal sign-in state, not meant to be read by your code |
+
+Refresh tokens and personal access tokens (PATs) are opaque credentials with no JWT headers or claims. Signing in with a PAT creates a first-party session token.
+
 ## Session Access Token Claims
 
 Auth-issued session access tokens include a payload like this (timestamps and IDs are illustrative):
@@ -312,14 +333,6 @@ Tokens carrying a different project audience are rejected unless they meet one o
 ## Verify a JWT
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).
-
-Nhost Auth signs every kind of token it issues with the same key, and marks each kind in the JWT's `typ` header:
-
-| Token | `typ` |
-|-------|-------|
-| Session access token, issued to your app on sign-in | `nhost-session+jwt` |
-| OAuth2 access token, issued to a third-party app by the [OAuth2 provider](/products/auth/oauth2-provider/tokens-and-scopes) | `at+jwt` |
-| OIDC ID token, issued to a third-party app by the OAuth2 provider | `JWT` |
 
 When your own code expects a session token, for example in [Functions](/products/functions/guides/jwt-verification), check for `typ: nhost-session+jwt` to reject tokens issued for other purposes, such as those the OAuth2 provider issues to third-party apps. Older Auth versions used `typ: JWT` for all token types.
 

@@ -12,6 +12,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -845,6 +846,131 @@ func TestParseInsertCollection(t *testing.T) {
 	}
 }
 
+func TestParseInsertCollectionVariableElements(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		objects    *ast.Value
+		variables  map[string]any
+		wantNames  []string
+		wantErr    error
+		wantErrMsg string
+	}{
+		{
+			name:      "single object variable in list",
+			objects:   listValue(child("", variableValue("object"))),
+			variables: map[string]any{"object": map[string]any{"name": "Alice"}},
+			wantNames: []string{"Alice"},
+		},
+		{
+			name: "multiple object variables in list",
+			objects: listValue(
+				child("", variableValue("first")),
+				child("", variableValue("second")),
+			),
+			variables: map[string]any{
+				"first":  map[string]any{"name": "Alice"},
+				"second": map[string]any{"name": "Bob"},
+			},
+			wantNames: []string{"Alice", "Bob"},
+		},
+		{
+			name: "mixed object variable and inline object",
+			objects: listValue(
+				child("", variableValue("object")),
+				child("", objectValue(child("name", variableValue("name")))),
+			),
+			variables: map[string]any{"object": map[string]any{"name": "Alice"}, "name": "Bob"},
+			wantNames: []string{"Alice", "Bob"},
+		},
+		{
+			name:      "whole list variable",
+			objects:   variableValue("objects"),
+			variables: map[string]any{"objects": []any{map[string]any{"name": "Alice"}}},
+			wantNames: []string{"Alice"},
+		},
+		{
+			name:      "single object variable coerced to list",
+			objects:   variableValue("object"),
+			variables: map[string]any{"object": map[string]any{"name": "Alice"}},
+			wantNames: []string{"Alice"},
+		},
+		{
+			name:      "null variable is not an object",
+			objects:   listValue(child("", variableValue("object"))),
+			variables: map[string]any{"object": nil},
+			wantErr:   arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "scalar variable is not an object",
+			objects:   listValue(child("", variableValue("object"))),
+			variables: map[string]any{"object": "Alice"},
+			wantErr:   arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "list variable is not an object",
+			objects:   listValue(child("", variableValue("object"))),
+			variables: map[string]any{"object": []any{map[string]any{"name": "Alice"}}},
+			wantErr:   arguments.ErrInvalidArgument,
+		},
+		{
+			name: "missing variable reports element index",
+			objects: listValue(
+				child("", objectValue(child("name", stringValue("Alice")))),
+				child("", variableValue("missing")),
+			),
+			wantNames:  []string{"Alice"},
+			wantErr:    values.ErrVariableNotFound,
+			wantErrMsg: "failed to resolve object at index 1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tbl := mock.NewMockTable(gomock.NewController(t))
+			for range tt.wantNames {
+				tbl.EXPECT().Relationship("name").Return(nil)
+				tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name", "text"))
+				tbl.EXPECT().InsertPresets("user").Return(nil)
+			}
+
+			objs, _, err := arguments.ParseInsertCollection(
+				tbl, ast.ArgumentList{&ast.Argument{Name: "objects", Value: tt.objects}},
+				tt.variables, "user", nil,
+			)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ParseInsertCollection error = %v, want %v", err, tt.wantErr)
+				}
+
+				if tt.wantErrMsg != "" && !strings.Contains(err.Error(), tt.wantErrMsg) {
+					t.Errorf("error = %q, want it to contain %q", err, tt.wantErrMsg)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ParseInsertCollection: %v", err)
+			}
+
+			if len(objs) != len(tt.wantNames) {
+				t.Fatalf("got %d objects, want %d", len(objs), len(tt.wantNames))
+			}
+
+			for i, name := range tt.wantNames {
+				if len(objs[i].Columns) != 1 || objs[i].Columns[0].Column.SQLName != "name" ||
+					objs[i].Columns[0].Value != name {
+					t.Errorf("object %d columns = %+v, want name=%q", i, objs[i].Columns, name)
+				}
+			}
+		})
+	}
+}
+
 func TestApplyInsertPresets(t *testing.T) {
 	t.Parallel()
 
@@ -874,6 +1000,10 @@ func TestApplyInsertPresets(t *testing.T) {
 			insertObj.Columns[1].Column.SQLName != "b_col" {
 			t.Errorf("not sorted: %v %v",
 				insertObj.Columns[0].Column.SQLName, insertObj.Columns[1].Column.SQLName)
+		}
+
+		if !insertObj.Columns[0].Preset || !insertObj.Columns[1].Preset {
+			t.Fatal("server presets lost their provenance")
 		}
 	})
 
@@ -912,6 +1042,31 @@ func TestApplyInsertPresets(t *testing.T) {
 	})
 }
 
+func TestApplyInsertPresetsClientOverlapProvenance(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+	col := newColumn("owner", "owner_id", "integer")
+
+	tbl.EXPECT().InsertPresets("user").Return(map[string]any{"owner_id": "x-hasura-user-id"})
+	tbl.EXPECT().ColumnFromSQLName("owner_id").Return(col)
+
+	obj := arguments.InsertObject{
+		Columns: []arguments.InsertColumn{{Column: col, Value: 1}}, NestedInserts: nil,
+	}
+	if err := arguments.ApplyInsertPresets(
+		tbl, &obj, "user", map[string]any{"x-hasura-user-id": "9"},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(obj.Columns) != 2 || obj.Columns[0].Preset || !obj.Columns[1].Preset ||
+		obj.Columns[0].Value != 1 || obj.Columns[1].Value != "9" {
+		t.Fatalf("client and preset provenance = %+v", obj.Columns)
+	}
+}
+
 func TestInsertObject_ColumnNames(t *testing.T) {
 	t.Parallel()
 
@@ -927,121 +1082,6 @@ func TestInsertObject_ColumnNames(t *testing.T) {
 	if len(got) != 2 || got[0] != "a_sql" || got[1] != "b_sql" {
 		t.Errorf("got=%v want=[a_sql b_sql]", got)
 	}
-}
-
-func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
-	t.Parallel()
-
-	t.Run("object relationship: no-op", func(t *testing.T) {
-		t.Parallel()
-
-		n := arguments.NestedInsert{
-			RelationshipName:    "author",
-			TargetTable:         nil,
-			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:          nil,
-			ForeignKeyColumns:   []string{"fk"},
-			IsArrayRelationship: false,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if len(fk) != 0 {
-			t.Errorf("object rel must produce empty map, got %v", fk)
-		}
-	})
-
-	t.Run("array relationship: appends FK column to every row", func(t *testing.T) {
-		t.Parallel()
-
-		ctrl := gomock.NewController(t)
-		target := mock.NewMockTable(ctrl)
-
-		fkCol := newColumn("fk", "fk", "uuid")
-		target.EXPECT().ColumnFromSQLName("fk").Return(fkCol)
-
-		n := arguments.NestedInsert{
-			RelationshipName: "posts",
-			TargetTable:      target,
-			NestedObjects: []arguments.InsertObject{
-				{Columns: nil, NestedInserts: nil},
-				{Columns: nil, NestedInserts: nil},
-			},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: map[string]string{"fk": "id"},
-			IsArrayRelationship:     true,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if got, ok := fk["fk"]; !ok || got.CTEName != "parent_cte" || got.ColumnName != "id" {
-			t.Errorf("fk map = %v, want fk=parent_cte.id", fk)
-		}
-
-		for i, row := range n.NestedObjects {
-			if len(row.Columns) != 1 || row.Columns[0].Column != fkCol {
-				t.Errorf("row %d: expected fk column appended; got %+v", i, row.Columns)
-			}
-		}
-	})
-
-	t.Run("array relationship: missing FK column is silently skipped", func(t *testing.T) {
-		t.Parallel()
-
-		ctrl := gomock.NewController(t)
-		target := mock.NewMockTable(ctrl)
-		target.EXPECT().ColumnFromSQLName("fk").Return(nil)
-
-		n := arguments.NestedInsert{
-			RelationshipName:        "posts",
-			TargetTable:             target,
-			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: map[string]string{"fk": "id"},
-			IsArrayRelationship:     true,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if len(n.NestedObjects[0].Columns) != 0 {
-			t.Errorf("expected no column appended; got %+v", n.NestedObjects[0].Columns)
-		}
-
-		// FK index entry is still added, regardless of column resolution.
-		if fk["fk"].CTEName != "parent_cte" || fk["fk"].ColumnName != "id" {
-			t.Errorf("fk map = %v, expected fk=parent_cte.id entry", fk)
-		}
-	})
-
-	t.Run("array relationship: missing source column errors", func(t *testing.T) {
-		t.Parallel()
-
-		n := arguments.NestedInsert{
-			RelationshipName:        "posts",
-			TargetTable:             nil,
-			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: nil,
-			IsArrayRelationship:     true,
-		}
-
-		_, err := n.ApplyArrayFKColumn("parent_cte")
-		if err == nil {
-			t.Fatal("expected missing source column error")
-		}
-	})
 }
 
 func TestParseInsert_NestedRelationship(t *testing.T) {
@@ -1061,6 +1101,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
 	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+	rel.EXPECT().InsertAfterParent().Return(false)
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -1109,6 +1150,7 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
 	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+	rel.EXPECT().InsertAfterParent().Return(false)
 	rel.EXPECT().IsArray().Return(true)
 
 	// Each element of the list is parsed independently.
@@ -1145,6 +1187,184 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 
 	if len(got.NestedObjects) != 2 {
 		t.Fatalf("got %d nested objects, want 2", len(got.NestedObjects))
+	}
+}
+
+func TestParseInsertNestedArrayVariableElements(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		data       *ast.Value
+		variables  map[string]any
+		wantTitles []string
+		wantErr    error
+		wantErrMsg string
+	}{
+		{
+			name:       "single object variable in list",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": map[string]any{"title": "First"}},
+			wantTitles: []string{"First"},
+		},
+		{
+			name: "multiple object variables in list",
+			data: listValue(child("", variableValue("a")), child("", variableValue("b"))),
+			variables: map[string]any{
+				"a": map[string]any{"title": "First"},
+				"b": map[string]any{"title": "Second"},
+			},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name: "mixed variable and inline object",
+			data: listValue(
+				child("", variableValue("post")),
+				child("", objectValue(child("title", variableValue("title")))),
+			),
+			variables: map[string]any{
+				"post": map[string]any{"title": "First"}, "title": "Second",
+			},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name: "whole list variable",
+			data: variableValue("posts"),
+			variables: map[string]any{"posts": []any{
+				map[string]any{"title": "First"}, map[string]any{"title": "Second"},
+			}},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name:       "single object variable coerced to list",
+			data:       variableValue("post"),
+			variables:  map[string]any{"post": map[string]any{"title": "First"}},
+			wantTitles: []string{"First"},
+		},
+		{
+			name:       "single inline object coerced to list",
+			data:       objectValue(child("title", stringValue("First"))),
+			wantTitles: []string{"First"},
+		},
+		{
+			name:       "null variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": nil},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "scalar variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": "First"},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "list variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": []any{map[string]any{"title": "First"}}},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "missing variable reports first element index",
+			data:       listValue(child("", variableValue("missing"))),
+			wantErr:    values.ErrVariableNotFound,
+			wantErrMsg: "failed to resolve posts data[0]",
+		},
+		{
+			name: "missing variable reports later element index",
+			data: listValue(
+				child("", objectValue(child("title", stringValue("First")))),
+				child("", variableValue("missing")),
+			),
+			wantTitles: []string{"First"},
+			wantErr:    values.ErrVariableNotFound,
+			wantErrMsg: "failed to resolve posts data[1]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			parent := mock.NewMockTable(ctrl)
+			target := mock.NewMockTable(ctrl)
+			rel := mock.NewMockRelationship(ctrl)
+
+			parent.EXPECT().Relationship("posts").Return(rel)
+			rel.EXPECT().TargetTable().Return(target)
+			rel.EXPECT().IsArray().Return(true)
+
+			if tt.wantErr == nil {
+				parent.EXPECT().InsertPresets("user").Return(nil)
+				rel.EXPECT().FKColumns().Return([]string{"author_id"})
+				rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+				rel.EXPECT().InsertAfterParent().Return(false)
+			}
+
+			for range tt.wantTitles {
+				target.EXPECT().Relationship("title").Return(nil)
+				target.EXPECT().
+					ColumnFromGraphqlName("title").
+					Return(newColumn("title", "title", "text"))
+				target.EXPECT().InsertPresets("user").Return(nil)
+			}
+
+			args := ast.ArgumentList{&ast.Argument{
+				Name: "object",
+				Value: objectValue(child("posts", objectValue(
+					child("data", tt.data),
+				))),
+			}}
+			before := args[0].Value.String()
+
+			obj, _, err := arguments.ParseInsert(parent, args, tt.variables, "user", nil)
+			if after := args[0].Value.String(); after != before {
+				t.Errorf("input AST changed: before=%s after=%s", before, after)
+			}
+
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ParseInsert error = %v, want %v", err, tt.wantErr)
+				}
+
+				if !strings.Contains(err.Error(), tt.wantErrMsg) {
+					t.Errorf("error = %q, want it to contain %q", err, tt.wantErrMsg)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ParseInsert: %v", err)
+			}
+
+			assertNestedPostTitles(t, obj, tt.wantTitles)
+		})
+	}
+}
+
+func assertNestedPostTitles(t *testing.T, obj arguments.InsertObject, titles []string) {
+	t.Helper()
+
+	if len(obj.NestedInserts) != 1 {
+		t.Fatalf("got %d nested inserts, want 1", len(obj.NestedInserts))
+	}
+
+	nested := obj.NestedInserts[0]
+	if nested.RelationshipName != "posts" || !nested.IsArrayRelationship ||
+		len(nested.NestedObjects) != len(titles) {
+		t.Fatalf("unexpected nested insert: %+v", nested)
+	}
+
+	for i, title := range titles {
+		cols := nested.NestedObjects[i].Columns
+		if len(cols) != 1 || cols[0].Column.SQLName != "title" || cols[0].Value != title {
+			t.Errorf("nested object %d columns = %+v, want title=%q", i, cols, title)
+		}
 	}
 }
 

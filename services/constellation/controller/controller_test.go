@@ -1347,7 +1347,7 @@ func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 			query:       `{"query":"{ staff: users(limit: -1) { id } }"}`,
 			wantMessage: negativeLimitIntegerError,
 			wantCode:    "validation-failed",
-			wantPath:    "$.selectionSet.staff.args.limit",
+			wantPath:    "$.selectionSet.users.args.limit",
 		},
 		{
 			name:        "offset",
@@ -1445,7 +1445,7 @@ func TestResolve_MixedIntrospectionAndDataValidationErrorReturnsNoData(t *testin
 		t.Errorf("expected validation-failed code, got %v", ext["code"])
 	}
 
-	if ext["path"] != "$.selectionSet.staff.args.limit" {
+	if ext["path"] != "$.selectionSet.users.args.limit" {
 		t.Errorf("unexpected argument path: %v", ext["path"])
 	}
 }

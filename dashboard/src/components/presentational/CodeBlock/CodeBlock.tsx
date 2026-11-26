@@ -1,16 +1,13 @@
-import {
-  type ComponentPropsWithoutRef,
-  forwardRef,
-  type ReactElement,
-} from 'react';
+import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react';
 import { getNodeText } from '@/components/presentational/CodeBlock/getNodeText';
-import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from '@/components/presentational/CopyToClipboardButton';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { cn } from '@/lib/utils';
 
 export interface CodeBlockPropsBase {
   filename?: string;
   /**
-   * Text of the toast that appears when the code is copied to the clipboard.
+   * Name of the code, used in the "Copy <name>" tooltip and the
+   * "<name> copied to clipboard" toast.
    */
   copyToClipboardToastTitle: string;
 }
@@ -41,59 +38,40 @@ function CodeTabBar({
   );
 }
 
-interface CopyToClipboardButtonProps
-  extends Partial<
-    ComponentPropsWithoutRef<typeof CopyToClipboardButtonOriginal>
-  > {
-  toastTitle: string;
-}
-
-function CopyToClipboardButton({
-  textToCopy,
-  toastTitle,
+export const CodeBlock = ({
+  filename,
+  children,
+  className,
+  copyToClipboardToastTitle,
+  ref,
   ...props
-}: CopyToClipboardButtonProps) {
-  return (
-    <CopyToClipboardButtonOriginal
-      textToCopy={textToCopy}
-      title={toastTitle}
-      {...props}
-    />
-  );
-}
-
-export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
-  (
-    { filename, children, className, copyToClipboardToastTitle, ...props },
-    ref,
-  ) => (
-    <div
-      className={cn(
-        'not-prose relative mt-5 w-full min-w-0 max-w-full rounded-md bg-muted px-2 pb-2',
-        filename && 'pt-2',
-        className,
-      )}
-      ref={ref}
-      {...props}
-    >
-      {filename ? (
-        <CodeTabBar filename={filename}>
-          <CopyToClipboardButton
-            textToCopy={getNodeText(children)}
-            toastTitle={copyToClipboardToastTitle}
-            className="relative"
-          />
-        </CodeTabBar>
-      ) : (
+}: CodeBlockProps & { ref?: Ref<HTMLDivElement> }) => (
+  <div
+    className={cn(
+      'not-prose relative mt-5 w-full min-w-0 max-w-full rounded-md bg-muted px-2 pb-2',
+      filename && 'pt-2',
+      className,
+    )}
+    ref={ref}
+    {...props}
+  >
+    {filename ? (
+      <CodeTabBar filename={filename}>
         <CopyToClipboardButton
           textToCopy={getNodeText(children)}
-          toastTitle={copyToClipboardToastTitle}
-          className="absolute top-3 right-3"
+          title={copyToClipboardToastTitle}
+          className="relative"
         />
-      )}
-      <pre className="w-full max-w-full whitespace-pre-wrap break-words pr-10">
-        <code className="break-all font-mono">{children}</code>
-      </pre>
-    </div>
-  ),
+      </CodeTabBar>
+    ) : (
+      <CopyToClipboardButton
+        textToCopy={getNodeText(children)}
+        title={copyToClipboardToastTitle}
+        className="absolute top-3 right-3"
+      />
+    )}
+    <pre className="w-full max-w-full whitespace-pre-wrap break-words pr-10">
+      <code className="break-all font-mono">{children}</code>
+    </pre>
+  </div>
 );

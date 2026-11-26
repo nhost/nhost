@@ -1,4 +1,4 @@
-import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import { Checkbox } from '@/components/ui/v3/checkbox';
@@ -33,24 +33,22 @@ interface FormCheckboxProps<
   'data-testid'?: string;
 }
 
-function InnerFormCheckbox<
+function FormCheckbox<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    className,
-    containerClassName,
-    helperText,
-    disabled,
-    uncheckWhenDisabled,
-    'aria-label': ariaLabel,
-    'data-testid': dataTestId,
-  }: FormCheckboxProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLButtonElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  className,
+  containerClassName,
+  helperText,
+  disabled,
+  uncheckWhenDisabled,
+  'aria-label': ariaLabel,
+  'data-testid': dataTestId,
+  ref,
+}: FormCheckboxProps<TFieldValues, TName> & { ref?: Ref<HTMLButtonElement> }) {
   return (
     <FormField
       control={control}
@@ -61,24 +59,29 @@ function InnerFormCheckbox<
 
         return (
           <FormItem className={cn('flex flex-col gap-2', containerClassName)}>
-            <div className="flex items-center gap-2">
-              <FormControl>
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={field.onChange}
-                  onBlur={field.onBlur}
-                  disabled={disabled}
-                  ref={mergeRefs([field.ref, ref])}
-                  className={className}
-                  aria-label={ariaLabel}
-                  data-testid={dataTestId}
-                />
-              </FormControl>
+            <div className="flex items-start gap-2">
+              <div className="flex h-5 shrink-0 items-center">
+                <FormControl>
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={disabled}
+                    ref={mergeRefs([field.ref, ref])}
+                    className={className}
+                    aria-label={ariaLabel}
+                    data-testid={dataTestId}
+                  />
+                </FormControl>
+              </div>
               {(!!label || !!helperText) && (
                 <div className="flex flex-col gap-0.5">
                   {!!label && (
                     <FormLabel
-                      className={cn('font-normal', disabled && 'opacity-50')}
+                      className={cn(
+                        'font-normal leading-5',
+                        disabled && 'opacity-50',
+                      )}
                     >
                       {label}
                     </FormLabel>
@@ -98,14 +101,5 @@ function InnerFormCheckbox<
     />
   );
 }
-
-const FormCheckbox = forwardRef(InnerFormCheckbox) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormCheckboxProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLButtonElement>;
-  },
-) => ReturnType<typeof InnerFormCheckbox>;
 
 export default FormCheckbox;

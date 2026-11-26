@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import bcrypt from 'bcryptjs';
-import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,6 +7,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   InputGroup,
@@ -35,8 +35,8 @@ export interface CreateOAuth2ClientFormProps extends DialogFormProps {
 const DEFAULT_SCOPES = new Set(['openid', 'profile', 'email']);
 
 const validationSchema = z.object({
-  description: z.string().default(''),
-  redirectUris: z.string().default(''),
+  description: z.string(),
+  redirectUris: z.string(),
 });
 
 type CreateOAuth2ClientFormValues = z.infer<typeof validationSchema>;
@@ -142,6 +142,7 @@ export default function CreateOAuth2ClientForm({
           label="Description"
           placeholder="Describe this OAuth2 client"
           autoComplete="off"
+          autoFocus
         />
 
         <FormTextarea
@@ -176,16 +177,10 @@ export default function CreateOAuth2ClientForm({
             />
             {pendingSecret && (
               <InputGroupAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label="Copy secret"
-                  onClick={() => copy(pendingSecret, 'Client secret')}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <CopyToClipboardButton
+                  textToCopy={pendingSecret}
+                  title="Client secret"
+                />
               </InputGroupAddon>
             )}
           </InputGroup>
@@ -200,8 +195,9 @@ export default function CreateOAuth2ClientForm({
             <div className="grid grid-flow-col items-center justify-start gap-1">
               <Button
                 onClick={handleGenerateSecret}
-                className="h-auto px-1 py-0.5 text-xs"
+                className="px-1 py-0.5 text-xs"
                 variant="link"
+                size="inline"
                 type="button"
               >
                 Generate a secret
@@ -211,9 +207,10 @@ export default function CreateOAuth2ClientForm({
               <div className="grid grid-flow-col items-center justify-start gap-1">
                 <Button
                   variant="link"
+                  size="inline"
                   onClick={handleRemoveSecret}
                   type="button"
-                  className="h-auto px-1 py-0.5 text-destructive text-xs"
+                  className="px-1 py-0.5 text-destructive text-xs"
                 >
                   Remove secret (make public)
                 </Button>

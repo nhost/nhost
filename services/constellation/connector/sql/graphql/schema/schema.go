@@ -88,6 +88,15 @@ type Capabilities struct {
 	// SupportsFunctions gates the emission of GraphQL fields for tracked
 	// SQL functions.
 	SupportsFunctions bool
+	// SupportsComputedFields is the durable PostgreSQL backend capability;
+	// rollout gates below additionally require each executor to be ready.
+	SupportsComputedFields bool
+	// PostgreSQL scalar and table selections and scalar user inputs are enabled.
+	// Table-valued predicate/order inputs remain gated until their executors are complete.
+	SupportsComputedScalarSelection bool
+	SupportsComputedTableSelection  bool
+	SupportsComputedScalarInput     bool
+	SupportsComputedTableInput      bool
 	// SupportsArrays gates the emission of <scalar>_array_comparison_exp
 	// input types and array-typed column fields on bool_exp inputs.
 	SupportsArrays bool
@@ -151,15 +160,20 @@ func ParseDBKind(s string) (DBKind, error) {
 // mis-namespaced types.
 func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 	return Capabilities{
-		Kind:                          kind,
-		SupportsRegex:                 dial.SupportsRegex(),
-		SupportsJSONB:                 dial.SupportsJSONB(),
-		SupportsDistinctOn:            dial.SupportsDistinctOn(),
-		SupportsFunctions:             dial.SupportsFunctions(),
-		SupportsArrays:                dial.SupportsArrays(),
-		SupportsSpatialTypes:          dial.SupportsSpatialTypes(),
-		SupportsVarianceAggregates:    dial.SupportsVarianceAggregates(),
-		SupportsStableVarianceOrderBy: dial.SupportsStableVarianceOrderBy(),
+		Kind:                            kind,
+		SupportsRegex:                   dial.SupportsRegex(),
+		SupportsJSONB:                   dial.SupportsJSONB(),
+		SupportsDistinctOn:              dial.SupportsDistinctOn(),
+		SupportsFunctions:               dial.SupportsFunctions(),
+		SupportsComputedFields:          kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedScalarSelection: kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedTableSelection:  kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedScalarInput:     kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedTableInput:      kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsArrays:                  dial.SupportsArrays(),
+		SupportsSpatialTypes:            dial.SupportsSpatialTypes(),
+		SupportsVarianceAggregates:      dial.SupportsVarianceAggregates(),
+		SupportsStableVarianceOrderBy:   dial.SupportsStableVarianceOrderBy(),
 	}
 }
 
@@ -227,7 +241,8 @@ func GenerateForRole(
 		generatedAggregateBoolExp   = make(map[string]struct{})
 	)
 
-	tablesWithObjRelInsert, tablesWithArrRelInsert := findRelationships(objects, md, role)
+	insertableTables := findInsertableTables(objects, md, role)
+	objRelTargets, arrRelTargets := findRelationships(objects, md, insertableTables)
 
 	for i := range md.Tables {
 		tableMeta := &md.Tables[i]
@@ -246,7 +261,7 @@ func GenerateForRole(
 			&queryFields, &mutationFields, &subscriptionFields, usedScalars,
 			selectUsedScalars, selectUsedArrayElementTypes,
 			neededEnums, generatedAggregateOrderBy, generatedAggregateBoolExp,
-			tablesWithObjRelInsert, tablesWithArrRelInsert, caps,
+			insertableTables, objRelTargets, arrRelTargets, caps,
 		)
 	}
 
@@ -296,70 +311,72 @@ func generateFunctions(
 	}
 }
 
-func findRelationships( //nolint:cyclop,gocognit
+// findInsertableTables retains permitted inserts even when every column is
+// generated or preset. Hasura accepts {} for these genuinely empty inputs.
+func findInsertableTables(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
 	role string,
-) (map[string]struct{}, map[string]struct{}) {
-	tablesWithObjRelInsert := make(map[string]struct{})
-	tablesWithArrRelInsert := make(map[string]struct{})
+) map[string]struct{} {
+	insertableTables := make(map[string]struct{})
 
 	for i := range md.Tables {
 		tableMeta := &md.Tables[i]
-
-		if role != roleAdmin && getInsertPermission(tableMeta, role) == nil {
+		if role != roleAdmin && getSelectPermission(tableMeta, role) == nil {
 			continue
 		}
 
 		tableInfo, ok := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
-		if !ok {
+		if ok && tableInfo.IsInsertable && hasInsertPermissionForRole(tableMeta, role) {
+			insertableTables[getCustomOrDefaultTypeName(tableMeta)] = struct{}{}
+		}
+	}
+
+	return insertableTables
+}
+
+func findRelationships(
+	objects *introspection.Objects,
+	md *metadata.DatabaseMetadata,
+	insertableTables map[string]struct{},
+) (map[string]struct{}, map[string]struct{}) {
+	objRelTargets := make(map[string]struct{})
+	arrRelTargets := make(map[string]struct{})
+
+	for i := range md.Tables {
+		tableMeta := &md.Tables[i]
+		if _, ok := insertableTables[getCustomOrDefaultTypeName(tableMeta)]; !ok {
 			continue
 		}
 
-		for _, rel := range tableMeta.ObjectRelationships {
-			if isTargetTableAccessible(md, tableInfo, rel.Using, role) { //nolint:nestif
-				if targetMeta := getRelationshipTarget(
-					tableInfo,
-					md.Tables,
-					rel.Using,
-				); targetMeta != nil {
-					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
-						if !targetIsInsertable(objects, targetMeta) {
-							continue
-						}
+		tableInfo, _ := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
 
-						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
-						if targetName != "" {
-							tablesWithObjRelInsert[targetName] = struct{}{}
-						}
-					}
-				}
+		for _, rel := range tableMeta.ObjectRelationships {
+			targetName := getInsertRelationshipTargetName(
+				md,
+				tableInfo,
+				rel.Using,
+				insertableTables,
+			)
+			if targetName != "" {
+				objRelTargets[targetName] = struct{}{}
 			}
 		}
 
 		for _, rel := range tableMeta.ArrayRelationships {
-			if isTargetTableAccessible(md, tableInfo, rel.Using, role) { //nolint:nestif
-				if targetMeta := getRelationshipTarget(
-					tableInfo,
-					md.Tables,
-					rel.Using,
-				); targetMeta != nil {
-					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
-						if !targetIsInsertable(objects, targetMeta) {
-							continue
-						}
-
-						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
-						if targetName != "" {
-							tablesWithArrRelInsert[targetName] = struct{}{}
-						}
-					}
-				}
+			targetName := getInsertRelationshipTargetName(
+				md,
+				tableInfo,
+				rel.Using,
+				insertableTables,
+			)
+			if targetName != "" {
+				arrRelTargets[targetName] = struct{}{}
 			}
 		}
 	}
 
-	return tablesWithObjRelInsert, tablesWithArrRelInsert
+	return objRelTargets, arrRelTargets
 }
 
 func addOperationTypes(

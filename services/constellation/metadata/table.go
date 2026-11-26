@@ -10,10 +10,60 @@ type TableMetadata struct {
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" toml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  toml:"array_relationships,omitempty"`
 	RemoteRelationships []RemoteRelationship `json:"remote_relationships,omitempty" toml:"remote_relationships,omitempty"`
+	ComputedFields      []ComputedField      `json:"computed_fields,omitempty"      toml:"computed_fields,omitempty"`
 	SelectPermissions   []SelectPermission   `json:"select_permissions,omitempty"   toml:"select_permissions,omitempty"`
 	InsertPermissions   []InsertPermission   `json:"insert_permissions,omitempty"   toml:"insert_permissions,omitempty"`
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   toml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   toml:"delete_permissions,omitempty"`
+}
+
+// LocalRelationshipNames returns names owned by SQL relationships (FK or
+// same-source manual), regardless of whether a role can select their targets.
+// Remote relationships using those names must not be injected or planned.
+func (table TableMetadata) LocalRelationshipNames() map[string]bool {
+	local := make(map[string]bool)
+	for _, rel := range table.ObjectRelationships {
+		if rel.Using.isLocal() {
+			local[rel.Name] = true
+		}
+	}
+
+	for _, rel := range table.ArrayRelationships {
+		if rel.Using.isLocal() {
+			local[rel.Name] = true
+		}
+	}
+
+	return local
+}
+
+func (using RelationshipUsing) isLocal() bool {
+	mc := using.ManualConfiguration
+	return mc == nil || (mc.Source == "" && mc.RemoteSchema == "")
+}
+
+// ComputedField retains a table-owned PostgreSQL function definition. An
+// invalid wire entry carries its decode error for reconciliation; it is never
+// interpreted as a valid field.
+type ComputedField struct {
+	Name        string                  `json:"name"              toml:"name"`
+	Definition  ComputedFieldDefinition `json:"definition"        toml:"definition"`
+	Comment     string                  `json:"comment,omitempty" toml:"comment,omitempty"`
+	DecodeError string                  `json:"-"                 toml:"-"`
+}
+
+// ComputedFieldDefinition identifies the row-bound function and any named
+// row/session arguments specified in table metadata.
+type ComputedFieldDefinition struct {
+	Function        FunctionSource `json:"function"                   toml:"function"`
+	TableArgument   string         `json:"table_argument,omitempty"   toml:"table_argument,omitempty"`
+	SessionArgument string         `json:"session_argument,omitempty" toml:"session_argument,omitempty"`
+}
+
+// InvalidComputedFieldGrant retains an unparseable wire grant without
+// treating it as permission to access any computed field.
+type InvalidComputedFieldGrant struct {
+	DecodeError string `json:"-" toml:"-"`
 }
 
 // TableSource identifies a table in the database.
@@ -86,12 +136,21 @@ type SelectPermissionConfig struct {
 	// Columns lists the columns this role is allowed to read. An empty list
 	// denies access to every column.
 	Columns []string `json:"columns,omitempty" toml:"columns,omitempty"`
+	// ComputedFields lists explicit scalar computed-field grants. Malformed
+	// wire members are kept separately and must not become grants.
+	ComputedFields        []string                    `json:"computed_fields,omitempty" toml:"computed_fields,omitempty"`
+	InvalidComputedFields []InvalidComputedFieldGrant `json:"-"                         toml:"-"`
 	// Filter is a Hasura-style boolean expression that is AND-ed into the
 	// WHERE clause of every SELECT this role issues against the table.
 	Filter map[string]any `json:"filter,omitempty" toml:"filter,omitempty"`
-	// AllowAggregations enables the table's aggregate root field for this
-	// role when true; aggregates are forbidden when false.
+	// AllowAggregations permits aggregates for this role. Root allowlists
+	// can further restrict top-level aggregate fields.
 	AllowAggregations bool `json:"allow_aggregations,omitzero" toml:"allow_aggregations,omitempty"`
+	// Root-field allowlists use Hasura operation names, not custom GraphQL
+	// names. Nil leaves the defaults in place; an empty list hides every root
+	// field for this table and operation kind. Neither affects nested selects.
+	QueryRootFields        *[]string `json:"query_root_fields,omitzero"        toml:"query_root_fields,omitempty"`
+	SubscriptionRootFields *[]string `json:"subscription_root_fields,omitzero" toml:"subscription_root_fields,omitempty"`
 }
 
 // InsertPermissionConfig contains the insert permission configuration.

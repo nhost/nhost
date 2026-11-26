@@ -26,6 +26,9 @@ type Schema struct {
 	QueryType        *string
 	MutationType     *string
 	SubscriptionType *string
+	// RestrictedReadRoots reports SQL root allowlists that can leave unused
+	// types. Pruning waits until cross-connector relationships are composed.
+	RestrictedReadRoots bool
 }
 
 // ObjectType represents a GraphQL object type with fields.
@@ -62,6 +65,19 @@ type Type struct {
 	// nil for named types. Setting Elem AND NamedType simultaneously is
 	// incorrect; see NamedType.
 	Elem *Type
+}
+
+// BaseName returns the named type beneath any list wrappers, or "" for nil.
+func (t *Type) BaseName() string {
+	for t != nil && t.Elem != nil {
+		t = t.Elem
+	}
+
+	if t == nil {
+		return ""
+	}
+
+	return t.NamedType
 }
 
 // Argument represents an argument to a field.
@@ -118,6 +134,14 @@ type InputObjectType struct {
 	Description string
 	Fields      []*InputField
 	Directives  []*Directive
+	// ComputedArgument marks a SQL-computed selection's input. It is internal
+	// provenance, not a GraphQL field, and survives schema customization so
+	// the composer can prune it without removing a tracked function's input.
+	ComputedArgument bool
+	// EmptySQLInsert marks a SQL-generated insert input with no client-writable
+	// fields. Only these inputs may bypass GraphQL's non-empty input rule for
+	// Hasura compatibility. This provenance is not emitted in ToAST.
+	EmptySQLInsert bool
 }
 
 // InputField represents a field on an input object.

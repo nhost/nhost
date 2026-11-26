@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
+import type { BaseTableFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
@@ -16,6 +17,8 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
   });
   const columns = useWatch({ name: 'columns' });
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' }) as string[];
+  const uniqueKeys: NonNullable<BaseTableFormValues['uniqueKeys']> =
+    useWatch({ name: 'uniqueKeys' }) ?? [];
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
 
   return (
@@ -24,7 +27,6 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
       variant="outline"
       size="icon"
       data-testid={`remove-column-${index}`}
-      className="h-9 w-9"
       disabled={columns?.length === 1}
       aria-label="Remove column"
       onClick={(event) => {
@@ -37,6 +39,18 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
         );
 
         setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
+
+        setValue(
+          'uniqueKeys',
+          uniqueKeys
+            .filter(({ columnIndices }) => !columnIndices.includes(`${index}`))
+            .map((uniqueKey) => ({
+              ...uniqueKey,
+              columnIndices: uniqueKey.columnIndices.map((columnIndex) =>
+                +columnIndex > index ? `${+columnIndex - 1}` : columnIndex,
+              ),
+            })),
+        );
 
         if (
           foreignKeyRelations.find((foreignKeyRelation) =>

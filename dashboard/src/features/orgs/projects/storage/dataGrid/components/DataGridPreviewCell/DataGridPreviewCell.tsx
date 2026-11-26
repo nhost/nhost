@@ -9,7 +9,7 @@ import ViewFileButton from '@/features/orgs/projects/storage/dataGrid/components
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getFileUrlOrFallback } from './utils';
 
-export type PreviewProps = {
+export interface PreviewProps {
   fetchBlob: (
     init: RequestInit,
     size?: { width?: number; height?: number },
@@ -18,7 +18,7 @@ export type PreviewProps = {
   alt?: string;
   blob?: Blob;
   id: string;
-};
+}
 
 export type DataGridPreviewCellProps = PreviewProps & {
   fallbackPreview?: ReactNode;

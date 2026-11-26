@@ -12,7 +12,13 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatSelectList } from '@/features/orgs/projects/database/dataGrid/utils/formatSelectList';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
+import {
+  formatSpatialValue,
+  getSpatialType,
+  isSpatialType,
+} from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
 export interface UpdateRecordVariables<
@@ -90,9 +96,29 @@ export default async function updateRecord<
           );
         }
       }
+
+      const spatialType = getSpatialType(col.baseType);
+
+      if (spatialType) {
+        return format('%I = %s', key, formatSpatialValue(value, spatialType));
+      }
+
       return format('%I = %L', key, value);
     })
     .join(', ');
+
+  const selectList = formatSelectList(
+    allCells
+      .map(
+        ({ column }) =>
+          column.columnDef.meta as DataBrowserColumnMetadata | undefined,
+      )
+      .filter((meta): meta is DataBrowserColumnMetadata => Boolean(meta?.id))
+      .map((meta) => ({
+        name: meta.id,
+        isSpatial: !meta.isArray && isSpatialType(meta.baseType),
+      })),
+  );
 
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
@@ -111,7 +137,8 @@ export default async function updateRecord<
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          'SELECT row_to_json(table_data) as data FROM %I.%I table_data WHERE %s LIMIT 1',
+          'SELECT row_to_json(table_data) AS data FROM (SELECT %s FROM %I.%I WHERE %s LIMIT 1) table_data',
+          selectList,
           schema,
           table,
           primaryKeyConditions,

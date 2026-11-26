@@ -406,14 +406,16 @@ const main = async () => {
       let mtimeMs;
       try {
         mtimeMs = fs.statSync(filePath).mtimeMs;
-      } catch {
-        if (depMtimes.has(file)) depMtimes.delete(file);
+      } catch (err) {
+        if (err.code === 'ENOENT') depMtimes.delete(file);
         continue;
       }
       const prev = depMtimes.get(file);
-      if (prev !== undefined && prev !== mtimeMs) {
+      if (prev !== mtimeMs) {
         depMtimes.set(file, mtimeMs);
-        console.log(`Dependency file changed: ${file} — reinstalling...`);
+        console.log(
+          `Dependency file ${prev === undefined ? 'created' : 'changed'}: ${file} — reinstalling...`,
+        );
         try {
           // Reinstall through the same shared library start.sh uses, so a
           // hot-reload reinstall is identical to the initial install (corepack
@@ -431,7 +433,6 @@ const main = async () => {
         }
         return; // rebuildAll already covers everything
       }
-      depMtimes.set(file, mtimeMs);
     }
   }, 1000);
 

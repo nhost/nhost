@@ -26,6 +26,15 @@ type SchemaProvider interface {
 	GetTypeName(identifier string) string
 }
 
+// computedJoinKeyResolver is implemented by SQL connectors and their schema
+// decorators; it answers against reconciled metadata rather than raw input.
+// Other providers fail closed for computed keys.
+//
+//go:generate mockgen -package mock -destination mock/computed_join_key_resolver.go . computedJoinKeyResolver
+type computedJoinKeyResolver interface {
+	HasComputedJoinKey(tableSchema, tableName, key string) bool
+}
+
 // Composer binds a provider set and metadata together so that [Composer.Compose]
 // can be invoked against them. Instances are immutable handles: they do not
 // retain state across calls and are safe to reuse for repeated compositions.
@@ -58,14 +67,15 @@ func New(
 // Result holds the output of schema composition across providers.
 //
 // The maps are owned by the Composer that produced this Result: callers must
-// treat them as read-only. Mutating them is undefined behaviour, and because
-// the value is small (four map headers) Result is returned and embedded by
-// value so the ownership contract is not blurred by pointer aliasing.
+// treat them as read-only. Result is returned and embedded by value.
 type Result struct {
 	// SchemaDocs is keyed by role name.
 	SchemaDocs map[string]*ast.SchemaDocument
 	// ValidatedSchemas is keyed by role name.
 	ValidatedSchemas map[string]*ast.Schema
+	// EmptyQueryRoots identifies roles whose query root contains only the local
+	// fallback. A connector may own a real field with the same name for another role.
+	EmptyQueryRoots map[string]bool
 	// FieldToConnector maps schemamerge.FieldKey(op, fieldName) to the name of
 	// the connector that owns that root field; used by the controller to route
 	// operations.
@@ -86,11 +96,15 @@ func (c *Composer) Compose(
 ) Result {
 	roleSchemas, allRoles := c.collectSchemas(ctx, logger)
 
+	// Prune colliding argument scalars before injected relationship fields can
+	// reference the target's same-named non-scalar type and preserve them.
+	c.omitConflictingComputedArgs(ctx, logger, roleSchemas)
 	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
 
 	result := Result{
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),
 		ValidatedSchemas: make(map[string]*ast.Schema),
+		EmptyQueryRoots:  make(map[string]bool),
 		FieldToConnector: make(map[string]string),
 		TypeToConnectors: make(map[string][]string),
 	}
@@ -164,7 +178,9 @@ func (c *Composer) composeRole(
 		)
 	}
 
-	schemaDoc, validatedSchema, err := schemamerge.BuildValidatedSchema(&combinedSchema, role)
+	schemaDoc, validatedSchema, emptyQueryRoot, err := schemamerge.BuildComposedSchema(
+		&combinedSchema, role,
+	)
 	if err != nil {
 		c.inconsistencies.RecordRole(
 			ctx, logger,
@@ -176,7 +192,9 @@ func (c *Composer) composeRole(
 	}
 
 	result.SchemaDocs[role] = schemaDoc
+
 	result.ValidatedSchemas[role] = validatedSchema
+	result.EmptyQueryRoots[role] = emptyQueryRoot
 
 	maps.Copy(result.FieldToConnector, fieldToConnector)
 	maps.Copy(result.TypeToConnectors, typeToConnectors)
@@ -246,6 +264,8 @@ func (c *Composer) typeNameResolvers() map[string]relationships.TypeNameResolver
 // [relationships.RelationshipSpec] values. Specs whose source connector is
 // not registered as a provider, or whose source table is an enum, are
 // dropped here so Inject never sees them.
+//
+//nolint:gocognit // One translation walks table and remote-schema relationship variants.
 func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 	var specs []relationships.RelationshipSpec
 
@@ -260,12 +280,22 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 				continue
 			}
 
-			sourceType := dbConn.GetTypeName(
-				table.Table.Schema + "." + table.Table.Name,
+			sourceType := relationships.SchemaTypeName(
+				dbConn, table.Table.Schema+"."+table.Table.Name,
 			)
 
+			localNames := table.LocalRelationshipNames()
 			for _, rel := range table.RemoteRelationships {
+				if localNames[rel.Name] {
+					continue
+				}
+
 				if spec, ok := dbRelationshipSpec(db.Name, sourceType, rel); ok {
+					spec.SkipAggregate = spec.IsArray && localNames[rel.Name+"_aggregate"]
+					if !populateComputedJoinKeys(&spec, table, rel, dbConn) {
+						continue
+					}
+
 					specs = append(specs, spec)
 				}
 			}
@@ -283,6 +313,60 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 	}
 
 	return specs
+}
+
+// populateComputedJoinKeys projects table-owned definitions and per-role grants
+// into the relationship. The source connector's reconciled function identity
+// and role schema must both admit the key. A stale/invalid definition cannot
+// be mistaken for an identically named physical column.
+func populateComputedJoinKeys(
+	spec *relationships.RelationshipSpec,
+	table metadata.TableMetadata,
+	rel metadata.RemoteRelationship,
+	provider SchemaProvider,
+) bool {
+	var lhs []string
+	if rel.Definition.ToSource != nil {
+		for key := range rel.Definition.ToSource.FieldMapping {
+			lhs = append(lhs, key)
+		}
+	} else if rel.Definition.ToRemoteSchema != nil {
+		lhs = rel.Definition.ToRemoteSchema.LHSFields
+	}
+
+	for _, key := range lhs {
+		for _, field := range table.ComputedFields {
+			if field.Name != key {
+				continue
+			}
+
+			resolver, ok := provider.(computedJoinKeyResolver)
+			if !ok || !resolver.HasComputedJoinKey(table.Table.Schema, table.Table.Name, key) {
+				return false
+			}
+
+			if spec.ComputedKeys == nil {
+				spec.ComputedKeys = make(map[string]map[string]bool)
+			}
+
+			grants := make(map[string]bool)
+			for _, permission := range table.SelectPermissions {
+				grants[permission.Role] = slices.Contains(permission.Permission.ComputedFields, key)
+			}
+
+			spec.ComputedKeys[key] = grants
+
+			break
+		}
+	}
+
+	if len(spec.ComputedKeys) > 0 && rel.Definition.ToSource != nil {
+		for _, target := range rel.Definition.ToSource.FieldMapping {
+			spec.TargetJoinFields = append(spec.TargetJoinFields, target)
+		}
+	}
+
+	return true
 }
 
 // dbRelationshipSpec translates a metadata RemoteRelationship (rooted in a
@@ -304,10 +388,13 @@ func dbRelationshipSpec(
 		return relationships.RelationshipSpec{
 			SourceConnector:   dbName,
 			SourceType:        sourceType,
+			ComputedKeys:      nil,
+			TargetJoinFields:  nil,
 			Name:              rel.Name,
 			TargetConnector:   toSource.Source,
 			TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 			IsArray:           isArray,
+			SkipAggregate:     false,
 			WithSQLArgs:       true,
 			RemoteFieldName:   "",
 			BoundArguments:    nil,
@@ -326,10 +413,13 @@ func dbRelationshipSpec(
 		return relationships.RelationshipSpec{
 			SourceConnector:   dbName,
 			SourceType:        sourceType,
+			ComputedKeys:      nil,
+			TargetJoinFields:  nil,
 			Name:              rel.Name,
 			TargetConnector:   toRS.RemoteSchema,
 			TargetIdentifier:  path[0].FieldName,
 			IsArray:           false,
+			SkipAggregate:     false,
 			WithSQLArgs:       false,
 			RemoteFieldName:   path[0].FieldName,
 			BoundArguments:    path[0].Arguments,
@@ -377,10 +467,13 @@ func rsRelationshipSpec(
 	return relationships.RelationshipSpec{
 		SourceConnector:   rsName,
 		SourceType:        typeName,
+		ComputedKeys:      nil,
+		TargetJoinFields:  nil,
 		Name:              rel.Name,
 		TargetConnector:   toSource.Source,
 		TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 		IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
+		SkipAggregate:     false,
 		WithSQLArgs:       false,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,

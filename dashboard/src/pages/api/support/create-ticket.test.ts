@@ -49,21 +49,21 @@ const validRequestBody = {
   userEmail: 'victim@corp.com',
 };
 
-type HandlerResult = {
+interface HandlerResult {
   status: number;
   body: CreateTicketResponse;
-};
+}
 
-type RequestOptions = {
+interface RequestOptions {
   method?: string;
   body?: Partial<CreateTicketRequest> & Record<string, unknown>;
   authorization?: string | null;
-};
+}
 
-type TicketRequest = {
+interface TicketRequest {
   authorization: string | null;
   body: unknown;
-};
+}
 
 let tokenCallCount = 0;
 let ticketCallCount = 0;

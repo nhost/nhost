@@ -6,17 +6,17 @@ query getOrganizations($userId: uuid!) {
     id
     name
     slug
+    status
     plan {
       id
       name
       price
       deprecated
-      individual
       isFree
       featureMaxDbSize
       slaLevel
     }
-    apps(order_by: { name: asc }) {
+    apps(order_by: { createdAt: asc }) {
       ...ProjectBase
     }
     members {

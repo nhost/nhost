@@ -9,15 +9,15 @@ export const COLUMN_CONFIGURATION_STORAGE_KEY =
 const DATA_TABLE_CONFIGURATION_STORAGE_KEY =
   'nhost_data_table_configuration_storage';
 
-type ColumnConfiguration = {
+interface ColumnConfiguration {
   columnVisibility: VisibilityState;
   columnOrder: ColumnOrderState;
-};
+}
 
-type OldColumnConfiguration = {
+interface OldColumnConfiguration {
   hiddenColumns: string[];
   columnOrder: string[];
-};
+}
 
 function isOldFormat(
   config: ColumnConfiguration | OldColumnConfiguration,
@@ -25,9 +25,9 @@ function isOldFormat(
   return 'hiddenColumns' in config;
 }
 
-type DataTableViewConfiguration = {
+interface DataTableViewConfiguration {
   rowDensity: RowDensity;
-};
+}
 
 function getAllStoredData(): Record<string, ColumnConfiguration> {
   const storedData = localStorage.getItem(COLUMN_CONFIGURATION_STORAGE_KEY);

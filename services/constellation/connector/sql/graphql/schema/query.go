@@ -2,15 +2,21 @@ package schema
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// generateTableQueryFields generates query fields for a table.
-func generateTableQueryFields(
-	queryFields *[]*graph.Field,
+func allowsRootField(allowed *[]string, field string) bool {
+	return allowed == nil || slices.Contains(*allowed, field)
+}
+
+// generateTableSelectFields handles the root operations shared by queries and live subscriptions.
+func generateTableSelectFields(
+	fields *[]*graph.Field,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
 	customTableName string,
@@ -19,25 +25,29 @@ func generateTableQueryFields(
 	role string,
 	md *metadata.DatabaseMetadata,
 	caps Capabilities,
+	allowedRoots *[]string,
 ) {
-	*queryFields = append(
-		*queryFields,
-		generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
-	)
+	if allowsRootField(allowedRoots, selectroots.Select) {
+		*fields = append(
+			*fields,
+			generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
+		)
+	}
 
 	// _by_pk requires the role to be able to read every primary-key column;
 	// otherwise the field would error on an otherwise valid lookup.
-	if len(tableInfo.PrimaryKeys) > 0 &&
+	if allowsRootField(allowedRoots, selectroots.SelectByPK) && len(tableInfo.PrimaryKeys) > 0 &&
 		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
-		*queryFields = append(
-			*queryFields,
+		*fields = append(
+			*fields,
 			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
-	if allowAggregations(tableMeta, role) {
-		*queryFields = append(
-			*queryFields,
+	if allowsRootField(allowedRoots, selectroots.SelectAggregate) &&
+		allowAggregations(tableMeta, role) {
+		*fields = append(
+			*fields,
 			generateAggregateField(tableMeta, customTableName, qualifiedName, caps),
 		)
 	}
@@ -177,10 +187,12 @@ func generateTableInputTypes(
 	generatedAggregateBoolExp map[string]struct{},
 	usedScalars map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
+	tableFields []*graph.Field,
 ) {
 	generateTableQueryInputTypes(
 		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, role, md,
-		objects, generatedAggregateBoolExp, usedScalars, caps,
+		objects, generatedAggregateBoolExp, usedScalars, caps, computedFields, tableFields,
 	)
 
 	generateTableSubscriptionInputTypes(
@@ -307,7 +319,9 @@ func generateOrderByRelationshipFields(
 }
 
 // generateTableQueryInputTypes generates all input types for a table.
-func generateTableQueryInputTypes( //nolint:funlen
+//
+//nolint:funlen,gocognit,cyclop // A single builder keeps permission and capability gates aligned.
+func generateTableQueryInputTypes(
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
@@ -320,6 +334,8 @@ func generateTableQueryInputTypes( //nolint:funlen
 	generatedAggregateBoolExp map[string]struct{},
 	usedScalars map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
+	tableFields []*graph.Field,
 ) {
 	// Generate bool_exp
 	boolExpFields := []*graph.InputField{
@@ -360,6 +376,28 @@ func generateTableQueryInputTypes( //nolint:funlen
 		})
 	}
 
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				boolExpFields = append(boolExpFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType(caps.comparisonExpName(field.Type.NamedType)),
+				})
+			}
+		}
+	}
+
+	if caps.SupportsComputedTableInput {
+		for _, field := range tableFields {
+			if !computedRequiresUserArgs(field) {
+				boolExpFields = append(boolExpFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType(field.Type.Elem.NamedType + "_bool_exp"),
+				})
+			}
+		}
+	}
+
 	boolExpFields = append(
 		boolExpFields,
 		generateBoolExpRelationshipFields(
@@ -396,6 +434,33 @@ func generateTableQueryInputTypes( //nolint:funlen
 			Description: getColumnDescription(&col),
 			Type:        graph.NewNamedType("order_by"),
 		})
+	}
+
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				orderByFields = append(orderByFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType("order_by"),
+				})
+			}
+		}
+	}
+
+	if caps.SupportsComputedTableInput {
+		for _, field := range tableFields {
+			if !computedRequiresUserArgs(field) {
+				orderByFields = append(orderByFields, &graph.InputField{
+					Name: field.Name + "_aggregate",
+					Type: graph.NewNamedType(
+						field.Type.Elem.NamedType + "_aggregate_order_by",
+					),
+					Description:  "",
+					DefaultValue: nil,
+					Directives:   nil,
+				})
+			}
+		}
 	}
 
 	orderByFields = append(

@@ -84,7 +84,22 @@ func (m *streamCohortManager) addSubscription(
 		)
 		c.cursorColumns = cursorColumns
 		m.cohorts[keyStr] = c
+	}
 
+	// Attach the first subscriber before starting the cohort's initial poll.
+	// Otherwise it can arrive while polling and remain pending after an empty poll.
+	streamSub := newStreamCohortSubscription(
+		req.ID,
+		req.SessionVariables,
+		req.Variables,
+		cursorValues,
+	)
+
+	c.addSubscription(streamSub)
+
+	m.subscriptionIndex[req.ID] = keyStr
+
+	if !exists {
 		// Polling outlives any single subscriber; termination flows through
 		// c.stopChannel() instead of context cancellation. Detaching from the
 		// caller's ctx prevents the first subscriber's disconnect from failing
@@ -98,18 +113,6 @@ func (m *streamCohortManager) addSubscription(
 			slog.Any("cursor_values", cursorValues),
 		)
 	}
-
-	// Create stream subscription
-	streamSub := newStreamCohortSubscription(
-		req.ID,
-		req.SessionVariables,
-		req.Variables,
-		cursorValues,
-	)
-
-	c.addSubscription(streamSub)
-
-	m.subscriptionIndex[req.ID] = keyStr
 
 	m.mu.Unlock()
 
@@ -250,6 +253,14 @@ func (m *streamCohortManager) executeAndRebuild(
 
 	if len(subscriptions) == 0 {
 		logger.DebugContext(ctx, "no subscriptions in stream cohort, skipping poll")
+
+		// The last regular subscriber may have left while a newcomer was
+		// queued. End the empty poll before reattaching pending subscribers:
+		// an arrival at this cohort's cursor must enter subscriptions, not
+		// newSubscriptions again, so the next poll can deliver its first batch.
+		c.endPolling()
+		m.processNewSubscribers(ctx, c, logger)
+
 		return
 	}
 
@@ -783,6 +794,10 @@ func (m *streamCohortManager) processNewSubscribers(
 	c *streamCohort,
 	logger *slog.Logger,
 ) {
+	// Keep extraction and reattachment atomic with Stop, which also holds m.mu.
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	newSubs := c.extractNewSubscribers()
 	if len(newSubs) == 0 {
 		return
@@ -799,9 +814,6 @@ func (m *streamCohortManager) processNewSubscribers(
 		slog.Int("count", len(newSubs)),
 		slog.Any("subscription_ids", subIDs),
 	)
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	byCursor := groupNewSubscribersByCursor(newSubs)
 

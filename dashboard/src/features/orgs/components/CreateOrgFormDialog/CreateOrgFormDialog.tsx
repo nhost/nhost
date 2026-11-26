@@ -108,7 +108,7 @@ function CreateOrgForm({
             <FormItem>
               <FormLabel>Organization Name</FormLabel>
               <FormControl>
-                <Input placeholder="Acme Inc" {...field} />
+                <Input placeholder="Acme Inc" autoFocus {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -239,7 +239,7 @@ function CreateOrgForm({
           )}
         />
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 pt-8">
           <Button
             variant="outline"
             type="button"
@@ -396,7 +396,8 @@ export default function CreateOrgDialog({
         <DialogTrigger asChild>
           <Button
             variant="ghost"
-            className="flex h-8 w-full flex-row justify-start gap-3 px-2 text-foreground dark:hover:bg-muted"
+            size="xs"
+            className="flex w-full flex-row justify-start gap-3 text-foreground dark:hover:bg-muted"
           >
             <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
             New Organization
@@ -406,13 +407,15 @@ export default function CreateOrgDialog({
       <DialogContent
         className={cn(
           'text-foreground sm:max-w-xl',
-          !loading && stripeClientSecret ? 'bg-white text-black' : '',
+          !loading && stripeClientSecret ? 'bg-white text-black' : 'p-12',
         )}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>New Organization</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            New Organization
+          </DialogTitle>
           <DialogDescription />
         </DialogHeader>
 

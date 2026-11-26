@@ -73,6 +73,39 @@ sequenceDiagram
 
 This feature can be enabled with the flag `--clamav-server string`, where `string` is the tcp address for the clamd service.
 
+## Automatic cleanup
+
+Deleting a row from `storage.files` queues its ID and deletion timestamp in
+`storage.files_to_delete`. A database trigger captures GraphQL deletes, SQL
+deletes, and cascading deletes in the same transaction. The queue holds no file
+metadata or permanent deletion history.
+
+Storage checks the queue at startup and every 24 hours. Each sweep processes
+entries at least 24 hours old in batches of 100. Any existing metadata row,
+including a pending upload, protects the object. Metadata lookup failures and S3
+failures leave the entry queued for a later sweep. A successful S3 deletion,
+including an already-missing object, removes the queue entry.
+
+The normal Storage DELETE path still deletes content immediately and removes its
+queue entry on success. Failed queue removal does not fail an otherwise
+completed DELETE request; the worker retries it later.
+
+Apply both the PostgreSQL migration and Hasura metadata when deploying this
+change. The queue is admin-only in Hasura. Automatic cleanup does not discover
+objects orphaned before the trigger was installed, or deletions made with
+`TRUNCATE` or with the trigger disabled. Use the manual operations below for
+those cases.
+
+The metadata check and S3 deletion are not atomic. Reusing a file ID during that
+window can cause a new upload to be deleted; the daily worker accepts this same
+race as the manual cleanup operation.
+
+## Manual orphan cleanup
+
+`POST /ops/delete-orphans` re-checks metadata before deleting each candidate with a UUID filename. Any existing row protects the object, including pending uploads: `InitializeFile` creates the row before uploading content, and its `etag` remains NULL until `PopulateMetadata` completes. The metadata adapter must tolerate these nullable fields; checking only `isUploaded` would not protect uploads in progress.
+
+This check narrows same-ID re-upload races but is not atomic with object deletion. A new upload can still race between the metadata check and the delete.
+
 ## Documentation
 
 - [Official Documentation](https://docs.nhost.io/products/storage/overview).

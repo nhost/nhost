@@ -68,13 +68,6 @@ export const mockApplication: Project = {
   repositoryProductionBranch: '',
   nhostBaseFolder: '',
   automaticDeploys: true,
-  legacyPlan: {
-    id: '1',
-    name: 'Starter',
-    isFree: true,
-    price: 0,
-    featureMaxDbSize: 1,
-  },
   config: {
     observability: {
       grafana: {
@@ -129,7 +122,6 @@ export const mockOrganization: Organization = {
     id: 'abc',
     name: 'Pro',
     deprecated: false,
-    individual: false,
     isFree: false,
     featureMaxDbSize: 1,
     price: 25,
@@ -151,7 +143,6 @@ export const mockOrganizations: Organization[] = [
       name: 'Starter',
       price: 0,
       deprecated: false,
-      individual: true,
       isFree: true,
       featureMaxDbSize: 1,
       __typename: 'plans',
@@ -170,7 +161,6 @@ export const mockOrganizations: Organization[] = [
       name: 'Pro',
       price: 25,
       deprecated: false,
-      individual: false,
       isFree: false,
       featureMaxDbSize: 10,
       __typename: 'plans',

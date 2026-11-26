@@ -770,14 +770,8 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Same shape but the client omits `affected_rows` from the selection.
-		// Without the returning-side force reference emitted by
-		// writeNestedCTEForceRef the gated `nested_replies` /
-		// `nested_replies_post_check` CTEs would have no outer reference at
-		// all (affected_rows' COUNT sum is gone too), Postgres would elide
-		// them, and `constellation_throw_error` would never fire. Locks the
-		// `WHERE (SELECT COUNT(*) FROM nested_replies) IS NOT NULL` no-op
-		// appended to the returning subquery so the regression cannot return.
+		// With returning only, the nested child step must still execute its
+		// post-insert permission check; the final selection does not own it.
 		{
 			name: "permissions: nested array-rel insert with returning-only selection (force CTE reference)",
 			query: query{
@@ -805,12 +799,9 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Multi-row top-level insert of notes (parents) each with multi-row
-		// nested array-rel children (note_replies). The child's check has both
-		// a relationship-EXISTS against the parent and a defaulted-and-absent
-		// column (visibility), forcing the multi-row nested post-check path
-		// (buildMultiNestedInsertCTEPostCheck) with tableSubs populated. Locks
-		// the SQL shape of the multi-row sibling of the insert_one case.
+		// Both parents have multi-row child batches. Each child's post-insert
+		// check reads its previously inserted parent through a base-table EXISTS;
+		// the defaulted visibility column is evaluated against the inserted row.
 		{
 			name: "permissions: multi-row nested array-rel insert with post-check substituted to parent CTE",
 			query: query{
@@ -845,17 +836,16 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// summing shape for the object-rel case so we don't regress Hasura
 		// parity: against Hasura admin role this same query reports
 		// affected_rows = 2 (one parent file + one department_files row),
-		// so the emitted SQL must add a `+ (SELECT COUNT(*) FROM nested_file)`
-		// term to the parent count. Pairs with the integration test of the
-		// same shape (TestInsertMutations / "object-rel nested ..."), which
-		// asserts the execution-time count matches Hasura's 2.
+		// so the dependent count includes the inserted object row. Pairs with
+		// the integration test of the same shape (TestInsertMutations /
+		// "object-rel nested ..."), which asserts the count matches Hasura's 2.
 		// Multi-parent nested array-rel insert. Two parents each with their
 		// own children: parent[0] has 2 replies, parent[1] has 1 reply.
-		// Locks the partitioned shape — each parent insert has its own CTE,
-		// and each child row sources its FK from the matching parent CTE so it
-		// lands on its rightful parent without depending on RETURNING row
-		// order. Pre-bug, parent[1]'s reply was dropped during arg parsing
-		// and parent[0]'s replies were inserted twice (once per parent) via
+		// Locks the per-parent traversal: each parent row is inserted and
+		// captured before its children, whose FKs bind to that parent's row.
+		// This does not depend on RETURNING row order. Pre-bug, parent[1]'s
+		// reply was dropped during arg parsing and parent[0]'s replies were
+		// inserted twice (once per parent) via
 		// the unbounded cross-join.
 		{
 			name: "permissions: multi-parent nested array-rel insert partitions children by parent",
@@ -896,10 +886,9 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Multi-parent array-rel insert with array grandchildren. The child
-		// rows (auth requests) are inserted through the partitioned path and
-		// each grandchild authorization code must source auth_request_id from
-		// the exact child row CTE that owns it, not from the whole child CTE.
+		// Multi-parent array-rel insert with array grandchildren. Each
+		// authorization code must bind auth_request_id from its own captured
+		// child row, not from another parent's or child's row.
 		{
 			name: "multi-parent nested array-rel insert with array grandchildren",
 			query: query{
@@ -1005,9 +994,9 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// Multi-parent nested array-rel insert where parent[1]'s child trips
 		// the child's `visibility _eq "public"` insert check via
-		// `visibility: "private"`. With partitioning the offending row
-		// survives parse-time, reaches the pre-check with its matched parent
-		// FK, and the mutation errors out — matching Hasura. Pre-bug,
+		// `visibility: "private"`. The per-parent traversal includes the
+		// offending child with its matched parent FK; the check rejects the
+		// mutation — matching Hasura. Pre-bug,
 		// parent[1]'s row was silently dropped and the check passed: a
 		// permission bypass.
 		{
@@ -1050,7 +1039,7 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// Multi-parent variant where only parent[1] has nested children, so
 		// parent[0].NestedInserts is empty. Pre-bug, the code keyed off
 		// `insertObjs[0].NestedInserts` and skipped the relationship
-		// entirely; partitioning iterates every parent.
+		// entirely; the per-parent traversal visits every parent.
 		{
 			name: "permissions: multi-parent nested array-rel insert with children only on second parent",
 			query: query{
@@ -1110,11 +1099,10 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		// Multi-parent object-rel nested insert (BUG_HIGH_1): each parent row
-		// carries its OWN nested file. Pre-fix only the first row's file CTE
-		// was emitted (nested_file) and cross-joined onto every parent, so the
-		// second file was silently dropped and both department_files rows were
-		// linked to the first file. The partitioned path emits nested_file_0
-		// and nested_file_1, and parent N sources file_id from its own CTE.
+		// carries its OWN nested file. Previously the second file was silently
+		// dropped and both department_files rows linked to the first file.
+		// Now each file is inserted and captured before its matching parent row,
+		// which binds file_id from that captured file.
 		{
 			name: "multi-parent object-rel nested insert partitions files per parent",
 			query: query{
@@ -1158,8 +1146,8 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// Mixed object-rel collection insert: one row points at a pre-existing
 		// storage.files row, while a sibling row nested-inserts its file. Returning
-		// must read the nested row from the CTE without losing the base-table row
-		// that is visible under PostgreSQL's statement snapshot.
+		// uses captured root rows; the `file` relationship reads both files from
+		// the final base table after the dependent statements.
 		{
 			name: "mixed object-rel returning combines nested CTEs with base-table rows",
 			query: query{
@@ -1195,11 +1183,8 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Multi-parent object-rel nested insert where each nested department has
-		// its own nested employees array. Locks the nested CTE map recursion so
-		// affected_rows/force-ref tracking include nested_employees_0/1 and returning
-		// resolves department.employees from those descendant CTEs rather than the
-		// snapshot-hidden base table.
+		// Each before-parent department owns its own nested employee array;
+		// the step count and final related rows must include both branches.
 		{
 			name: "multi-parent object-rel nested insert counts nested descendants",
 			query: query{

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -20,7 +21,8 @@ const permissionAllColumns = "*"
 // What gets reconciled:
 //   - Tables: dropped when absent from objects (kind=table).
 //   - Tables flagged is_enum: dropped entirely when objects.EnumValues
-//     carries no rows for the table (kind=enum_values). Demoting to a
+//     carries no usable rows or invalid/reserved GraphQL enum value names
+//     for the table (kind=enum_values). Demoting to a
 //     regular table would silently widen the input contract for FK columns
 //     pointing at it, so the failure is surfaced as a missing table
 //     instead — matching Hasura's behaviour.
@@ -28,18 +30,24 @@ const permissionAllColumns = "*"
 //     InsertPermission.Columns, UpdatePermission.Columns and the keys of
 //     InsertPermission.Set / UpdatePermission.Set are dropped when no such
 //     column exists on the introspected table (kind=column).
+//   - Select root allowlists: an explicit by-primary-key or aggregate root
+//     whose prerequisites are unmet drops the permission (kind=select_permission).
 //   - Functions: dropped when absent from objects.Functions (kind=function).
+//   - PostgreSQL computed fields: invalid definitions are dropped individually;
+//     invalid grants and unexecutable computed predicates drop their permission.
+//     Malformed _exists operators or untracked targets also drop their containing
+//     permission, including when its predicate has no computed references.
 //   - Object/Array relationships: dropped when the target table (only when
 //     it lives in the same source) does not exist (kind=relationship).
 //   - Raw to_source remote relationships: dropped when relationship_type is
 //     missing or not one of object/array (kind=relationship).
 //
 // Reconciliation is intentionally scoped: Hasura-expression Filter/Check
-// trees inside permissions are not walked because they reference columns
-// through a separate parser; a missing column inside those expressions still
-// surfaces as a query-time error today. Cross-source relationship targets
-// are also not validated here — the composer's relationship layer handles
-// those.
+// trees inside permissions are walked for computed-field dependencies and
+// malformed or untracked _exists references; ordinary unknown keys retain
+// their existing root-construction behavior.
+// Cross-source relationship targets are not validated here — the composer's
+// relationship layer handles those.
 func reconcileMetadata(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -54,10 +62,16 @@ func reconcileMetadata(
 	out := *dbMeta
 
 	out.Tables = reconcileTables(ctx, logger, inc, dbMeta.Name, dbMeta.Tables, objects)
+	if dbMeta.Kind == "postgres" || dbMeta.Kind == "" {
+		reconcileComputedFields(ctx, logger, inc, dbMeta, &out, objects)
+	}
 
 	survivingTables := make(map[string]struct{}, len(out.Tables))
 	for i := range out.Tables {
-		survivingTables[qualifyTable(out.Tables[i].Table.Schema, out.Tables[i].Table.Name)] = struct{}{}
+		t := &out.Tables[i]
+		introspected, _ := objects.GetTable(t.Table.Schema, t.Table.Name)
+		reconcileSelectRootAllowlists(ctx, logger, inc, dbMeta.Name, t, introspected.PrimaryKeys)
+		survivingTables[qualifyTable(t.Table.Schema, t.Table.Name)] = struct{}{}
 	}
 
 	out.Functions = reconcileFunctions(
@@ -96,21 +110,9 @@ func reconcileTables(
 		}
 
 		if t.IsEnum {
-			if _, ok := objects.GetEnumValues(t.Table.Schema, t.Table.Name); !ok {
-				// Hasura parity: a table flagged is_enum that cannot
-				// produce values (missing rows, invalid shape, query
-				// failure) is dropped entirely. Demoting to a regular
-				// table would silently widen the input contract for
-				// every FK column pointing at it, which is the wrong
-				// shape of failure to absorb.
-				inc.RecordEnumValues(
-					ctx, logger,
-					dbName,
-					t.Table.Schema, t.Table.Name,
-					"table cannot be used as an enum: "+
-						"no usable values found (missing rows, "+
-						"invalid shape, or query failure)",
-				)
+			values, _ := objects.GetEnumValues(t.Table.Schema, t.Table.Name)
+			if reason := enumValuesProblem(values); reason != "" {
+				inc.RecordEnumValues(ctx, logger, dbName, t.Table.Schema, t.Table.Name, reason)
 
 				continue
 			}
@@ -131,10 +133,58 @@ func reconcileTables(
 		reconcilePermissionColumns(ctx, logger, inc, dbName, t, columnNames, cols)
 		reconcileRemoteRelationshipTypes(ctx, logger, inc, dbName, t)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
-		reconcileRelationshipFKIntrospection(ctx, logger, inc, dbName, t, introspected, objects)
+		reconcileRelationshipFKIntrospection(
+			ctx,
+			logger,
+			inc,
+			dbName,
+			t,
+			introspected,
+			objects,
+			survivingNames,
+		)
 	}
 
 	return surviving
+}
+
+// enumValuesProblem rejects an unusable enum table before schema validation
+// can turn one invalid data value into a whole-role inconsistency. Both SQL
+// drivers use this reconciliation path.
+func enumValuesProblem(values []introspection.EnumValue) string {
+	if len(values) == 0 {
+		return "table cannot be used as an enum: " +
+			"no usable values found (missing rows, invalid shape, or query failure)"
+	}
+
+	for _, value := range values {
+		if !validEnumValueName(value.Value) {
+			return fmt.Sprintf(
+				"table cannot be used as an enum: value %q is not a valid GraphQL enum value name",
+				value.Value,
+			)
+		}
+	}
+
+	return ""
+}
+
+func validEnumValueName(name string) bool {
+	if name == "" || name == "true" || name == "false" || name == "null" ||
+		strings.HasPrefix(name, "__") {
+		return false
+	}
+
+	for i, r := range name {
+		letter := r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r == '_'
+
+		digit := r >= '0' && r <= '9'
+		if !letter && (i == 0 || !digit) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // tableColumnNames returns the column names exposed by t in introspection
@@ -536,6 +586,7 @@ func reconcileRelationshipFKIntrospection(
 	t *metadata.TableMetadata,
 	parentIntrospected *introspection.Table,
 	objects *introspection.Objects,
+	surviving map[string]struct{},
 ) {
 	if parentIntrospected == nil {
 		return
@@ -546,7 +597,7 @@ func reconcileRelationshipFKIntrospection(
 		func(rel metadata.ObjectRelationship) bool {
 			return shouldDropOnFKIntrospection(
 				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
-				parentIntrospected, objects,
+				parentIntrospected, objects, surviving,
 			)
 		},
 	)
@@ -556,7 +607,7 @@ func reconcileRelationshipFKIntrospection(
 		func(rel metadata.ArrayRelationship) bool {
 			return shouldDropOnFKIntrospection(
 				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
-				parentIntrospected, objects,
+				parentIntrospected, objects, surviving,
 			)
 		},
 	)
@@ -577,6 +628,7 @@ func shouldDropOnFKIntrospection(
 	using metadata.RelationshipUsing,
 	parentIntrospected *introspection.Table,
 	objects *introspection.Objects,
+	surviving map[string]struct{},
 ) bool {
 	// Remote-schema and cross-source relationships do not consume local FK
 	// introspection; the composer validates them separately.
@@ -591,7 +643,7 @@ func shouldDropOnFKIntrospection(
 	case len(using.ForeignKeyColumns) > 0:
 		return dropIfForwardFKBroken(
 			ctx, logger, inc, dbName, t, relName,
-			using.ForeignKeyColumns, parentIntrospected, objects,
+			using.ForeignKeyColumns, parentIntrospected, objects, surviving,
 		)
 	case using.ForeignKeyConstraint != nil:
 		return dropIfReverseFKBroken(
@@ -605,9 +657,9 @@ func shouldDropOnFKIntrospection(
 
 // dropIfForwardFKBroken handles forward `ForeignKeyColumns` relationships:
 // the target table is discovered via the parent's introspected ForeignKeys.
-// If every listed column has a matching FK and all listed columns agree on
-// the same target, the relationship is kept. Otherwise the relationship is
-// dropped and recorded.
+// If every listed column has a matching FK, all listed columns agree on
+// the same target, and the target survives reconciliation, the relationship
+// is kept. Otherwise it is dropped and recorded.
 func dropIfForwardFKBroken(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -618,6 +670,7 @@ func dropIfForwardFKBroken(
 	fkColumns []string,
 	parentIntrospected *introspection.Table,
 	objects *introspection.Objects,
+	surviving map[string]struct{},
 ) bool {
 	targetSchema, targetTable := parentIntrospected.LookupForwardFKTarget(fkColumns)
 	if targetTable == "" {
@@ -642,6 +695,26 @@ func dropIfForwardFKBroken(
 			t.Table.Schema, t.Table.Name, relName,
 			fmt.Sprintf(
 				"relationship target %q not found in source introspection",
+				qualifyTable(targetSchema, targetTable),
+			),
+		)
+
+		return true
+	}
+
+	// The physical table can still exist after enum-value reconciliation has
+	// dropped it from metadata. Keeping the FK relationship would then abort
+	// root construction for the entire source.
+	if _, ok := surviving[qualifyTable(targetSchema, targetTable)]; !ok {
+		inc.RecordRelationship(
+			ctx,
+			logger,
+			dbName,
+			t.Table.Schema,
+			t.Table.Name,
+			relName,
+			fmt.Sprintf(
+				"relationship target %q not tracked in source",
 				qualifyTable(targetSchema, targetTable),
 			),
 		)

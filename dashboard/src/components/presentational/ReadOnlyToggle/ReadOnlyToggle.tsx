@@ -1,10 +1,4 @@
-import type {
-  DetailedHTMLProps,
-  ForwardedRef,
-  HTMLAttributes,
-  HTMLProps,
-} from 'react';
-import { forwardRef } from 'react';
+import type { DetailedHTMLProps, HTMLAttributes, HTMLProps } from 'react';
 import { cn } from '@/lib/utils';
 
 export type ReadOnlyToggleProps = Omit<
@@ -30,10 +24,13 @@ export type ReadOnlyToggleProps = Omit<
   };
 };
 
-function ReadOnlyToggle(
-  { checked, className, slotProps = {}, ...props }: ReadOnlyToggleProps,
-  ref: ForwardedRef<HTMLSpanElement>,
-) {
+function ReadOnlyToggle({
+  checked,
+  className,
+  slotProps = {},
+  ref,
+  ...props
+}: ReadOnlyToggleProps) {
   return (
     <span
       {...props}
@@ -79,6 +76,4 @@ function ReadOnlyToggle(
   );
 }
 
-ReadOnlyToggle.displayName = 'NhostReadOnlyToggle';
-
-export default forwardRef(ReadOnlyToggle);
+export default ReadOnlyToggle;

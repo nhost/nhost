@@ -41,7 +41,7 @@ Two sources of truth coexist:
 
 `buildRoleSchemas` (`connector.go:114`) walks all non-admin permissions and parses each. Admin is *intentionally* skipped — see the comment on that function — because the introspection result is authoritative.
 
-Both paths funnel into `pruneUnreachableTypes` (`prune.go:46`). This walks reachability from `Query` / `Mutation` / `Subscription` (plus directive arguments) and drops any type that isn't reachable. Without pruning, a role's SDL could leak unrelated types into the composed schema; pruning makes sure only the types the role can actually reference survive.
+Both paths call `(*graph.Schema).PruneUnreachableTypes` in `graph/prune.go`. It keeps types reachable from the query, mutation, and subscription roots or from directive arguments. When an SQL connector sets `RestrictedReadRoots`, composition prunes the merged role schema again after it adds cross-source relationships. This preserves types the role can still reach through a relationship.
 
 ## @preset directive
 
@@ -130,7 +130,7 @@ Response handling has one important relationship-specific exception: root-field 
 
 `convertToGraphSchema` (in `connector/remoteschema/schema.go`) lowers gqlparser's `*ast.Schema` to `graph.Schema` — the same intermediate representation the SQL schema generator targets. This is what lets `connector/composer` and `connector/schemamerge` merge remote and local schemas uniformly.
 
-Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspection types — list in `prune.go:builtinTypes`) are skipped. Fields whose name starts with `__` are also filtered (`convertFields`); the schema-merge stage adds the standard introspection wiring back later.
+Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspection types — list in `builtin_types.go:builtinTypes`) are skipped. Fields whose name starts with `__` are also filtered (`convertFields`); the schema-merge stage adds the standard introspection wiring back later.
 
 ## Failure modes worth knowing
 
@@ -149,7 +149,8 @@ Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspe
 | `connector/remoteschema/connector.go` | `Connector`, `New`, factories, `Execute` |
 | `connector/remoteschema/introspect.go` | Live introspection query, conversion to `graph.Schema` |
 | `connector/remoteschema/schema.go` | SDL parsing, `@preset` extraction, conversion to `graph.Schema` |
-| `connector/remoteschema/prune.go` | Unreachable-type pruning, builtin filter |
+| `connector/remoteschema/builtin_types.go` | Builtin and introspection type filter |
+| `graph/prune.go` | Unreachable-type pruning |
 | `connector/remoteschema/execute.go` | `applyPresetsToDocument`, operation and fragment cloning, query rendering, HTTP request |
 | `connector/remoteschema/http.go` | `httpClient`, header precedence, client-header forwarding, `HTTPDoer` |
 | `connector/remoteschema/errors.go` | `GraphQLError` for partial responses with errors |

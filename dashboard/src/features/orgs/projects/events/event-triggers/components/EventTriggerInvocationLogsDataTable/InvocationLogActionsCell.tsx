@@ -123,10 +123,10 @@ export default function InvocationLogActionsCell({
       <Tooltip>
         <TooltipTrigger asChild>
           <ButtonWithLoading
-            variant="ghost"
-            size="sm"
+            variant="subtle"
+            size="icon-sm"
             onClick={handleRedeliver}
-            className="-ml-1 h-8 w-8 p-0"
+            className="-ml-1"
             disabled={isRedeliverDisabled}
             loading={isThisRedeliverActionLoading}
             loaderClassName="mr-0 size-5"
@@ -143,10 +143,9 @@ export default function InvocationLogActionsCell({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button
-            variant="ghost"
-            size="sm"
+            variant="subtle"
+            size="icon-sm"
             onClick={() => meta.setSelectedLog(row)}
-            className="h-8 w-8 p-0"
           >
             <Eye className="h-4 w-4" />
           </Button>

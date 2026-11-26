@@ -2,6 +2,7 @@
 package sql
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -451,6 +452,91 @@ func TestReconcileMetadata_PreservesEnumWithValues(t *testing.T) {
 
 	if inc.Len() != 0 {
 		t.Errorf("expected no inconsistencies, got %+v", inc.Snapshot())
+	}
+}
+
+func TestReconcileMetadata_EnumValueNames(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		valid bool
+	}{
+		{"active", true},
+		{"A_z09", true},
+		{"_", true},
+		{"_internal", true},
+		{"True", true},
+		{"FALSE", true},
+		{"Null", true},
+		{"a__b", true},
+		{"", false},
+		{"__", false},
+		{"__internal", false},
+		{"true", false},
+		{"false", false},
+		{"null", false},
+		{"bad-name", false},
+		{"0active", false},
+		{"has space", false},
+		{"has\nnewline", false},
+		{"café", false},
+		{"\x00", false},
+	}
+	for _, schema := range []string{"public", ""} {
+		for _, tt := range tests {
+			t.Run(schema+"/"+tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				input := &metadata.DatabaseMetadata{
+					Name: "default",
+					Tables: []metadata.TableMetadata{
+						{Table: metadata.TableSource{Schema: schema, Name: "orders"}},
+						{Table: metadata.TableSource{Schema: schema, Name: "users"}, IsEnum: true},
+					},
+				}
+				objects := makeObjects(
+					withTable(schema, "orders", "id"),
+					withTable(schema, "users", "id"),
+					withEnumValues(schema, "users", "pending", tt.name),
+				)
+				inc := metadata.NewInconsistencies()
+				out := reconcileMetadata(t.Context(), nil, inc, input, objects)
+
+				wantTables, wantInconsistencies := []string{"orders"}, 1
+				if tt.valid {
+					wantTables = append(wantTables, "users")
+					wantInconsistencies = 0
+				}
+
+				if got := tableNames(out.Tables); !slices.Equal(got, wantTables) {
+					t.Fatalf("tables = %v, want %v", got, wantTables)
+				}
+
+				if inc.Len() != wantInconsistencies {
+					t.Fatalf("inconsistencies = %+v, want %d", inc.Snapshot(), wantInconsistencies)
+				}
+
+				if !tt.valid {
+					mustHaveInconsistency(
+						t,
+						inc,
+						metadata.InconsistencyKindEnumValues,
+						strings.TrimPrefix(schema+".users", "."),
+						fmt.Sprintf("value %q is not a valid GraphQL enum value name", tt.name),
+					)
+				}
+
+				if len(input.Tables) != 2 || !input.Tables[1].IsEnum {
+					t.Fatal("reconciliation mutated the input metadata")
+				}
+
+				values, ok := objects.GetEnumValues(schema, "users")
+				if !ok || len(values) != 2 || values[1].Value != tt.name {
+					t.Fatal("reconciliation mutated introspected values")
+				}
+			})
+		}
 	}
 }
 

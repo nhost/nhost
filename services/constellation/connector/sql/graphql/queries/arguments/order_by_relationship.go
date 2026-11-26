@@ -42,7 +42,7 @@ func appendRelationshipOrderBy(
 		)
 	}
 
-	if field.Value.Kind != ast.ObjectValue {
+	if field.Value.Kind != ast.ObjectValue && field.Value.Kind != ast.NullValue {
 		return nil, fmt.Errorf(
 			"%w: order_by on relationship %s must be an object", ErrInvalidArgument, field.Name,
 		)
@@ -57,6 +57,10 @@ func appendRelationshipOrderBy(
 
 	// Object relationship: order by columns of the single related row.
 	if field.Name == rel.Name() && !rel.IsArray() {
+		if field.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			rel, target, field.Value, parentSource, role, sessionVariables, gen,
 		)
@@ -76,9 +80,11 @@ func appendRelationshipOrderBy(
 }
 
 // buildRelationshipOrderItems builds ordering terms for an object relationship.
-// Each leaf column produces one ORDER BY term rendering a correlated scalar
-// subquery; nested object relationships and aggregates recurse, wrapping the
-// inner expression in this relationship's subquery.
+// Each leaf produces an ORDER BY term rendering a correlated scalar subquery;
+// computed-table aggregates and nested relationships retain the related row as
+// their source and wrap the inner expression in this relationship's subquery.
+//
+//nolint:funlen // Column, computed scalar and nested relationship branches share one correlated alias.
 func buildRelationshipOrderItems(
 	rel Relationship,
 	target Table,
@@ -93,6 +99,10 @@ func buildRelationshipOrderItems(
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullOrderByLeaf(target, child, role) {
+			continue
+		}
+
 		if column := target.ColumnFromGraphqlName(child.Name); column != nil {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -110,6 +120,54 @@ func buildRelationshipOrderItems(
 			})
 
 			continue
+		}
+
+		if computed := target.ComputedScalarFromGraphqlName(child.Name, role); computed != nil {
+			direction, err := orderByDirection(child.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			items = append(items, OrderByItem{
+				Column: "", Direction: direction,
+				term: newRelationshipOrderTerm(
+					rel,
+					target,
+					parentSource,
+					alias,
+					&computedOrderTerm{
+						expression:       computed,
+						source:           alias,
+						sessionVariables: sessionVariables,
+					},
+					role,
+					sessionVariables,
+				),
+			})
+
+			continue
+		}
+
+		if name, ok := strings.CutSuffix(child.Name, "_aggregate"); ok {
+			if computed := target.ComputedTableFromGraphqlName(name, role); computed != nil {
+				computedItems, err := appendComputedTableOrderBy(
+					target, computed, child.Value, alias, role, sessionVariables, gen,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, item := range computedItems {
+					items = append(items, OrderByItem{
+						Column: "", Direction: item.Direction,
+						term: newRelationshipOrderTerm(
+							rel, target, parentSource, alias, item.term, role, sessionVariables,
+						),
+					})
+				}
+
+				continue
+			}
 		}
 
 		nested, err := buildNestedRelationshipOrderItems(
@@ -145,7 +203,8 @@ func buildNestedRelationshipOrderItems(
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	childRel := target.Relationship(child.Name)
-	if childRel == nil || child.Value.Kind != ast.ObjectValue {
+	if childRel == nil ||
+		(child.Value.Kind != ast.ObjectValue && child.Value.Kind != ast.NullValue) {
 		return nil, fmt.Errorf(
 			"%w: %s is not an orderable field of table %s",
 			ErrInvalidArgument, child.Name, target.TableName(),
@@ -160,6 +219,10 @@ func buildNestedRelationshipOrderItems(
 	}
 
 	if child.Name == childRel.Name() && !childRel.IsArray() {
+		if child.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			childRel, childTarget, child.Value, parentAlias, role, sessionVariables, gen,
 		)
@@ -189,11 +252,19 @@ func buildAggregateOrderItems(
 	sessionVariables map[string]any,
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
+	if value.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	alias := gen.next()
 
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullAggregateOrderByField(child) {
+			continue
+		}
+
 		if child.Name == "count" {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -274,6 +345,10 @@ func buildAggregateColumnOrderItems(
 			)
 		}
 
+		if child.Value.Kind == ast.NullValue {
+			continue
+		}
+
 		direction, err := orderByDirection(child.Value)
 		if err != nil {
 			return nil, err
@@ -295,6 +370,13 @@ func buildAggregateColumnOrderItems(
 	}
 
 	return items, nil
+}
+
+// isNullAggregateOrderByField omits only recognized nullable aggregate entries;
+// unknown fields must still reach validation even when their value is null.
+func isNullAggregateOrderByField(field *ast.ChildValue) bool {
+	return field.Value.Kind == ast.NullValue &&
+		(field.Name == "count" || aggregateOrderByFuncs[field.Name] != "")
 }
 
 // aggregateOrderByFuncs is the closed set of aggregate order_by object keys.
@@ -349,8 +431,8 @@ func (c *columnOrderExpr) writeExpr(
 
 // relationshipOrderTerm renders an object-relationship ordering as a correlated
 // scalar subquery: (SELECT <inner> FROM <target> <alias> WHERE <join>
-// [AND <perms>] LIMIT 1). inner is a column reference, a nested relationship
-// term, or a nested aggregate term.
+// [AND <perms>] LIMIT 1). inner is a column, computed expression, nested
+// relationship, or aggregate term.
 type relationshipOrderTerm struct {
 	rel              Relationship
 	target           Table

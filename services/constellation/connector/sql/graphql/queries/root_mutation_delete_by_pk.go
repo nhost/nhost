@@ -34,6 +34,7 @@ func (t *table) buildMutationDeleteByPkSQL(
 	columns, relationships, err := t.astToQuerySelection(
 		field,
 		fragments,
+		role,
 	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
@@ -60,6 +61,7 @@ func (t *table) buildMutationDeleteByPkSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -104,8 +106,7 @@ func (t *table) buildDeleteByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil,
-		nil,
+
 		fragments,
 		variables,
 		role,
@@ -113,7 +114,7 @@ func (t *table) buildDeleteByPkSQL(
 		roots,
 		params,
 		paramIndex,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		return nil, err

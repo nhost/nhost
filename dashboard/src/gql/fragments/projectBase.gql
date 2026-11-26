@@ -28,13 +28,6 @@ fragment ProjectBase on apps {
     domain
     city
   }
-  legacyPlan {
-    id
-    name
-    price
-    isFree
-    featureMaxDbSize
-  }
   githubRepository {
     fullName
   }

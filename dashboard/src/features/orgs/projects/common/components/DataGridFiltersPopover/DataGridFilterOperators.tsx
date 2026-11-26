@@ -10,11 +10,11 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 
-type DataFilterProps = {
+interface DataFilterProps {
   value: DataGridFilterOperator;
   index: number;
   columnSpecificType?: string;
-};
+}
 
 function DataGridOperators({
   value,
@@ -45,7 +45,7 @@ function DataGridOperators({
 
   return (
     <Select value={value} onValueChange={handleOpChange}>
-      <SelectTrigger className="h-8 w-32">
+      <SelectTrigger className="w-32">
         <span
           className="!inline-block w-4/5 overflow-ellipsis whitespace-nowrap text-left"
           title={value}

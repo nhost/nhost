@@ -6,12 +6,12 @@ const validationSchema = z
   .object({
     newPassword: z
       .string({
-        required_error: 'This field is required.',
+        error: 'This field is required.',
       })
       .min(1, 'This field is required.'),
     confirmPassword: z
       .string({
-        required_error: 'This field is required.',
+        error: 'This field is required.',
       })
       .min(1, 'This field is required.'),
   })

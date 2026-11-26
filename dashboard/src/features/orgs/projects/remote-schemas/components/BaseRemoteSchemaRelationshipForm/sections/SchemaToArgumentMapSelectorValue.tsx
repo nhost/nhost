@@ -72,10 +72,7 @@ export default function SchemaToArgumentMapSelectorValue({
                 </PopoverTrigger>
                 <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                   <Command>
-                    <CommandInput
-                      placeholder="Search field..."
-                      className="h-9"
-                    />
+                    <CommandInput placeholder="Search field..." />
                     <CommandList>
                       <CommandEmpty>No source fields found.</CommandEmpty>
                       <CommandGroup>

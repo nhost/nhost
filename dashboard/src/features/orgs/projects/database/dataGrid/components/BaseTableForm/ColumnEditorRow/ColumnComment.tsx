@@ -32,11 +32,10 @@ function ColumnComment({ index }: ColumnCommentProps) {
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           title={title}
           data-testid={`columns.${index}.comment`}
-          className="h-8 w-8"
         >
           <CommentIcon strokeWidth={1} className="h-5 w-5" />
         </Button>

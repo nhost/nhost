@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,6 +14,10 @@ import (
 
 // typenameField is the GraphQL meta-field that resolves to the runtime type name.
 const typenameField = "__typename"
+
+var errMissingExpandedSetofSource = errors.New(
+	"computed SETOF aggregate requires an expanded row source",
+)
 
 // varianceAggregateFuncs is the subset of aggregate-selection functions backed
 // by a native stddev/variance SQL aggregate. Backends without them (SQLite) gate
@@ -129,6 +134,9 @@ func (s *typenameSelection) Write(b *strings.Builder) {
 type aggregateColumnSelection struct {
 	responseName string
 	column       *core.Column
+	computed     *computedScalar
+	field        *ast.Field
+	argumentPath string
 }
 
 type aggregateFunctionSelection struct {
@@ -147,6 +155,7 @@ type aggregateFunctionSelection struct {
 	jsonBuildObject string
 }
 
+//nolint:funlen // Fragment-expanded physical and computed columns share one aggregate selection collector.
 func newAggregateFunctionSelection(
 	fieldName string,
 	responseName string,
@@ -154,6 +163,7 @@ func newAggregateFunctionSelection(
 	t *table,
 	selectionSet ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
+	role, argumentPath string,
 ) (*aggregateFunctionSelection, error) {
 	columns := make([]aggregateColumnSelection, 0, len(selectionSet))
 	fieldsTypeName := t.graphqlTypeName + "_" + fieldName + "_fields"
@@ -177,7 +187,12 @@ func newAggregateFunctionSelection(
 					continue
 				}
 
-				columns, collectErr = t.appendAggregateFunctionColumn(columns, s)
+				columns, collectErr = t.appendAggregateFunctionColumn(
+					columns,
+					s,
+					role,
+					argumentPath,
+				)
 				if collectErr != nil {
 					return
 				}
@@ -216,10 +231,16 @@ func newAggregateFunctionSelection(
 func (t *table) appendAggregateFunctionColumn(
 	columns []aggregateColumnSelection,
 	field *ast.Field,
+	role, argumentPath string,
 ) ([]aggregateColumnSelection, error) {
 	col := t.columnFromGraphqlName(field.Name)
+
+	var computed *computedScalar
 	if col == nil {
-		return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, field.Name)
+		computed = t.computedFromGraphqlName(field.Name, role)
+		if computed == nil {
+			return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, field.Name)
+		}
 	}
 
 	columnResponseName := fieldResponseName(field)
@@ -230,6 +251,9 @@ func (t *table) appendAggregateFunctionColumn(
 	return append(columns, aggregateColumnSelection{
 		responseName: columnResponseName,
 		column:       col,
+		computed:     computed,
+		field:        field,
+		argumentPath: childArgumentPath(argumentPath, field),
 	}), nil
 }
 
@@ -303,6 +327,237 @@ func (s *aggregateFunctionSelection) write(b *strings.Builder, source string) {
 	b.WriteString(")")
 }
 
+// writeBound renders computed aggregate operands at the final placeholder
+// position. Ordinary column selections retain their existing rendering.
+//
+//nolint:funlen // Physical columns, computed operands and __typename share a JSON object writer.
+func (s *aggregateFunctionSelection) writeBound(
+	b *strings.Builder, source string, t *table,
+	variables, sessionVariables map[string]any,
+	qualifyColumns bool, groupKey string,
+	params []any, paramIndex int,
+	expanded map[*ast.Field]string,
+) ([]any, int, error) {
+	b.WriteByte('\'')
+	b.WriteString(s.responseName)
+	b.WriteString("', ")
+	b.WriteString(s.jsonBuildObject)
+	b.WriteByte('(')
+
+	first := true
+	for _, sel := range s.Columns {
+		if !first {
+			b.WriteString(", ")
+		}
+
+		b.WriteByte('\'')
+		b.WriteString(sel.responseName)
+		b.WriteString("', ")
+
+		if sel.computed == nil {
+			columnSource := source
+			if !qualifyColumns {
+				columnSource = "" // Preserve ordinary aggregate SQL/goldens.
+			}
+
+			b.WriteString(outputColumnExpression(
+				s.dialect,
+				aggregateColumnExpression(s.FuncName, columnSource, sel.column),
+				sel.column,
+			))
+		} else {
+			var err error
+
+			params, paramIndex, err = s.writeComputedOperand(
+				b,
+				source,
+				groupKey,
+				t,
+				sel,
+				variables,
+				sessionVariables,
+				params,
+				paramIndex,
+				expanded,
+			)
+			if err != nil {
+				return nil, 0, err
+			}
+		}
+
+		first = false
+	}
+
+	for i := range s.Typenames {
+		if !first {
+			b.WriteString(", ")
+		}
+
+		s.Typenames[i].Write(b)
+
+		first = false
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+func (s *aggregateFunctionSelection) writeComputedOperand(
+	b *strings.Builder, source, groupKey string,
+	t *table, sel aggregateColumnSelection,
+	variables, sessionVariables map[string]any, params []any, paramIndex int,
+	expanded map[*ast.Field]string,
+) ([]any, int, error) {
+	if alias, ok := expanded[sel.field]; ok {
+		b.WriteString(s.FuncName)
+		b.WriteByte('(')
+		core.WriteQualifiedColumn(b, source, alias)
+		b.WriteByte(')')
+
+		return params, paramIndex, nil
+	}
+
+	if sel.computed.function.ReturnSet {
+		return nil, 0, fmt.Errorf("%w: %s", errMissingExpandedSetofSource, sel.computed.name)
+	}
+
+	b.WriteString(s.FuncName)
+	b.WriteByte('(')
+
+	if groupKey != "" {
+		b.WriteString("CASE WHEN ")
+		core.WriteQualifiedColumn(b, source, groupKey)
+		b.WriteString(" IS NOT NULL THEN ")
+	}
+
+	params, paramIndex, err := t.writeComputedCall(
+		b, sel.computed, sel.field, strings.Trim(source, `"`),
+		sel.argumentPath, variables, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("writing computed aggregate %s: %w", sel.computed.name, err)
+	}
+
+	if groupKey != "" {
+		b.WriteString(" END")
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+// expandedAggregateOperands collects each selected SETOF operand once across
+// every aggregate alias. PostgreSQL expands multiple SRFs in a single target
+// list in lockstep, not as a Cartesian product.
+func expandedAggregateOperands(
+	fields []aggregateFieldSelection,
+	t *table,
+) ([]aggregateColumnSelection, map[*ast.Field]string) {
+	var operands []aggregateColumnSelection
+
+	aliases := make(map[*ast.Field]string)
+	for _, field := range fields {
+		for _, selection := range field.selections {
+			fn, ok := selection.(*aggregateFunctionSelection)
+			if !ok {
+				continue
+			}
+
+			for _, col := range fn.Columns {
+				if col.computed == nil || !col.computed.function.ReturnSet {
+					continue
+				}
+
+				if _, exists := aliases[col.field]; exists {
+					continue
+				}
+
+				alias := fmt.Sprintf("__cs_setof_%d", len(operands))
+				for t.columnFromSQLName(alias) != nil {
+					alias += "_"
+				}
+
+				aliases[col.field] = alias
+				operands = append(operands, col)
+			}
+		}
+	}
+
+	return operands, aliases
+}
+
+// writeExpandedAggregateCTE produces one row source shared by all count,
+// column, computed and nodes projections. Grouped sources exclude the synthetic
+// LEFT JOIN row and apply the per-key window before invoking any function.
+func (t *table) writeExpandedAggregateCTE(
+	b *strings.Builder, source, target, joinCol string, window groupedLimitOffset,
+	operands []aggregateColumnSelection, aliases map[*ast.Field]string,
+	variables, sessionVariables map[string]any, params []any, paramIndex int,
+) ([]any, int, error) {
+	b.WriteString(`, "`)
+	b.WriteString(target)
+	b.WriteString(`" `)
+	b.WriteString(t.dialect.MaterializedCTE())
+	b.WriteString(` (SELECT "__cs_parent".*`)
+
+	for _, operand := range operands {
+		b.WriteString(", ")
+
+		var err error
+
+		params, paramIndex, err = t.writeComputedCall(
+			b, operand.computed, operand.field, "__cs_parent", operand.argumentPath,
+			variables, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf(
+				"expanding computed aggregate %s: %w",
+				operand.computed.name,
+				err,
+			)
+		}
+
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, aliases[operand.field])
+	}
+
+	b.WriteString(` FROM "`)
+	b.WriteString(source)
+	b.WriteString(`" AS "__cs_parent"`)
+
+	if joinCol != "" {
+		b.WriteString(` WHERE `)
+		core.WriteQualifiedColumn(b, `"__cs_parent"`, joinCol)
+		b.WriteString(` IS NOT NULL`)
+
+		if window.active() {
+			b.WriteString(` AND `)
+			core.WriteQualifiedColumn(b, `"__cs_parent"`, groupedAggregateRowNumberCol)
+			b.WriteString(` > `)
+			b.WriteString(t.dialect.Placeholder(paramIndex))
+
+			params = append(params, window.effectiveOffset())
+
+			paramIndex++
+			if window.hasLimit {
+				b.WriteString(` AND `)
+				core.WriteQualifiedColumn(b, `"__cs_parent"`, groupedAggregateRowNumberCol)
+				b.WriteString(` <= `)
+				b.WriteString(t.dialect.Placeholder(paramIndex))
+
+				params = append(params, window.effectiveOffset()+window.limit)
+				paramIndex++
+			}
+		}
+	}
+
+	b.WriteString(`) `)
+
+	return params, paramIndex, nil
+}
+
 // aggregateFieldSelection is one `aggregate` field at the aggregate-root
 // scope. responseName is the field alias if present, otherwise "aggregate".
 type aggregateFieldSelection struct {
@@ -324,6 +579,8 @@ type aggregateSelectionCollector struct {
 	table           *table
 	fragments       ast.FragmentDefinitionList
 	variables       map[string]any
+	role            string
+	argumentPath    string
 	outerTypeName   string
 	outerTypenames  []typenameSelection
 	aggregateFields []aggregateFieldSelection
@@ -368,7 +625,9 @@ func (c *aggregateSelectionCollector) collectField(s *ast.Field) {
 	case typenameField:
 		c.outerTypenames = appendTypename(c.outerTypenames, s, c.outerTypeName)
 	case "aggregate":
-		aggSel, err := c.table.parseAggregateFields(s, c.fragments, c.variables)
+		aggSel, err := c.table.parseAggregateFields(
+			s, c.fragments, c.variables, c.role, childArgumentPath(c.argumentPath, s),
+		)
 		if err != nil {
 			c.err = err
 
@@ -426,11 +685,14 @@ func (t *table) astToAggregateSelection(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]typenameSelection, []aggregateFieldSelection, []aggregateNodesSelection, error) {
 	c := &aggregateSelectionCollector{
 		table:           t,
 		fragments:       fragments,
 		variables:       variables,
+		role:            role,
+		argumentPath:    argumentPath,
 		outerTypeName:   t.graphqlTypeName + "_aggregate",
 		outerTypenames:  nil,
 		aggregateFields: nil,
@@ -509,6 +771,7 @@ func (t *table) appendAggregateField(
 	aggregateFieldsTypeName string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]aggregateQuerySelection, error) {
 	switch f.Name {
 	case typenameField:
@@ -544,6 +807,7 @@ func (t *table) appendAggregateField(
 
 		a, err := newAggregateFunctionSelection(
 			f.Name, responseName, strings.ToUpper(f.Name), t, f.SelectionSet, fragments,
+			role, childArgumentPath(argumentPath, f),
 		)
 		if err != nil {
 			return nil, err
@@ -651,6 +915,7 @@ func (t *table) parseAggregateFields(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]aggregateQuerySelection, error) {
 	var (
 		sel           []aggregateQuerySelection
@@ -669,7 +934,7 @@ func (t *table) parseAggregateFields(
 			switch s := selection.(type) {
 			case *ast.Field:
 				next, err := t.appendAggregateField(
-					sel, s, aggregateFieldsTypeName, fragments, variables,
+					sel, s, aggregateFieldsTypeName, fragments, variables, role, argumentPath,
 				)
 				if err != nil {
 					collectErr = err

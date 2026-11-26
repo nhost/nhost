@@ -118,6 +118,9 @@ func MergeConnectorSchema(
 		return err
 	}
 
+	combinedSchema.RestrictedReadRoots = combinedSchema.RestrictedReadRoots ||
+		schema.RestrictedReadRoots
+
 	for i, r := range roots {
 		if *r.sourceField != nil && *r.targetField == nil {
 			*r.targetField = new(r.combinedTypeName)
@@ -303,12 +306,34 @@ func mergeRootType(
 
 // BuildValidatedSchema converts a combined [graph.Schema] to an AST document
 // and validates it. The returned [ast.SchemaDocument] is the prelude-prepended
-// document fed to the validator, not the bare ToAST output of combinedSchema.
+// document, not the bare ToAST output of combinedSchema. If RestrictedReadRoots
+// is set, types unreachable from the declared (or implicit default) roots or
+// directive arguments are pruned from a shallow copy before validation, leaving
+// combinedSchema unchanged. Unlike [BuildComposedSchema], this does not add the
+// empty-query fallback. SQL-generated empty insert inputs are accepted for Hasura
+// compatibility and both results retain their zero-field shape.
 func BuildValidatedSchema(
 	combinedSchema *graph.Schema,
 	role string,
 ) (*ast.SchemaDocument, *ast.Schema, error) {
+	return buildValidatedSchema(combinedSchema, role, nil)
+}
+
+func buildValidatedSchema(
+	combinedSchema *graph.Schema,
+	role string,
+	prepare func(*ast.SchemaDocument),
+) (*ast.SchemaDocument, *ast.Schema, error) {
+	if combinedSchema.RestrictedReadRoots {
+		pruned := *combinedSchema
+		pruned.PruneUnreachableTypes()
+		combinedSchema = &pruned
+	}
+
 	userSchemaDoc := combinedSchema.ToAST()
+	if prepare != nil {
+		prepare(userSchemaDoc)
+	}
 
 	prelude, err := preludeDoc()
 	if err != nil {
@@ -333,12 +358,47 @@ func BuildValidatedSchema(
 		Schema:      userSchemaDoc.Schema,
 	}
 
+	// gqlparser enforces the spec's non-empty input rule. Give only explicitly
+	// marked SQL insert inputs a field during schema validation, then remove it
+	// from the fresh AST before publishing either result. The validator retains
+	// definition pointers, so operation validation, coercion and introspection
+	// all see the real empty input, never this validation-only field.
+	restore := prepareEmptySQLInsertInputs(combinedSchema, userSchemaDoc)
+	defer restore()
+
 	validatedSchema, err := validator.ValidateSchemaDocument(schemaDoc)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to validate schema for role %s: %w", role, err)
 	}
 
 	return schemaDoc, validatedSchema, nil
+}
+
+func prepareEmptySQLInsertInputs(schema *graph.Schema, doc *ast.SchemaDocument) func() {
+	emptyInputs := make(map[string]bool)
+	for _, input := range schema.Inputs {
+		emptyInputs[input.Name] = input.EmptySQLInsert && len(input.Fields) == 0
+	}
+
+	var restored []*ast.Definition
+
+	for _, def := range doc.Definitions {
+		if def.Kind != ast.InputObject || len(def.Fields) != 0 || !emptyInputs[def.Name] {
+			continue
+		}
+
+		def.Fields = ast.FieldList{{
+			Name: "_constellation_validation_only",
+			Type: ast.NamedType("Boolean", nil),
+		}}
+		restored = append(restored, def)
+	}
+
+	return func() {
+		for _, def := range restored {
+			def.Fields = ast.FieldList{}
+		}
+	}
 }
 
 // mergeScalars merges two scalar slices, deduplicating by name.
@@ -449,6 +509,12 @@ func mergeInputs(
 // fields compare equal.
 func inputsEqual(a, b *graph.InputObjectType) bool {
 	if len(a.Fields) != len(b.Fields) {
+		return false
+	}
+
+	// An unrelated empty input must not acquire SQL compatibility by merging
+	// with a generated one of the same name (in either connector order).
+	if len(a.Fields) == 0 && a.EmptySQLInsert != b.EmptySQLInsert {
 		return false
 	}
 

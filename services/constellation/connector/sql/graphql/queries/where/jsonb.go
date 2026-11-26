@@ -1,16 +1,27 @@
 package where
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 )
+
+func writeJSONBTarget(b *strings.Builder, source, column string, target *comparisonTarget) {
+	if target != nil {
+		target.writeSQL(b, source)
+	} else {
+		core.WriteQualifiedColumn(b, source, column)
+	}
+}
 
 // jsonbContainsFilter implements the _contains operator for JSONB columns.
 // Dispatched from containmentParser when column.IsArray is false; the array
 // branch produces arrayContainsFilter instead.
 type jsonbContainsFilter struct {
+	target  *comparisonTarget
 	column  string
 	value   any
 	dialect dialect.Dialect
@@ -22,11 +33,16 @@ func (f *jsonbContainsFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	value, err := values.CoerceSQLValue("jsonb", f.value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing JSONB containment value: %w", err)
+	}
+
+	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" @> ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "jsonb"))
 
-	params = append(params, f.value)
+	params = append(params, value)
 
 	return params, paramIndex + 1, nil
 }
@@ -35,6 +51,7 @@ func (f *jsonbContainsFilter) WriteCondition(
 // Dispatched from containmentParser when column.IsArray is false; the array
 // branch produces arrayContainedInFilter instead.
 type jsonbContainedInFilter struct {
+	target  *comparisonTarget
 	column  string
 	value   any
 	dialect dialect.Dialect
@@ -46,17 +63,23 @@ func (f *jsonbContainedInFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	value, err := values.CoerceSQLValue("jsonb", f.value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing JSONB containment value: %w", err)
+	}
+
+	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" <@ ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "jsonb"))
 
-	params = append(params, f.value)
+	params = append(params, value)
 
 	return params, paramIndex + 1, nil
 }
 
 // jsonbHasKeyFilter implements the _has_key operator for JSONB columns.
 type jsonbHasKeyFilter struct {
+	target  *comparisonTarget
 	column  string
 	key     string
 	dialect dialect.Dialect
@@ -68,7 +91,7 @@ func (f *jsonbHasKeyFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" ? ")
 	b.WriteString(f.dialect.Placeholder(paramIndex))
 
@@ -79,6 +102,7 @@ func (f *jsonbHasKeyFilter) WriteCondition(
 
 // jsonbHasKeysAllFilter implements the _has_keys_all operator for JSONB columns.
 type jsonbHasKeysAllFilter struct {
+	target  *comparisonTarget
 	column  string
 	keys    []string
 	dialect dialect.Dialect
@@ -90,7 +114,7 @@ func (f *jsonbHasKeysAllFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" ?& ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "text[]"))
 
@@ -101,6 +125,7 @@ func (f *jsonbHasKeysAllFilter) WriteCondition(
 
 // jsonbHasKeysAnyFilter implements the _has_keys_any operator for JSONB columns.
 type jsonbHasKeysAnyFilter struct {
+	target  *comparisonTarget
 	column  string
 	keys    []string
 	dialect dialect.Dialect
@@ -112,7 +137,7 @@ func (f *jsonbHasKeysAnyFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" ?| ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "text[]"))
 

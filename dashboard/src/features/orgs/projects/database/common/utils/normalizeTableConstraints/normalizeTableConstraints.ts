@@ -77,6 +77,7 @@ export default function normalizeTableConstraints(
           columns: formatForeignKeyColumns(
             definitionColumns.replaceAll('"', ''),
           ),
+          definition: constraintDefinition,
         });
       }
     }

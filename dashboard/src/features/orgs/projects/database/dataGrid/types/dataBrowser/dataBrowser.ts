@@ -194,11 +194,11 @@ export type RawQueryDataRow = string[];
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
 
-export type FunctionObject = {
+export interface FunctionObject {
   function_schema: string;
   function_name: string;
   function_oid: string;
-};
+}
 
 /**
  * Represents an object that can be a table, view or materialized view in the database.
@@ -266,6 +266,12 @@ export interface ColumnUpdateOptions {
 }
 
 /**
+ * PostGIS column types. The data grid reads both as GeoJSON and writes GeoJSON
+ * back through `ST_GeomFromGeoJSON`, casting the result for geography.
+ */
+export type SpatialType = 'geometry' | 'geography';
+
+/**
  * Represents an object that can be used to insert a column in an SQL query.
  */
 export interface ColumnInsertOptions {
@@ -283,6 +289,12 @@ export interface ColumnInsertOptions {
    * column metadata (`isArray`); the mutation never re-parses a type string.
    */
   isArray?: boolean;
+  /**
+   * PostGIS type of the column when it is spatial. GeoJSON values are then
+   * written through `ST_GeomFromGeoJSON` (cast for geography) instead of as a
+   * plain literal. Derived once on the column metadata like `isArray`.
+   */
+  spatialType?: SpatialType;
 }
 
 /**
@@ -439,6 +451,10 @@ export interface CandidateKey {
   name: string;
   isPrimary: boolean;
   columns: string[];
+  /**
+   * Definition from Postgres, e.g. `UNIQUE NULLS NOT DISTINCT (a, b)`.
+   */
+  definition: string;
 }
 
 /**
@@ -538,6 +554,11 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /**
+   * UNIQUE constraints. `name` is set for an existing constraint and absent
+   * for one that still has to be created, optionally as `newName`.
+   */
+  uniqueKeys?: { name?: string; newName?: string; columns: string[] }[];
 }
 
 /**

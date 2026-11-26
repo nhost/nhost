@@ -119,7 +119,7 @@ export interface ServiceFormProps extends DialogFormProps {
   onSubmit?: () => Promise<unknown>;
 }
 
-export type Port = {
+export interface Port {
   port: number;
   type: PortTypes;
   publish: boolean;
@@ -129,4 +129,4 @@ export type Port = {
         fqdn: string[];
       }[]
     | null;
-};
+}

@@ -40,7 +40,7 @@ export interface ManagePermissionVariables {
 
 export interface ManagePermissionOptions extends MutationOrQueryBaseOptions {}
 
-type HasuraArgs = {
+interface HasuraArgs {
   type: string;
   args: {
     table: {
@@ -51,7 +51,7 @@ type HasuraArgs = {
     role: string;
     permission?: HasuraMetadataPermission['permission'];
   };
-};
+}
 
 export default async function managePermission({
   dataSource,

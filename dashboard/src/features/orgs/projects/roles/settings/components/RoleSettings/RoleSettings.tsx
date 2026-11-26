@@ -10,9 +10,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -154,7 +152,7 @@ export default function RoleSettings() {
       component: <CreateRoleForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -167,7 +165,7 @@ export default function RoleSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -196,6 +194,10 @@ export default function RoleSettings() {
       <SettingsCardHeader
         title="Default Allowed Roles"
         description="Default Allowed Roles are roles users get automatically when they sign up."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/auth/users#allowed-roles',
+          topic: 'Default Allowed Roles',
+        }}
       />
 
       <SettingsCardContent
@@ -204,7 +206,7 @@ export default function RoleSettings() {
           availableAllowedRoles.length === 0 && 'gap-2',
         )}
       >
-        <div className="border-b-1 px-4 py-3">
+        <div className="border-b-1 px-6 py-3">
           <p className="font-medium">Name</p>
         </div>
 
@@ -213,12 +215,12 @@ export default function RoleSettings() {
             <div>
               {availableAllowedRoles.map((role, index) => (
                 <Fragment key={role.name}>
-                  <div className="relative px-4 pr-12">
+                  <div className="relative px-6 pr-12">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
@@ -226,10 +228,10 @@ export default function RoleSettings() {
                         </Button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-32 p-0">
+                      <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                           onClick={() => handleSetAsDefault(role)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Set as Default</span>
                         </DropdownMenuItem>
@@ -237,7 +239,7 @@ export default function RoleSettings() {
                         <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleOpenEditor(role)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Edit</span>
                         </DropdownMenuItem>
@@ -245,7 +247,7 @@ export default function RoleSettings() {
                         <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleConfirmDelete(role)}
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         >
                           <span>Delete</span>
                         </DropdownMenuItem>
@@ -286,13 +288,6 @@ export default function RoleSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/auth/users#allowed-roles"
-          title="Default Allowed Roles"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

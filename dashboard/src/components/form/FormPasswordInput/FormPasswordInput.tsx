@@ -1,9 +1,8 @@
-import {
-  type ChangeEventHandler,
-  type FocusEventHandler,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
+import type {
+  ChangeEventHandler,
+  FocusEventHandler,
+  ReactNode,
+  Ref,
 } from 'react';
 import type {
   Control,
@@ -51,6 +50,7 @@ interface FormPasswordInputProps<
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: PasswordInputProps['autoComplete'];
+  autoFocus?: PasswordInputProps['autoFocus'];
   'data-testid'?: string;
   /**
    * Called after the field's onChange runs. Use for side effects like syncing
@@ -63,29 +63,30 @@ interface FormPasswordInputProps<
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
-function InnerFormPasswordInput<
+function FormPasswordInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    className = '',
-    containerClassName = '',
-    inline,
-    helperText,
-    disabled,
-    autoComplete,
-    transform,
-    'data-testid': dataTestId,
-    'aria-label': ariaLabel,
-    onChange: onChangeProp,
-    onBlur: onBlurProp,
-  }: FormPasswordInputProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLInputElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  className = '',
+  containerClassName = '',
+  inline,
+  helperText,
+  disabled,
+  autoComplete,
+  autoFocus,
+  transform,
+  'data-testid': dataTestId,
+  'aria-label': ariaLabel,
+  onChange: onChangeProp,
+  onBlur: onBlurProp,
+  ref,
+}: FormPasswordInputProps<TFieldValues, TName> & {
+  ref?: Ref<HTMLInputElement>;
+}) {
   return (
     <FormField
       control={control}
@@ -138,6 +139,7 @@ function InnerFormPasswordInput<
                   placeholder={placeholder}
                   disabled={disabled}
                   autoComplete={autoComplete}
+                  autoFocus={autoFocus}
                   data-testid={dataTestId}
                   aria-label={ariaLabel}
                   aria-invalid={fieldState.invalid}
@@ -162,14 +164,5 @@ function InnerFormPasswordInput<
     />
   );
 }
-
-const FormPasswordInput = forwardRef(InnerFormPasswordInput) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormPasswordInputProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLInputElement>;
-  },
-) => ReturnType<typeof InnerFormPasswordInput>;
 
 export default FormPasswordInput;

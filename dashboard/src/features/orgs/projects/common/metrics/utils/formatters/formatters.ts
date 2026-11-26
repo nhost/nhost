@@ -101,6 +101,14 @@ export function formatPercentUnit(ratio: number): string {
   return `${pct.toFixed(1)}%`;
 }
 
+// A percentage, 0 to 100, rounded to a whole one. A share too small to round
+// up to 1% shows as "<1%" rather than "0%".
+export function formatWholePercent(percentage: number): string {
+  return percentage > 0 && percentage < 1
+    ? '<1%'
+    : `${Math.round(percentage)}%`;
+}
+
 export function formatterForKind(
   kind: ValueFormatterKind,
 ): (v: number) => string {

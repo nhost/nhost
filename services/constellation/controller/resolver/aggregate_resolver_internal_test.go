@@ -216,7 +216,7 @@ func TestStitchAggregateResults_UsesLocalJoinAlias(t *testing.T) {
 		},
 	}
 
-	stitchAggregateResults(rq, results, aggregateResult, "dept_id")
+	stitchAggregateResults(rq, results, aggregateResult, "dept_id", false)
 
 	teams, ok := results["teams"].([]any)
 	if !ok {
@@ -392,8 +392,8 @@ func TestExecuteAndStitchAggregate_MultiColumnMappingUnsupported(t *testing.T) {
 		nil,
 		slog.Default(),
 	)
-	if !errors.Is(err, errAggregateMultiColumnJoinUnsupported) {
-		t.Errorf("expected errAggregateMultiColumnJoinUnsupported, got %v", err)
+	if !errors.Is(err, ErrAggregateMultiColumnJoinUnsupported) {
+		t.Errorf("expected ErrAggregateMultiColumnJoinUnsupported, got %v", err)
 	}
 }
 
@@ -463,7 +463,7 @@ func TestUniqueJoinValues_DedupesAndSkipsNil(t *testing.T) {
 		newRemoteJoinArgument(map[string]any{"deptId": "d3"}),
 	}
 
-	got := uniqueJoinValues(joinArgs, "deptId")
+	got := uniqueJoinValues(joinArgs, "deptId", false)
 
 	want := []any{"d1", "d2", "d3"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -487,7 +487,7 @@ func TestUniqueJoinValues_HandlesNonComparable(t *testing.T) {
 		newRemoteJoinArgument(map[string]any{"deptId": "d1"}),
 	}
 
-	got := uniqueJoinValues(joinArgs, "deptId")
+	got := uniqueJoinValues(joinArgs, "deptId", false)
 
 	want := []any{sliceValue, mapValue, "d1"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -498,7 +498,7 @@ func TestUniqueJoinValues_HandlesNonComparable(t *testing.T) {
 func TestUniqueJoinValues_EmptyInput(t *testing.T) {
 	t.Parallel()
 
-	got := uniqueJoinValues(nil, "deptId")
+	got := uniqueJoinValues(nil, "deptId", false)
 	if len(got) != 0 {
 		t.Errorf("expected empty result, got %v", got)
 	}

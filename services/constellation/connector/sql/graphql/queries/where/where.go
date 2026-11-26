@@ -32,7 +32,15 @@ func (w Clause) WriteCondition(
 ) ([]any, int, error) {
 	var err error
 	for i, condition := range w {
-		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionRoot(
+			condition,
+			b,
+			source,
+			source,
+			params,
+			paramIndex,
+			nil,
+		)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write where condition at pos %d: %w",
@@ -113,6 +121,10 @@ func parseBoolExp(
 		return nil, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
 	}
 
+	if aliases.root == nil {
+		aliases.root = t
+	}
+
 	conditions := make(Clause, 0, len(whereArg.Children))
 
 	for _, child := range whereArg.Children {
@@ -143,7 +155,7 @@ func parseWhereChild(
 	aliases Aliases,
 ) (Clause, error) {
 	switch child.Name {
-	case "_and":
+	case "_and", "$and":
 		andConditions, err := parseLogicalAnd(
 			t, child.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
@@ -153,7 +165,7 @@ func parseWhereChild(
 
 		return andConditions, nil
 
-	case "_or":
+	case "_or", "$or":
 		orCondition, err := parseLogicalOr(
 			t, child.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
@@ -163,7 +175,7 @@ func parseWhereChild(
 
 		return Clause{orCondition}, nil
 
-	case "_not":
+	case "_not", "$not":
 		notCondition, err := parseLogicalNot(
 			t, child.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
@@ -173,7 +185,7 @@ func parseWhereChild(
 
 		return Clause{notCondition}, nil
 
-	case "_exists":
+	case "_exists", "$exists":
 		existsCondition, err := parseExists(
 			t, child.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
@@ -214,12 +226,36 @@ func parseFieldOrRelationship(
 	aliases Aliases,
 ) (Statement, error) {
 	if column := t.ColumnFromGraphqlName(fieldName); column != nil {
-		cond, err := t.ParseFieldComparison(column, value, variables)
+		cond, err := parseFieldComparisonValue(
+			column,
+			nil,
+			value,
+			variables,
+			t.Dialect(), sessionVariables[core.PermissionSessionTemplateKey] == true,
+			t,
+			aliases.root,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse field %s: %w", fieldName, err)
 		}
 
+		return guardArrayMembershipPermission(cond, column, value, sessionVariables), nil
+	}
+
+	if computed := t.ComputedScalarFromGraphqlName(fieldName, role); computed != nil {
+		cond, err := parseComputedComparison(
+			t, computed, value, variables, sessionVariables, aliases.root,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse computed field %s: %w", fieldName, err)
+		}
+
 		return cond, nil
+	}
+
+	if computed := t.ComputedTableFromGraphqlName(fieldName, role); computed != nil {
+		return parseComputedTableFilter(t, computed, value, variables, role,
+			sessionVariables, nestingLevel, aliases)
 	}
 
 	if relationship := t.RelationshipFromGraphqlName(fieldName); relationship != nil {
@@ -501,6 +537,16 @@ func resolveTargetArrayValue(
 		return nil, err
 	}
 
+	if column != nil && column.IsArray {
+		// GraphQL coerces scalar candidates to singleton arrays, including
+		// literals mixed with variables. Validation need not retain that shape.
+		for i, candidate := range out {
+			if _, isArray := candidate.([]any); !isArray && candidate != nil {
+				out[i] = []any{candidate}
+			}
+		}
+	}
+
 	t := comparisonTargetFor(column, target)
 
 	coerced, err := values.CoerceSQLValues(t.sqlType, out)
@@ -540,7 +586,7 @@ func ParseFieldComparison(
 	value *ast.Value,
 	variables map[string]any,
 ) (Statement, error) {
-	return parseFieldComparisonValue(column, nil, value, variables, t.Dialect())
+	return parseFieldComparisonValue(column, nil, value, variables, t.Dialect(), false, t, t)
 }
 
 func parseFieldComparisonValue(
@@ -549,7 +595,14 @@ func parseFieldComparisonValue(
 	value *ast.Value,
 	variables map[string]any,
 	d dialect.Dialect,
+	permission bool,
+	tables ...Table,
 ) (Statement, error) {
+	value, err := values.ResolveVariables(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving field comparison: %w", err)
+	}
+
 	if value.Kind != ast.ObjectValue {
 		return nil, errFieldComparisonMustBeObject
 	}
@@ -557,21 +610,21 @@ func parseFieldComparisonValue(
 	conditions := make([]Statement, 0, len(value.Children))
 
 	for _, child := range value.Children {
-		parser, ok := operatorParserFor(child.Name)
-		if !ok {
-			return nil, fmt.Errorf("%w: %s", errUnknownWhereOperator, child.Name)
-		}
-
-		cond, err := parser(column, target, child.Value, variables, d)
+		cond, err := parseComparisonEntry(
+			column,
+			target,
+			child,
+			variables,
+			d,
+			permission,
+			tables...)
 		if err != nil {
 			return nil, err
 		}
 
-		if cond == nil {
-			continue
+		if cond != nil {
+			conditions = append(conditions, cond)
 		}
-
-		conditions = append(conditions, cond)
 	}
 
 	switch {
@@ -582,6 +635,52 @@ func parseFieldComparisonValue(
 	default:
 		return &andFilter{conditions: conditions}, nil
 	}
+}
+
+func parseComparisonEntry(
+	column *core.Column,
+	target *comparisonTarget,
+	child *ast.ChildValue,
+	variables map[string]any,
+	d dialect.Dialect,
+	permission bool,
+	tables ...Table,
+) (Statement, error) {
+	name := canonicalComparisonOperator(child.Name)
+	if name == "_cast" && len(tables) == columnComparisonTableCount {
+		return parseComparisonCast(column, target, child.Value, variables, d, permission, tables...)
+	}
+
+	if columnComparisonOperator(name) != "" {
+		if len(tables) != columnComparisonTableCount {
+			return nil, errColumnComparisonUnsupported
+		}
+
+		return parseColumnComparison(column, target, child.Value, variables, d,
+			tables[0], tables[1], name)
+	}
+
+	if permission && (name == "_in" || name == "_nin") &&
+		comparisonTargetFor(column, target).sqlType == "jsonb" {
+		stmt, handled, err := parseJSONBPermissionMembership(
+			column,
+			target,
+			child.Value,
+			variables,
+			d,
+			name == "_nin",
+		)
+		if handled || err != nil {
+			return stmt, err
+		}
+	}
+
+	parser, ok := operatorParserFor(child.Name)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", errUnknownWhereOperator, child.Name)
+	}
+
+	return parser(column, target, child.Value, variables, d)
 }
 
 type andFilter struct {
@@ -600,7 +699,15 @@ func (f *andFilter) WriteCondition(
 			b.WriteString(" AND ")
 		}
 
-		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionRoot(
+			condition,
+			b,
+			source,
+			source,
+			params,
+			paramIndex,
+			nil,
+		)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write AND condition at pos %d: %w",
@@ -635,7 +742,15 @@ func (f *orFilter) WriteCondition(
 
 	var err error
 	for i, clause := range f.conditions {
-		params, paramIndex, err = clause.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionRoot(
+			clause,
+			b,
+			source,
+			source,
+			params,
+			paramIndex,
+			nil,
+		)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write OR condition at pos %d: %w",
@@ -686,7 +801,15 @@ func (f *notFilter) WriteCondition(
 
 	var err error
 
-	params, paramIndex, err = f.condition.WriteCondition(b, source, params, paramIndex)
+	params, paramIndex, err = writeConditionRoot(
+		f.condition,
+		b,
+		source,
+		source,
+		params,
+		paramIndex,
+		nil,
+	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to write NOT condition: %w", err)
 	}

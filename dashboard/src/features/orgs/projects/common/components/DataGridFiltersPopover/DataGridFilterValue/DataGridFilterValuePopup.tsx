@@ -8,10 +8,10 @@ import {
 } from '@/components/ui/v3/popover';
 import { Textarea } from '@/components/ui/v3/textarea';
 
-type DataGridFilterValuePopupProps = {
+interface DataGridFilterValuePopupProps {
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
-};
+}
 
 function DataGridFilterValuePopup({
   value,
@@ -24,15 +24,14 @@ function DataGridFilterValuePopup({
   }
 
   return (
-    <div className="absolute top-1 right-1">
+    <div className="absolute inset-y-0 right-1 flex items-center">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
+            variant="subtle"
+            size="icon-xs"
             title="Expand filter value"
-            className="h-6 w-6"
           >
             <ExpandIcon strokeWidth={1} className="h-4 w-4" />
           </Button>

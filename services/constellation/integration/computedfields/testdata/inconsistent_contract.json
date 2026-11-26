@@ -1,0 +1,75 @@
+{
+  "accepted_variants": [
+    {
+      "name": "alias-to-same-function", "source": "cf_select", "table": "cf_select.items",
+      "definition": {"name": "column_collision", "definition": {"function": {"schema": "cf_select", "name": "item_label"}}},
+      "inconsistent_kinds": [],
+      "sql": "SELECT cf_select.item_label(i) FROM cf_select.items AS i WHERE i.id = 1", "sql_value": "first"
+    },
+    {
+      "name": "scalar-to-source-join-key", "source": "cf_select", "table": "cf_select.items",
+      "remote_relationship": {"name": "label_match", "definition": {"to_source": {"source": "cf_select", "table": {"schema": "cf_select", "name": "items"}, "relationship_type": "object", "field_mapping": {"item_label": "label"}}}},
+      "inconsistent_kinds": []
+    }
+  ],
+  "cases": [
+    {
+      "name": "missing-function-add",
+      "source": "cf_select",
+      "table": "cf_select.items",
+      "metadata_operation": "pg_add_computed_field",
+      "definition": {"name": "does_not_exist", "definition": {"function": {"schema": "cf_select", "name": "does_not_exist"}}},
+      "error_code": "invalid-configuration",
+      "inconsistent_kind": "computed_field",
+      "sql": "SELECT to_regprocedure('cf_select.does_not_exist(cf_select.items)') IS NULL",
+      "sql_result": true
+    },
+    {
+      "name": "dropped-function-and-grant",
+      "source": "cf_predicates",
+      "table": "cf_predicates.rules",
+      "metadata_operation": "replace_metadata",
+      "definition": {"name": "rule_visible", "definition": {"function": {"schema": "cf_predicates", "name": "rule_visible"}}},
+      "ddl": "DROP FUNCTION cf_predicates.rule_visible(cf_predicates.rules)",
+      "inconsistent_kinds": ["computed_field", "select_permission"],
+      "role": "cf_reader",
+      "type_name": "cf_predicates_rules",
+      "type_absent": true,
+      "query": "query { cf_predicates_rules { id } }",
+      "error": {"code": "validation-failed", "message": "field 'cf_predicates_rules' not found in type: 'query_root'"}
+    },
+    {
+      "name": "missing-filter-reference",
+      "source": "cf_predicates",
+      "table": "cf_predicates.rules",
+      "metadata_operation": "replace_metadata",
+      "permission_filter": {"missing_computed": {"_eq": true}},
+      "inconsistent_kinds": ["select_permission"],
+      "role": "cf_reader",
+      "type_name": "cf_predicates_rules",
+      "type_absent": true,
+      "query": "query { cf_predicates_rules { id } }",
+      "error": {"code": "validation-failed", "message": "field 'cf_predicates_rules' not found in type: 'query_root'"}
+    },
+    {
+      "name": "table-grant-specified-manually",
+      "source": "cf_select",
+      "table": "cf_select.items",
+      "metadata_operation": "replace_metadata",
+      "computed_fields": ["item_tags"],
+      "inconsistent_kinds": ["select_permission"],
+      "role": "cf_reader",
+      "reason": "select permissions on computed field item_tags are auto-derived from the permissions on its returning table cf_select.tags and cannot be specified manually"
+    },
+    {
+      "name": "overloaded-function",
+      "source": "cf_select",
+      "table": "cf_select.items",
+      "metadata_operation": "reload_metadata",
+      "ddl": "CREATE FUNCTION cf_select.item_label(item cf_select.items, suffix text DEFAULT '!') RETURNS text LANGUAGE sql STABLE AS $$ SELECT item.label || suffix $$",
+      "inconsistent_kinds": ["computed_field", "select_permission"],
+      "role": "cf_reader",
+      "reason": "function cf_select.item_label is overloaded. Overloaded functions are not supported"
+    }
+  ]
+}

@@ -33,9 +33,9 @@ export default function ExpandablePanelCard({
         {canExpand ? (
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="-mt-1 h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+            variant="subtle"
+            size="icon-sm"
+            className="-mt-1 shrink-0"
             onClick={() => onExpand(slug)}
             aria-label={`Expand ${title}`}
           >

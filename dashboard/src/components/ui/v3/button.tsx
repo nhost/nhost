@@ -1,7 +1,8 @@
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
-import * as React from 'react';
+import type * as React from 'react';
+import { controlHeight } from '@/components/ui/v3/control';
 import { cn } from '@/lib/utils';
 
 const baseButtonVariants = cva(
@@ -13,18 +14,21 @@ const baseButtonVariants = cva(
         default: 'btn-emboss btn-emboss-primary',
         // "Soft emboss" danger button, same recipe in the destructive reds.
         destructive: 'btn-emboss btn-emboss-danger',
-        // The one outline button. Soft emboss behavior (a 1px press on click)
-        // built only from tokens. Disabled fades to 50% through the base
+        // The one outline button. A translucent fill with a soft edge and a
+        // 1px top highlight, all from the foreground token at low opacity,
+        // so it sits on any surface in both themes. Soft emboss behavior (a
+        // 1px press on click). Disabled fades to 50% through the base
         // classes; loading (data-loading, set by ButtonWithLoading) also
         // mutes the text and border.
         outline:
-          'border border-input bg-transparent text-foreground transition-[color,background-color,border-color,transform] hover:bg-accent hover:text-accent-foreground active:translate-y-px data-[loading=true]:border-border data-[loading=true]:text-muted-foreground',
+          'border border-[hsl(var(--foreground)/0.12)] bg-[hsl(var(--foreground)/0.05)] text-foreground shadow-[inset_0_1px_0_hsl(var(--foreground)/0.06)] transition-[color,background-color,border-color,transform] hover:border-[hsl(var(--foreground)/0.18)] hover:bg-[hsl(var(--foreground)/0.09)] active:translate-y-px data-[loading=true]:border-border data-[loading=true]:text-muted-foreground',
         ghost: 'text-accent-foreground hover:bg-accent',
         // Low-key button: no background, the content turns primary on hover.
         // Meant for icon-only buttons, so it defaults to the `icon-sm` size,
-        // see `defaultSizeByVariant`.
+        // see `defaultSizeByVariant`. At rest a softened foreground: quieter
+        // than text, still clearly clickable (muted-foreground reads disabled).
         subtle:
-          'text-neutral-600 hover:text-primary-main dark:text-sidebar-foreground dark:hover:text-primary-main',
+          'text-[hsl(var(--foreground)/0.58)] hover:text-primary dark:text-[hsl(var(--foreground)/0.72)] dark:hover:text-primary',
         link: 'text-primary underline-offset-4 hover:underline',
         // Rows inside a menu, like the account menu. No border or fill until
         // hover; menu-destructive is the same row in the danger color.
@@ -36,12 +40,15 @@ const baseButtonVariants = cva(
       // it. Icon props like `size={16}` don't (CSS beats SVG attributes).
       size: {
         xs: 'h-8 rounded-md px-2 [:where(&_svg)]:size-4',
-        sm: 'h-9 rounded-md px-3 [:where(&_svg)]:size-4',
-        md: 'h-10 px-4 py-2 [:where(&_svg)]:size-4',
+        sm: `${controlHeight} rounded-md px-3 [:where(&_svg)]:size-4`,
+        md: 'h-11 px-4 py-2 md:h-10 [:where(&_svg)]:size-4',
         lg: 'h-11 rounded-md px-8 [:where(&_svg)]:size-5',
+        // No height or padding: the button is as tall as its content. For
+        // links inside text, like `variant="link"` in a sentence or form hint.
+        inline: '[:where(&_svg)]:size-4',
         'icon-xs': 'h-6 w-6 [:where(&_svg)]:size-3.5',
         'icon-sm': 'h-8 w-8 [:where(&_svg)]:size-4',
-        icon: 'h-10 w-10 [:where(&_svg)]:size-5',
+        icon: `${controlHeight} w-11 md:w-9 [:where(&_svg)]:size-4`,
       },
     },
     compoundVariants: [
@@ -81,38 +88,38 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant,
-      size,
-      asChild = false,
-      type = asChild ? undefined : 'button',
-      ...props
-    },
-    ref,
-  ) => {
-    const Comp = asChild ? Slot : 'button';
+const Button = ({
+  className,
+  variant,
+  size,
+  asChild = false,
+  type = asChild ? undefined : 'button',
+  ref,
+  ...props
+}: ButtonProps) => {
+  const Comp = asChild ? Slot : 'button';
 
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        type={type}
-        {...props}
-      />
-    );
-  },
-);
-Button.displayName = 'Button';
+  return (
+    <Comp
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      type={type}
+      {...props}
+    />
+  );
+};
 
-const ButtonWithLoading = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps & { loading?: boolean; loaderClassName?: string }
->(({ loading, disabled, children, loaderClassName, ...props }, ref) => {
+const ButtonWithLoading = ({
+  loading,
+  disabled,
+  children,
+  loaderClassName,
+  ref,
+  ...props
+}: ButtonProps & { loading?: boolean; loaderClassName?: string }) => {
   return (
     <Button
       disabled={loading || disabled}
@@ -126,6 +133,6 @@ const ButtonWithLoading = React.forwardRef<
       {children}
     </Button>
   );
-});
+};
 
 export { Button, ButtonWithLoading, buttonVariants };
