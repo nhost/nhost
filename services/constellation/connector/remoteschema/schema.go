@@ -54,7 +54,7 @@ func parseSDL(sdl string) (*graph.Schema, map[string][]presetArg, error) {
 
 	schema, presets := convertToGraphSchema(doc, presetValueScalarName)
 
-	pruneUnreachableTypes(schema)
+	schema.PruneUnreachableTypes()
 
 	return schema, presets, nil
 }
@@ -155,16 +155,17 @@ func convertToGraphSchema(
 	presetValueScalarName string,
 ) (*graph.Schema, map[string][]presetArg) {
 	schema := &graph.Schema{
-		Types:            nil,
-		Scalars:          nil,
-		Enums:            nil,
-		Interfaces:       nil,
-		Unions:           nil,
-		Inputs:           nil,
-		Directives:       nil,
-		QueryType:        nil,
-		MutationType:     nil,
-		SubscriptionType: nil,
+		Types:               nil,
+		Scalars:             nil,
+		Enums:               nil,
+		Interfaces:          nil,
+		Unions:              nil,
+		Inputs:              nil,
+		Directives:          nil,
+		QueryType:           nil,
+		MutationType:        nil,
+		SubscriptionType:    nil,
+		RestrictedReadRoots: false,
 	}
 	presets := make(map[string][]presetArg)
 

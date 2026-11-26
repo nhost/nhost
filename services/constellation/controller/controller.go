@@ -64,6 +64,7 @@ type controllerState struct {
 	validatedSchemas           map[string]*ast.Schema
 	connectors                 map[string]connector.Connector
 	fieldToConnector           map[string]string
+	emptyQueryRoots            map[string]bool
 	metadata                   *metadata.Metadata
 	remoteRelationshipResolver *resolver.RemoteRelationshipResolver
 	queryPlanner               *planner.QueryPlanner
@@ -86,18 +87,18 @@ type controllerState struct {
 // construction here means new fields land in one place rather than the two
 // existing call sites (buildState and NewFromConnectors).
 func newControllerState(
-	validatedSchemas map[string]*ast.Schema,
+	composed composer.Result,
 	connectors map[string]connector.Connector,
-	fieldToConnector map[string]string,
 	meta *metadata.Metadata,
 	queryPlanner *planner.QueryPlanner,
 	subHandlers map[string]subscription.Handler,
 	inconsistencies []metadata.Inconsistency,
 ) *controllerState {
 	return &controllerState{
-		validatedSchemas:           validatedSchemas,
+		validatedSchemas:           composed.ValidatedSchemas,
 		connectors:                 connectors,
-		fieldToConnector:           fieldToConnector,
+		fieldToConnector:           composed.FieldToConnector,
+		emptyQueryRoots:            composed.EmptyQueryRoots,
 		metadata:                   meta,
 		remoteRelationshipResolver: resolver.New(connectors),
 		queryPlanner:               queryPlanner,
@@ -285,9 +286,8 @@ func buildState(
 	)
 
 	return newControllerState(
-		built.ValidatedSchemas,
+		built.Result,
 		built.Connectors,
-		built.FieldToConnector,
 		meta,
 		queryPlanner,
 		subHandlers,
@@ -413,9 +413,8 @@ func NewFromConnectors(
 	)
 
 	state := newControllerState(
-		composed.ValidatedSchemas,
+		composed,
 		connectors,
-		composed.FieldToConnector,
 		&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
 		queryPlanner,
 		nil,

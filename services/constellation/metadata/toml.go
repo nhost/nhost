@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -91,11 +92,40 @@ func unmarshalTOML(data []byte) (*Metadata, error) {
 
 	for i := range tm.Databases {
 		for j := range tm.Databases[i].Tables {
-			restoreRemoteSchemaPaths(&tm.Databases[i].Tables[j])
+			db := &tm.Databases[i]
+
+			table := &db.Tables[j]
+			if err := validateTableRootAllowlists(table); err != nil {
+				return nil, fmt.Errorf(
+					"parsing TOML metadata for source %q table %s.%s: %w",
+					db.Name, table.Table.Schema, table.Table.Name, err,
+				)
+			}
+
+			restoreRemoteSchemaPaths(table)
 		}
 	}
 
 	return &tm, nil
+}
+
+func validateTableRootAllowlists(table *TableMetadata) error {
+	for _, permission := range table.SelectPermissions {
+		p := permission.Permission
+		if p.QueryRootFields != nil {
+			if err := selectroots.Query.Validate(*p.QueryRootFields); err != nil {
+				return fmt.Errorf("select permission for role %q: %w", permission.Role, err)
+			}
+		}
+
+		if p.SubscriptionRootFields != nil {
+			if err := selectroots.Subscription.Validate(*p.SubscriptionRootFields); err != nil {
+				return fmt.Errorf("select permission for role %q: %w", permission.Role, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // restoreRemoteSchemaPaths rebuilds Hasura-lowered paths omitted by the TOML

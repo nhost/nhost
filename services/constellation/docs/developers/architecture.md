@@ -22,6 +22,7 @@ WebSocket `HandlerGet` still takes a connection-wide snapshot with `state := c.s
 - `validatedSchemas` — per-role `*ast.Schema`
 - `connectors` — name → `connector.Connector`
 - `fieldToConnector` — root-field routing
+- `emptyQueryRoots` — roles that resolve `no_queries_available` locally instead of routing it to a connector
 - `metadata` — the source metadata that produced this state
 - `remoteRelationshipResolver` — bound to the snapshot's connector map
 - `queryPlanner` — bound to the snapshot's schemas + relationships
