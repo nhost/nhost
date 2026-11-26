@@ -306,10 +306,12 @@ func mergeRootType(
 
 // BuildValidatedSchema converts a combined [graph.Schema] to an AST document
 // and validates it. The returned [ast.SchemaDocument] is the prelude-prepended
-// document, not the bare ToAST output of combinedSchema. When requested, types
-// unreachable from the composed roots or directives are pruned before validation.
-// SQL-generated empty insert inputs are accepted for Hasura compatibility and
-// both results retain their zero-field shape.
+// document, not the bare ToAST output of combinedSchema. If RestrictedReadRoots
+// is set, types unreachable from the declared (or implicit default) roots or
+// directive arguments are pruned from a shallow copy before validation, leaving
+// combinedSchema unchanged. Unlike [BuildComposedSchema], this does not add the
+// empty-query fallback. SQL-generated empty insert inputs are accepted for Hasura
+// compatibility and both results retain their zero-field shape.
 func BuildValidatedSchema(
 	combinedSchema *graph.Schema,
 	role string,
