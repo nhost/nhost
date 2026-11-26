@@ -118,6 +118,8 @@ func TestNewRejectsUnsafeRequests(t *testing.T) {
 		{name: "plain HTTP", url: "http://example.test", want: "HTTPS is required"},
 		{name: "loopback", url: "https://127.0.0.1", want: "blocked address"},
 		{name: "IPv6 loopback", url: "https://[::1]", want: "blocked address"},
+		{name: "CGNAT cloud metadata", url: "https://100.100.100.200", want: "blocked address"},
+		{name: "benchmarking", url: "https://198.18.0.1", want: "blocked address"},
 	}
 
 	for _, tt := range tests {

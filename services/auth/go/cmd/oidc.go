@@ -25,7 +25,6 @@ func getOIDCRegistry(cmd *cli.Command, serverURL *url.URL) (*providers.OIDCRegis
 			Timeout:              0,
 			MaxRedirects:         0,
 			MaxResponseBodyBytes: oidcResponseBodyLimit,
-			PublicIPsOnly:        true,
 			AllowPrivateIPs:      cmd.Bool(flagOIDCAllowPrivateIPs),
 		}),
 	)

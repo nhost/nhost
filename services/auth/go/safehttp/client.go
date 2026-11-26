@@ -30,12 +30,13 @@ var (
 )
 
 // Config controls the request limits of a safe HTTP client. Zero values use a
-// five-second timeout, disallow redirects, and cap the body at one MiB.
+// five-second timeout, disallow redirects, cap the body at one MiB, and accept
+// only public unicast destinations. Allowing private destinations requires
+// explicitly setting AllowPrivateIPs.
 type Config struct {
 	Timeout              time.Duration
 	MaxRedirects         int
 	MaxResponseBodyBytes int64
-	PublicIPsOnly        bool
 	AllowPrivateIPs      bool // Accept RFC 1918 and IPv6 unique-local addresses.
 }
 
@@ -54,12 +55,9 @@ func New(cfg Config) *http.Client {
 
 	dialer := &net.Dialer{Timeout: timeout} //nolint:exhaustruct
 
-	blocked := isBlockedIP
-	switch {
-	case cfg.AllowPrivateIPs:
+	blocked := isNonPublicIP
+	if cfg.AllowPrivateIPs {
 		blocked = isOutsidePublicOrPrivateIP
-	case cfg.PublicIPsOnly:
-		blocked = isNonPublicIP
 	}
 
 	transport := &http.Transport{ //nolint:exhaustruct
@@ -97,7 +95,7 @@ func New(cfg Config) *http.Client {
 }
 
 // IsBlockedHost reports whether a literal IP or any DNS answer is non-public,
-// using the same policy as Config.PublicIPsOnly. A lookup error leaves the check
+// using the default public-only policy. A lookup error leaves the check
 // to the dial path, which requires a valid answer.
 func IsBlockedHost(ctx context.Context, host string) bool {
 	if ip := net.ParseIP(host); ip != nil {

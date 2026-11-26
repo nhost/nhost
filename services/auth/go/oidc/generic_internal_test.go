@@ -705,9 +705,7 @@ func TestOIDCDiscoveryUsesHardenedClient(t *testing.T) {
 	t.Parallel()
 
 	f := newOIDCFixture(t, false)
-	f.client = safehttp.New(safehttp.Config{
-		PublicIPsOnly: true,
-	})
+	f.client = safehttp.New(safehttp.Config{})
 
 	p := f.provider(t)
 	if _, err := p.AuthorizationURL(t.Context(), "state", fixtureNonce, f.verifier); err == nil {
