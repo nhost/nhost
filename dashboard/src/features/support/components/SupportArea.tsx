@@ -29,7 +29,7 @@ export function SupportArea({ children }: PropsWithChildren) {
 
 export function getSupportLayout(page: ReactElement) {
   return (
-    <StandaloneLayout showHeaderNavigation={false}>
+    <StandaloneLayout hideHeaderNavigation>
       <AuthGuard>
         <SupportArea>{page}</SupportArea>
       </AuthGuard>

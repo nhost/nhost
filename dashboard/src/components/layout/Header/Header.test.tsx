@@ -200,7 +200,7 @@ describe('Header', () => {
       router.asPath = '/support';
       router.pathname = '/support';
       mockViewport(viewport);
-      renderHeader({ showNavigation: false });
+      renderHeader({ hideNavigation: true });
       expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
         'href',
         '/',

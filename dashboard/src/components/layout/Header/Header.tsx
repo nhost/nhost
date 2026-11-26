@@ -35,12 +35,12 @@ import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
 export type HeaderProps = ComponentPropsWithoutRef<'header'> & {
-  showNavigation?: boolean;
+  hideNavigation?: boolean;
 };
 
 export default function Header({
   className,
-  showNavigation = true,
+  hideNavigation = false,
   ...props
 }: HeaderProps) {
   const router = useRouter();
@@ -97,7 +97,7 @@ export default function Header({
           </Link>
         )}
 
-        {showNavigation &&
+        {!hideNavigation &&
           (isDesktop ? <HeaderNavigation /> : <HeaderNavigationSheet />)}
       </div>
 

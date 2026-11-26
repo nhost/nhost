@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 
 export type StandaloneLayoutProps = Omit<BaseLayoutProps, 'className'> & {
-  showHeaderNavigation?: boolean;
+  hideHeaderNavigation?: boolean;
 };
 
 /**
@@ -16,14 +16,14 @@ export type StandaloneLayoutProps = Omit<BaseLayoutProps, 'className'> & {
  */
 export default function StandaloneLayout({
   children,
-  showHeaderNavigation = true,
+  hideHeaderNavigation = false,
   ...props
 }: StandaloneLayoutProps) {
   const router = useRouter();
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="shrink-0 py-1" showNavigation={showHeaderNavigation} />
+      <Header className="shrink-0 py-1" hideNavigation={hideHeaderNavigation} />
 
       <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
         <RetryableErrorBoundary
