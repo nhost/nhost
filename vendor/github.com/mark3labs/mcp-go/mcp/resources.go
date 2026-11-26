@@ -1,6 +1,10 @@
 package mcp
 
-import "github.com/yosida95/uritemplate/v3"
+import (
+	"time"
+
+	"github.com/yosida95/uritemplate/v3"
+)
 
 // ResourceOption is a function that configures a Resource.
 // It provides a flexible way to set various properties of a Resource using the functional options pattern.
@@ -30,6 +34,28 @@ func WithResourceDescription(description string) ResourceOption {
 	}
 }
 
+// WithResourceTitle sets the optional human-readable display title for the Resource.
+// Per the MCP spec, clients should prefer Title over Name for display.
+func WithResourceTitle(title string) ResourceOption {
+	return func(r *Resource) {
+		r.Title = title
+	}
+}
+
+// WithResourceSize sets the size of the raw resource content in bytes.
+// This is the size before base64 encoding or any tokenization, and is used
+// by hosts to display file sizes and estimate context window usage.
+// Negative values are ignored, since the MCP schema defines size as a byte
+// count which is necessarily non-negative.
+func WithResourceSize(size int64) ResourceOption {
+	return func(r *Resource) {
+		if size < 0 {
+			return
+		}
+		r.Size = &size
+	}
+}
+
 // WithMIMEType sets the MIME type for the Resource.
 // This should indicate the format of the resource's contents.
 func WithMIMEType(mimeType string) ResourceOption {
@@ -38,15 +64,29 @@ func WithMIMEType(mimeType string) ResourceOption {
 	}
 }
 
-// WithAnnotations adds annotations to the Resource.
-// Annotations can provide additional metadata about the resource's intended use.
-func WithAnnotations(audience []Role, priority float64) ResourceOption {
+// WithAnnotations returns a ResourceOption that sets the resource's Annotations fields.
+// It initializes Annotations if nil, sets Audience to the provided slice,
+// stores Priority as a pointer to the provided value, and sets LastModified to the provided timestamp.
+func WithAnnotations(audience []Role, priority float64, lastModified string) ResourceOption {
 	return func(r *Resource) {
 		if r.Annotations == nil {
 			r.Annotations = &Annotations{}
 		}
 		r.Annotations.Audience = audience
-		r.Annotations.Priority = priority
+		r.Annotations.Priority = &priority
+		r.Annotations.LastModified = lastModified
+	}
+}
+
+// WithLastModified returns a ResourceOption that sets the resource's Annotations.LastModified
+// to the provided timestamp. If the resource's Annotations is nil, it will be initialized.
+// The timestamp is expected to be an ISO 8601 (RFC3339) formatted string (e.g., "2025-01-12T15:00:58Z").
+func WithLastModified(timestamp string) ResourceOption {
+	return func(r *Resource) {
+		if r.Annotations == nil {
+			r.Annotations = &Annotations{}
+		}
+		r.Annotations.LastModified = timestamp
 	}
 }
 
@@ -78,6 +118,14 @@ func WithTemplateDescription(description string) ResourceTemplateOption {
 	}
 }
 
+// WithTemplateTitle sets the optional human-readable display title for the ResourceTemplate.
+// Per the MCP spec, clients should prefer Title over Name for display.
+func WithTemplateTitle(title string) ResourceTemplateOption {
+	return func(t *ResourceTemplate) {
+		t.Title = title
+	}
+}
+
 // WithTemplateMIMEType sets the MIME type for the ResourceTemplate.
 // This should only be set if all resources matching this template will have the same type.
 func WithTemplateMIMEType(mimeType string) ResourceTemplateOption {
@@ -86,14 +134,43 @@ func WithTemplateMIMEType(mimeType string) ResourceTemplateOption {
 	}
 }
 
-// WithTemplateAnnotations adds annotations to the ResourceTemplate.
-// Annotations can provide additional metadata about the template's intended use.
-func WithTemplateAnnotations(audience []Role, priority float64) ResourceTemplateOption {
+// WithTemplateAnnotations returns a ResourceTemplateOption that sets the template's
+// Annotations field, initializing it if nil, and setting Audience, Priority, and LastModified.
+func WithTemplateAnnotations(audience []Role, priority float64, lastModified string) ResourceTemplateOption {
 	return func(t *ResourceTemplate) {
 		if t.Annotations == nil {
 			t.Annotations = &Annotations{}
 		}
 		t.Annotations.Audience = audience
-		t.Annotations.Priority = priority
+		t.Annotations.Priority = &priority
+		t.Annotations.LastModified = lastModified
+	}
+}
+
+// ValidateISO8601Timestamp verifies that timestamp is a valid ISO 8601 timestamp
+// using the RFC3339 layout. An empty string is considered valid. It returns nil
+// when the timestamp is valid, or the parsing error when it is not.
+func ValidateISO8601Timestamp(timestamp string) error {
+	if timestamp == "" {
+		return nil // Empty is valid (optional field)
+	}
+	// Use time.RFC3339 for ISO 8601 compatibility
+	_, err := time.Parse(time.RFC3339, timestamp)
+	return err
+}
+
+// WithResourceIcons adds icons to the Resource.
+// Icons provide visual identifiers for the resource.
+func WithResourceIcons(icons ...Icon) ResourceOption {
+	return func(r *Resource) {
+		r.Icons = icons
+	}
+}
+
+// WithTemplateIcons adds icons to the ResourceTemplate.
+// Icons provide visual identifiers for the resource template.
+func WithTemplateIcons(icons ...Icon) ResourceTemplateOption {
+	return func(rt *ResourceTemplate) {
+		rt.Icons = icons
 	}
 }

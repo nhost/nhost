@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -12,6 +13,32 @@ import (
 func NewInProcessClient(server *server.MCPServer) (*Client, error) {
 	inProcessTransport := transport.NewInProcessTransport(server)
 	return NewClient(inProcessTransport), nil
+}
+
+// NewInProcessClientWithOptions connects directly to an MCP server and applies
+// client options, including sampling, elicitation, and roots handlers, to the
+// in-process transport.
+func NewInProcessClientWithOptions(mcpServer *server.MCPServer, options ...ClientOption) (*Client, error) {
+	client := NewClient(nil, options...)
+	var transportOptions []transport.InProcessOption
+	if client.samplingHandler != nil {
+		transportOptions = append(transportOptions, transport.WithSamplingHandler(
+			&inProcessSamplingHandlerWrapper{handler: client.samplingHandler},
+		))
+	}
+	if client.elicitationHandler != nil {
+		transportOptions = append(transportOptions, transport.WithElicitationHandler(
+			&inProcessElicitationHandlerAdapter{handler: client.elicitationHandler},
+		))
+	}
+	if client.rootsHandler != nil {
+		transportOptions = append(transportOptions, transport.WithRootsHandler(
+			&inProcessRootsHandlerAdapter{handler: client.rootsHandler},
+		))
+	}
+
+	client.transport = transport.NewInProcessTransportWithOptions(mcpServer, transportOptions...)
+	return client, nil
 }
 
 // NewInProcessClientWithSamplingHandler creates an in-process client with sampling support
@@ -34,5 +61,33 @@ type inProcessSamplingHandlerWrapper struct {
 }
 
 func (w *inProcessSamplingHandlerWrapper) CreateMessage(ctx context.Context, request mcp.CreateMessageRequest) (*mcp.CreateMessageResult, error) {
-	return w.handler.CreateMessage(ctx, request)
+	result, err := w.handler.CreateMessage(ctx, request)
+	if err == nil && result == nil {
+		return nil, fmt.Errorf("sampling handler returned no result")
+	}
+	return result, err
+}
+
+type inProcessElicitationHandlerAdapter struct {
+	handler ElicitationHandler
+}
+
+func (a *inProcessElicitationHandlerAdapter) Elicit(ctx context.Context, request mcp.ElicitationRequest) (*mcp.ElicitationResult, error) {
+	result, err := a.handler.Elicit(ctx, request)
+	if err == nil && result == nil {
+		return nil, fmt.Errorf("elicitation handler returned no result")
+	}
+	return result, err
+}
+
+type inProcessRootsHandlerAdapter struct {
+	handler RootsHandler
+}
+
+func (a *inProcessRootsHandlerAdapter) ListRoots(ctx context.Context, request mcp.ListRootsRequest) (*mcp.ListRootsResult, error) {
+	result, err := a.handler.ListRoots(ctx, request)
+	if err == nil && result == nil {
+		return nil, fmt.Errorf("roots handler returned no result")
+	}
+	return result, err
 }
