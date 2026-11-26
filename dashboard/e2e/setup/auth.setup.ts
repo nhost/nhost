@@ -5,8 +5,12 @@ import {
   TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
+import { rejectCookieConsent } from '@/e2e/utils';
 
 setup('authenticate user', async ({ page }) => {
+  // Saved into the storage state below, so every authenticated test starts
+  // without the cookie banner.
+  await rejectCookieConsent(page.context());
   await page.goto('/');
   await page.waitForURL('/signin');
   await page.getByRole('link', { name: /continue with email/i }).click();
