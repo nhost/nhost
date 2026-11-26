@@ -51,10 +51,10 @@ func (wf *Workflows) resolveOIDCIdentity(
 	})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		// A verified email still cannot claim an existing account through
-		// a custom provider. The signup insert enforces email uniqueness.
+		// A new custom-OIDC identity requires an email claim to sign up or sign in.
+		// Existing issuer-bound identities do not require a fresh email claim.
 		if email == "" {
-			return sql.AuthUser{}, false, false, ErrInvalidEmailPassword
+			return sql.AuthUser{}, false, false, ErrOIDCEmailRequired
 		}
 
 		return user, false, false, nil

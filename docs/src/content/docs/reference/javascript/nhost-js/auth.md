@@ -1244,7 +1244,7 @@ signInOidcIdToken(
 ```
 
 Summary: Sign In with a custom OIDC ID token
-Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+Authenticate a native application using an ID token issued to an allowed audience of the configured provider. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
 
 This method may return different T based on the response code:
 
@@ -1273,7 +1273,7 @@ signInOidcURL(
 ```
 
 Summary: Sign In with a custom OIDC provider
-Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
@@ -1529,7 +1529,7 @@ signUpOidcIdToken(
 ```
 
 Summary: Sign Up with a custom OIDC ID token
-Authenticate a native application using an ID token issued to an allowed audience of the configured provider.
+Authenticate a native application using an ID token issued to an allowed audience of the configured provider. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
 
 This method may return different T based on the response code:
 
@@ -1558,7 +1558,7 @@ signUpOidcURL(
 ```
 
 Summary: Sign Up with a custom OIDC provider
-Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange.
+Start browser authentication with a named OIDC provider and a PKCE challenge for the Auth code exchange. A new custom-OIDC identity (one not already bound to a user by issuer and subject) requires an email claim to sign in or sign up; otherwise authentication fails with oidc-email-required. Request the email scope and ensure the provider returns email in the ID token or UserInfo. Existing issuer-bound identities can sign in without an email claim. Email alone never links a custom-OIDC identity to an existing account.
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
@@ -5392,6 +5392,7 @@ type ErrorResponseError =
   | "forbidden-anonymous"
   | "internal-server-error"
   | "invalid-email-password"
+  | "oidc-email-required"
   | "invalid-request"
   | "locale-not-allowed"
   | "password-too-short"

@@ -192,6 +192,7 @@ const (
 	OauthProfileFetchFailed         ErrorResponseError = "oauth-profile-fetch-failed"
 	OauthProviderError              ErrorResponseError = "oauth-provider-error"
 	OauthTokenEchangeFailed         ErrorResponseError = "oauth-token-echange-failed"
+	OidcEmailRequired               ErrorResponseError = "oidc-email-required"
 	OtpTooManyAttempts              ErrorResponseError = "otp-too-many-attempts"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
@@ -251,6 +252,8 @@ func (e ErrorResponseError) Valid() bool {
 	case OauthProviderError:
 		return true
 	case OauthTokenEchangeFailed:
+		return true
+	case OidcEmailRequired:
 		return true
 	case OtpTooManyAttempts:
 		return true

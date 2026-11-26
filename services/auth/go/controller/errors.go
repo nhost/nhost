@@ -40,6 +40,7 @@ var (
 	ErrUserAlreadyExists               = &APIError{api.UserAlreadyExists}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
+	ErrOIDCEmailRequired               = &APIError{api.OidcEmailRequired}
 	ErrInvalidEmailPassword            = &APIError{api.InvalidEmailPassword}
 	ErrPasswordTooShort                = &APIError{api.PasswordTooShort}
 	ErrPasswordInHibpDatabase          = &APIError{api.PasswordInHibpDatabase}
@@ -465,6 +466,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.DisabledEndpoint,
 		api.InternalServerError,
 		api.InvalidRequest,
+		api.OidcEmailRequired,
 		api.LocaleNotAllowed,
 		api.PasswordTooShort,
 		api.PasswordInHibpDatabase,
@@ -551,6 +553,12 @@ func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
 			Status:  http.StatusUnauthorized,
 			Error:   err.t,
 			Message: "Invalid or expired personal access token",
+		}
+	case api.OidcEmailRequired:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "An email claim is required for a new OIDC identity",
 		}
 	case api.InvalidRequest:
 	case api.LocaleNotAllowed:

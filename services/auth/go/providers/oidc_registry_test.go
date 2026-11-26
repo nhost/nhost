@@ -1,6 +1,9 @@
 package providers_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,7 +22,7 @@ func TestOIDCRegistry(t *testing.T) {
 	}`
 	serverURL := &url.URL{Scheme: "https", Host: "auth.example"}
 
-	registry, err := providers.NewOIDCRegistry(config, serverURL, http.DefaultClient)
+	registry, err := providers.NewOIDCRegistry(config, serverURL, http.DefaultClient, slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +176,7 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 
 			serverURL := &url.URL{Scheme: "https", Host: "auth.example"}
 
-			_, err := providers.NewOIDCRegistry(tt.config, serverURL, http.DefaultClient)
+			_, err := providers.NewOIDCRegistry(tt.config, serverURL, http.DefaultClient, slog.New(slog.DiscardHandler))
 			if (err == nil) != tt.valid {
 				t.Fatalf("validation error = %v, want valid = %t", err, tt.valid)
 			}
@@ -185,6 +188,65 @@ func TestOIDCRegistryConfiguration(t *testing.T) {
 
 			if err != nil && strings.Contains(err.Error(), "sensitive-value") {
 				t.Error("configuration error exposed the client secret")
+			}
+		})
+	}
+}
+
+func TestOIDCRegistryEmailScopeWarning(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name        string
+		scopes      string
+		wantWarning bool
+	}{
+		{name: "default scopes include email", scopes: "", wantWarning: false},
+		{name: "explicit email scope", scopes: `,"scopes":["openid","email"]`, wantWarning: false},
+		{name: "email omitted", scopes: `,"scopes":["openid","profile"]`, wantWarning: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var logs bytes.Buffer
+
+			logger := slog.New(slog.NewJSONHandler(&logs, nil))
+			config := `{"example":{"issuer":"https://idp.example","clientId":"web","clientSecret":"sensitive-value"` + tt.scopes + `}}`
+
+			registry, err := providers.NewOIDCRegistry(config,
+				&url.URL{Scheme: "https", Host: "auth.example"}, http.DefaultClient, logger)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if registry.Get("example") == nil {
+				t.Fatal("provider must remain enabled without email scope")
+			}
+
+			if strings.Contains(logs.String(), "sensitive-value") {
+				t.Fatal("warning exposed client secret")
+			}
+
+			if !tt.wantWarning {
+				if logs.Len() != 0 {
+					t.Fatal("unexpected scope warning")
+				}
+
+				return
+			}
+
+			var record struct {
+				Level    string `json:"level"`
+				Message  string `json:"msg"`
+				Provider string `json:"provider"`
+			}
+			if err := json.Unmarshal(logs.Bytes(), &record); err != nil {
+				t.Fatal(err)
+			}
+
+			if record.Level != "WARN" || record.Provider != "example" ||
+				!strings.Contains(record.Message, "scopes omit email; new identities require an email claim") {
+				t.Fatal("missing actionable email scope warning")
 			}
 		})
 	}

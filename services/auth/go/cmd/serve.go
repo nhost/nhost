@@ -1635,7 +1635,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("problem creating config: %w", err)
 	}
 
-	customProviders, err := getOIDCRegistry(cmd, config.ServerURL)
+	customProviders, err := getOIDCRegistry(cmd, config.ServerURL, logger)
 	if err != nil {
 		return err
 	}

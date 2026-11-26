@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -29,7 +30,7 @@ func TestRegisterOIDCProvidersIssuerConflict(t *testing.T) {
 	registry, err := providers.NewOIDCRegistry(
 		`{"example":{"issuer":"https://new.example","clientId":"web","clientSecret":"test-only"}}`,
 		&url.URL{Scheme: "https", Host: "auth.example"},
-		http.DefaultClient,
+		http.DefaultClient, slog.New(slog.DiscardHandler),
 	)
 	if err != nil {
 		t.Fatal(err)

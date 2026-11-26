@@ -60,6 +60,7 @@ type oidcRouteFixture struct {
 	key           *ecdsa.PrivateKey
 	grants        sync.Map
 	emailVerified bool
+	omitEmail     bool
 }
 
 func newOIDCRouteFixture(t *testing.T, emailVerified bool) *oidcRouteFixture {
@@ -193,12 +194,19 @@ func (f *oidcRouteFixture) exchange(t *testing.T, w http.ResponseWriter, r *http
 
 func (f *oidcRouteFixture) idToken(issuer, audience, nonce string) (string, error) {
 	now := time.Now()
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+
+	claims := jwt.MapClaims{
 		"iss": issuer, "sub": oidcFixtureSubject, "aud": audience,
 		"iat": now.Unix(), "exp": now.Add(time.Minute).Unix(),
 		"email": oidcFixtureEmail, "email_verified": f.emailVerified, "nonce": nonce,
 		"name": "Fixture User",
-	})
+	}
+	if f.omitEmail {
+		delete(claims, "email")
+		delete(claims, "email_verified")
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 	token.Header["kid"] = "test-key"
 
 	return token.SignedString(f.key) //nolint:wrapcheck
@@ -269,7 +277,7 @@ func (f *oidcRouteFixture) registry(t *testing.T, disableSecondNonce bool) *prov
 			"disableNonce":` + strconv.FormatBool(disableSecondNonce) + `}
 	}`
 
-	registry, err := providers.NewOIDCRegistry(raw, serverURL, f.server.Client())
+	registry, err := providers.NewOIDCRegistry(raw, serverURL, f.server.Client(), slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -320,7 +328,7 @@ func TestOIDCBrowserStartLogsDiscoveryError(t *testing.T) {
 	}
 
 	registry, err := providers.NewOIDCRegistry(
-		string(raw), getConfig().ServerURL.JoinPath("v1"), fixture.server.Client(),
+		string(raw), getConfig().ServerURL.JoinPath("v1"), fixture.server.Client(), slog.New(slog.DiscardHandler),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -1180,5 +1188,88 @@ func TestOIDCBrowserSignupRequiresEmailVerification(t *testing.T) {
 			response.Code,
 			response.Body,
 		)
+	}
+}
+
+// Strict DB expectations ensure no user, authorization code, or refresh token is
+// created when an unbound identity is missing its required email claim.
+func TestOIDCNewIdentityRequiresEmail(t *testing.T) {
+	t.Parallel()
+
+	for _, flow := range []string{"signin", "signup"} {
+		for _, transport := range []string{"native", "browser"} {
+			t.Run(flow+"/"+transport, func(t *testing.T) {
+				t.Parallel()
+
+				fixture := newOIDCRouteFixture(t, true)
+				fixture.omitEmail = true
+				registry := fixture.registry(t, transport == "native")
+				db := mock.NewMockDBClient(gomock.NewController(t))
+				handler, _ := fixture.router(t, registry, db)
+				provider := registry.Get(oidcSecondary)
+				db.EXPECT().GetUserByOIDCIdentity(gomock.Any(), sql.GetUserByOIDCIdentityParams{
+					ProviderID: provider.ID(), Issuer: sql.Text(provider.Issuer()),
+					Subject: provider.IdentityKey(oidcFixtureSubject),
+				}).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				if transport == "native" {
+					signed, err := fixture.idToken(provider.Issuer(), "native-"+oidcSecondary, "")
+					if err != nil {
+						t.Fatal(err)
+					}
+
+					response := oidcRouteRequest(t, handler, http.MethodPost,
+						"/v1/"+flow+"/oidc/"+oidcSecondary+"/idtoken",
+						api.SignInOidcIdTokenRequest{IdToken: signed, Nonce: nil, Options: nil})
+
+					assertOIDCEmailRequiredResponse(t, response)
+
+					return
+				}
+
+				challenge := pkce.ComputeS256Challenge(oauth2.GenerateVerifier())
+				start := oidcRouteRequest(t, handler, http.MethodGet,
+					"/v1/"+flow+"/oidc/"+oidcSecondary+"?codeChallenge="+challenge, nil)
+				callback, cookie := startOIDCBrowser(t, fixture, start)
+				response := oidcRouteRequest(t, handler, http.MethodGet, callback, nil, cookie)
+
+				assertOIDCEmailRequiredRedirect(t, response)
+			})
+		}
+	}
+}
+
+func assertOIDCEmailRequiredResponse(t *testing.T, response *httptest.ResponseRecorder) {
+	t.Helper()
+
+	var payload api.ErrorResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+
+	if response.Code != http.StatusBadRequest || payload.Error != api.OidcEmailRequired ||
+		payload.Message != "An email claim is required for a new OIDC identity" {
+		t.Fatalf("expected email-required error, got HTTP %d: %s", response.Code, response.Body)
+	}
+
+	if strings.Contains(response.Body.String(), "refreshToken") || strings.Contains(response.Body.String(), "accessToken") {
+		t.Fatal("missing email produced a session")
+	}
+}
+
+func assertOIDCEmailRequiredRedirect(t *testing.T, response *httptest.ResponseRecorder) {
+	t.Helper()
+
+	redirect, err := url.Parse(response.Header().Get("Location"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	query := redirect.Query()
+	if response.Code != http.StatusFound || redirect.Host != getConfig().ClientURL.Host ||
+		query.Get("error") != string(api.OidcEmailRequired) ||
+		query.Get("errorDescription") != "An email claim is required for a new OIDC identity" ||
+		query.Has("code") || query.Has("refreshToken") || query.Has("accessToken") {
+		t.Fatalf("expected email-required redirect without a session, got HTTP %d: %s", response.Code, redirect)
 	}
 }

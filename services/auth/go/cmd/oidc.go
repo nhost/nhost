@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,14 +20,14 @@ var errOIDCIssuerChanged = errors.New(
 	"OIDC provider slug is already registered to a different issuer",
 )
 
-func getOIDCRegistry(cmd *cli.Command, serverURL *url.URL) (*providers.OIDCRegistry, error) {
+func getOIDCRegistry(cmd *cli.Command, serverURL *url.URL, logger *slog.Logger) (*providers.OIDCRegistry, error) {
 	registry, err := providers.NewOIDCRegistry(
 		cmd.String(flagOIDCProviders), serverURL, safehttp.New(safehttp.Config{
 			Timeout:              0,
 			MaxRedirects:         0,
 			MaxResponseBodyBytes: oidcResponseBodyLimit,
 			AllowPrivateIPs:      cmd.Bool(flagOIDCAllowPrivateIPs),
-		}),
+		}), logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("configuring custom OIDC providers: %w", err)

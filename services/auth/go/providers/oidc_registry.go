@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
@@ -33,7 +34,7 @@ type OIDCRegistry struct {
 }
 
 // NewOIDCRegistry builds the startup registry from AUTH_PROVIDER_OIDC.
-func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client) (*OIDCRegistry, error) {
+func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client, logger *slog.Logger) (*OIDCRegistry, error) {
 	registry := &OIDCRegistry{providers: make(map[string]*oidc.CustomProvider)}
 	if strings.TrimSpace(raw) == "" {
 		return registry, nil
@@ -63,6 +64,12 @@ func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client) (*OIDC
 		provider, err := oidc.NewCustomProvider(slug, config, serverURL, client)
 		if err != nil {
 			return nil, fmt.Errorf("configuring custom OIDC provider: %w", err)
+		}
+
+		if len(config.Scopes) != 0 && !slices.Contains(config.Scopes, "email") {
+			logger.Warn("custom OIDC provider scopes omit email; "+
+				"new identities require an email claim from the ID token or UserInfo",
+				slog.String("provider", slug))
 		}
 
 		registry.providers[slug] = provider
