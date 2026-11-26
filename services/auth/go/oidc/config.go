@@ -32,11 +32,16 @@ type CustomProviderConfig struct {
 	DisableNonce bool     `json:"disableNonce"`
 }
 
+// ValidProviderSlug reports whether slug is safe to use as a custom provider identifier.
+func ValidProviderSlug(slug string) bool {
+	return providerSlug.MatchString(slug)
+}
+
 // NewCustomProvider validates the issuer settings and prepares lazy discovery.
 func NewCustomProvider(
 	slug string, config CustomProviderConfig, serverURL *url.URL, client *http.Client,
 ) (*CustomProvider, error) {
-	if !providerSlug.MatchString(slug) {
+	if !ValidProviderSlug(slug) {
 		return nil, fmt.Errorf("%w: invalid slug", errInvalidConfig)
 	}
 

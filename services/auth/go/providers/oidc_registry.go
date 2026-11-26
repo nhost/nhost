@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
@@ -15,8 +16,13 @@ import (
 
 var (
 	errOIDCConfig = errors.New("AUTH_PROVIDER_OIDC must be an object keyed by provider slug")
+	errOIDCSlug   = errors.New("AUTH_PROVIDER_OIDC contains an invalid slug")
 	errOIDCDecode = errors.New(
 		"AUTH_PROVIDER_OIDC is not valid JSON or contains an unknown or mistyped field " +
+			"(expected issuer, discoveryUrl, clientId, clientSecret, scopes, audiences, disableNonce)",
+	)
+	errOIDCProviderField = errors.New(
+		"AUTH_PROVIDER_OIDC contains an unknown, misnamed, or mistyped field " +
 			"(expected issuer, discoveryUrl, clientId, clientSecret, scopes, audiences, disableNonce)",
 	)
 )
@@ -38,13 +44,23 @@ func NewOIDCRegistry(raw string, serverURL *url.URL, client *http.Client) (*OIDC
 	}
 
 	// JSON decoding errors can contain credentials from the configuration.
-	var configs map[string]oidc.CustomProviderConfig
-	if json.Unmarshal([]byte(raw), &configs, json.RejectUnknownMembers(true)) != nil {
+	var configs map[string]jsontext.Value
+	if json.Unmarshal([]byte(raw), &configs) != nil {
 		return nil, errOIDCDecode
 	}
 
 	for _, slug := range slices.Sorted(maps.Keys(configs)) {
-		provider, err := oidc.NewCustomProvider(slug, configs[slug], serverURL, client)
+		// Validate before echoing a slug: malformed keys can contain credentials.
+		if !oidc.ValidProviderSlug(slug) {
+			return nil, errOIDCSlug
+		}
+
+		var config oidc.CustomProviderConfig
+		if json.Unmarshal(configs[slug], &config, json.RejectUnknownMembers(true)) != nil {
+			return nil, fmt.Errorf("provider %q: %w", slug, errOIDCProviderField)
+		}
+
+		provider, err := oidc.NewCustomProvider(slug, config, serverURL, client)
 		if err != nil {
 			return nil, fmt.Errorf("configuring custom OIDC provider: %w", err)
 		}
