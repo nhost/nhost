@@ -236,7 +236,7 @@ export default function ColumnAutocomplete({
               {selectedColumn?.label || externalValue || 'Select a column'}
             </span>
           )}
-          <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+          <ChevronsUpDown className="h-5 w-5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

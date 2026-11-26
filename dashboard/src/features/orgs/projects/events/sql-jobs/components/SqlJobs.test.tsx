@@ -228,10 +228,8 @@ async function page(view: 'settings' | 'job' | 'notice' | 'index' = 'index') {
 }
 
 async function selectJobAction(user: TestUserEvent, name: string) {
-  await user.click(
-    await screen.findByRole('button', { name: 'refresh-summary actions' }),
-  );
-  await user.click(screen.getByRole('menuitem', { name }));
+  const label = `${name} job`;
+  await user.click(await screen.findByRole('button', { name: label }));
 }
 
 function sqlEditor() {
@@ -254,7 +252,7 @@ function setSqlCommand(command: string) {
 
 async function createJob(user: TestUserEvent) {
   await page();
-  await user.click(await screen.findByRole('button', { name: 'New SQL job' }));
+  await user.click(await screen.findByRole('button', { name: 'New SQL Job' }));
   const dialog = within(await screen.findByRole('dialog'));
   await user.type(dialog.getByLabelText('Job name'), 'nightly-cleanup');
   setSqlCommand('SELECT 1;\nSELECT 2;');
@@ -286,7 +284,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     const editor = dialog.getByRole('textbox', { name: 'SQL command' });
@@ -309,7 +307,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(dialog.getByRole('textbox', { name: 'SQL command' }));
@@ -321,7 +319,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     const schedule = dialog.getByLabelText('Schedule');
@@ -348,7 +346,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(
@@ -385,7 +383,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(dialog.getByRole('button', { name: 'Daily at 05:00' }));
@@ -414,7 +412,7 @@ describe('SQL Jobs', () => {
     const user = new TestUserEvent();
     await page();
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const dialog = within(await screen.findByRole('dialog'));
     await user.type(dialog.getByLabelText('Job name'), 'schedule-example');
@@ -508,7 +506,7 @@ describe('SQL Jobs', () => {
 
   it('edits a job while keeping its name immutable', async () => {
     const user = new TestUserEvent();
-    await page();
+    await page('job');
     await selectJobAction(user, 'Edit');
     const dialog = within(await screen.findByRole('dialog'));
     expect(dialog.getByLabelText('Job name')).toBeDisabled();
@@ -528,7 +526,7 @@ describe('SQL Jobs', () => {
       const user = new TestUserEvent();
       jobs[0].active = active;
       await page('job');
-      const toggleAction = active ? 'Pause' : 'Resume';
+      const toggleAction = active ? 'Pause job' : 'Resume job';
       await user.click(
         await screen.findByRole('button', { name: toggleAction }),
       );
@@ -609,7 +607,7 @@ describe('SQL Jobs', () => {
 
   it('requires confirmation before deleting a job', async () => {
     const user = new TestUserEvent();
-    await page();
+    await page('job');
     await selectJobAction(user, 'Delete');
     expect(writes).toHaveLength(0);
     const dialog = within(await screen.findByRole('alertdialog'));
@@ -656,7 +654,7 @@ describe('SQL Jobs', () => {
       await screen.findByRole('button', { name: 'Enable pg_cron' }),
     ).toBeEnabled();
     expect(
-      screen.queryByRole('button', { name: 'New SQL job' }),
+      screen.queryByRole('button', { name: 'New SQL Job' }),
     ).not.toBeInTheDocument();
   });
 
@@ -712,7 +710,7 @@ describe('SQL Jobs', () => {
       ),
     );
     const user = new TestUserEvent();
-    await page();
+    await page('job');
     await selectJobAction(user, 'Edit');
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(dialog.getByRole('button', { name: 'Save changes' }));
@@ -802,7 +800,7 @@ describe('SQL Jobs', () => {
     expect(configWrites).toHaveLength(0);
 
     await user.click(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     );
     const ordinaryDialog = within(await screen.findByRole('dialog'));
     expect(ordinaryDialog.getByLabelText('Job name')).toHaveValue('');
@@ -873,7 +871,7 @@ describe('SQL Jobs', () => {
     state = { ...cronStateFixture, schedulerDatabase: 'another-database' };
     await page('notice');
     expect(
-      await screen.findByRole('button', { name: 'New SQL job' }),
+      await screen.findByRole('button', { name: 'New SQL Job' }),
     ).toBeDisabled();
     expect(
       await screen.findByText('Different scheduler database'),

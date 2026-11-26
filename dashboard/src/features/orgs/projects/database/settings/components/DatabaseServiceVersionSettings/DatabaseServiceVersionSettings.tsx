@@ -297,7 +297,7 @@ export default function DatabaseServiceVersionSettings() {
                   className="self-center"
                   onClick={openLatestUpgradeLogsModal}
                 >
-                  <RepeatIcon className="mr-2 h-4 w-4" />
+                  <RepeatIcon className="h-4 w-4" />
                   View latest upgrade logs
                 </Button>
               ) : null

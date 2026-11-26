@@ -65,7 +65,7 @@ function CopyToClipboardButton({
       aria-label={label}
       {...props}
     >
-      <Copy className={cn({ 'mr-2': hasLabel })} />
+      <Copy />
       {children}
     </Button>
   );

@@ -196,7 +196,7 @@ export default function PATSettings() {
               variant="outline"
               className="mx-4 justify-self-start"
             >
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Create Personal Access Token
             </Button>
           </DialogTrigger>

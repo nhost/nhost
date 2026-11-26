@@ -1,16 +1,15 @@
 import {
   CircleOff,
+  Database,
   Plus,
-  Power,
-  Search,
   Settings,
   TriangleAlert,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
-import SidebarGroupHeader from '@/components/layout/SidebarGroupHeader/SidebarGroupHeader';
 import SidebarNoticeRow from '@/components/layout/SidebarNoticeRow/SidebarNoticeRow';
+import SidebarSetupCard from '@/components/layout/SidebarSetupCard/SidebarSetupCard';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
@@ -23,7 +22,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/v3/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { InstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/InstallExtensionDialog';
 import { PreloadExtensionDialog } from '@/features/orgs/projects/database/extensions/components/PreloadExtensionDialog';
 import { usePostgresExtensionsQuery } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
@@ -35,7 +44,6 @@ import {
   CronJobsSidebarError,
   CronJobsSidebarLoading,
 } from '@/features/orgs/projects/events/cron-jobs/components/CronJobsSidebarStatus';
-import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
 import { cronJobsPath } from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
 import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
 import CronTriggerListItem from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar/CronTriggerListItem';
@@ -61,6 +69,7 @@ import {
   useSqlJobs,
 } from '@/features/orgs/projects/events/sql-jobs/use-sql-jobs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn } from '@/lib/utils';
 
 interface Confirmation {
   title: string;
@@ -93,7 +102,13 @@ export default function SqlJobs() {
     initialValues?: Partial<SqlJobValues>;
   } | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-  const [search, setSearch] = useState('');
+  const kind =
+    jobId ||
+    settingsSelected ||
+    notice === 'sql' ||
+    (!cronTriggerSlug && router.query.tab === 'sql')
+      ? 'sql'
+      : 'webhook';
   const selectedJob = jobs.data?.find((job) => job.jobid === jobId);
   const timezone =
     state.data?.settings.find(({ name }) => name === 'cron.timezone')
@@ -116,9 +131,6 @@ export default function SqlJobs() {
       !sqlError &&
       !sqlLoading,
   );
-  const searchVisible =
-    (webhook.data?.length ?? 0) + (jobs.data?.length ?? 0) > 10;
-  const term = searchVisible ? search.trim().toLowerCase() : '';
   const notPreloaded = installed && !preloaded && !wrongDatabase;
   const jobActionsDisabled = !canCreateJob || mutation.isPending;
 
@@ -180,19 +192,6 @@ export default function SqlJobs() {
       },
     );
   }
-
-  const filteredWebhooks = (webhook.data ?? []).filter((job) =>
-    job.name.toLowerCase().includes(term),
-  );
-  const filteredSql = (jobs.data ?? []).filter((job) =>
-    [
-      job.jobname ?? `Job ${job.jobid}`,
-      job.command,
-      job.database,
-      job.username,
-      job.schedule,
-    ].some((value) => value.toLowerCase().includes(term)),
-  );
 
   function renderPane() {
     if (typeof cronTriggerSlug === 'string') {
@@ -306,27 +305,85 @@ export default function SqlJobs() {
 
   return (
     <div className="relative flex h-full min-h-0">
-      <FeatureSidebar className="w-60 shrink-0">
+      <FeatureSidebar className="w-60 shrink-0 pt-0 sm:pt-0">
         {(collapse) => (
-          <>
-            {searchVisible && (
-              <div className="px-2 pb-3">
-                <Input
-                  aria-label="Search cron jobs"
-                  placeholder="Search jobs"
-                  prefix={<Search className="size-4 text-muted-foreground" />}
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
+          <Tabs
+            value={kind}
+            onValueChange={(value) => {
+              router.push(
+                value === 'sql' ? `${basePath}?tab=sql` : basePath,
+                undefined,
+                { scroll: false },
+              );
+            }}
+          >
+            <div className="sticky top-0 z-10 bg-background px-2 pt-2.5 pb-2">
+              <TabsList aria-label="Job type" className="h-9 w-full">
+                <TabsTrigger value="webhook" className="flex-1 gap-1.5 py-1">
+                  Webhook
+                  {webhook.data && (
+                    <span className="font-normal text-muted-foreground text-xs">
+                      {webhook.data.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="sql" className="flex-1 gap-1.5 py-1">
+                  SQL
+                  {installed && !wrongDatabase && jobs.data && (
+                    <span className="font-normal text-muted-foreground text-xs">
+                      {jobs.data.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              <div className="flex items-center gap-1 pt-1 empty:hidden">
+                {kind === 'webhook' ? (
+                  <CreateCronTriggerForm />
+                ) : (
+                  extension &&
+                  (installed || wrongDatabase) &&
+                  !sqlLoading &&
+                  !sqlError && (
+                    <>
+                      <Button
+                        variant="link"
+                        className="!text-sm+ flex min-w-0 flex-1 justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+                        disabled={!canCreateJob}
+                        onClick={() => {
+                          collapse();
+                          setForm({});
+                        }}
+                      >
+                        New SQL Job <Plus className="h-4 w-4" />
+                      </Button>
+                      {installed && !wrongDatabase && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="subtle"
+                              size="icon-sm"
+                              aria-label="Scheduler settings"
+                              aria-current={
+                                settingsSelected ? 'page' : undefined
+                              }
+                              className={cn(settingsSelected && 'text-primary')}
+                              onClick={() => {
+                                collapse();
+                                router.push(`${basePath}/settings`);
+                              }}
+                            >
+                              <Settings />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Scheduler settings</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </>
+                  )
+                )}
               </div>
-            )}
-            <div className="px-2 pb-4">
-              <SidebarGroupHeader
-                label="Webhook jobs"
-                count={webhook.data?.length}
-              >
-                <CreateCronTriggerForm />
-              </SidebarGroupHeader>
+            </div>
+            <TabsContent value="webhook" className="mt-0 px-2 pb-4">
               {webhook.isLoading ? (
                 <CronJobsSidebarLoading />
               ) : webhook.isError ? (
@@ -334,8 +391,8 @@ export default function SqlJobs() {
                   message="Webhook jobs could not be loaded."
                   onRetry={() => webhook.refetch()}
                 />
-              ) : filteredWebhooks.length ? (
-                filteredWebhooks.map((job) => (
+              ) : webhook.data?.length ? (
+                webhook.data.map((job) => (
                   <CronTriggerListItem
                     key={job.name}
                     cronTrigger={job}
@@ -344,47 +401,11 @@ export default function SqlJobs() {
                 ))
               ) : (
                 <p className="p-2.5 text-muted-foreground text-sm">
-                  {webhook.data?.length
-                    ? 'No matching webhook jobs'
-                    : 'No webhook jobs yet'}
+                  No webhook jobs yet
                 </p>
               )}
-            </div>
-            <div className="px-2 pb-4">
-              <SidebarGroupHeader
-                label="SQL jobs"
-                count={
-                  installed && !wrongDatabase ? jobs.data?.length : undefined
-                }
-              >
-                {installed && !wrongDatabase && !sqlLoading && !sqlError && (
-                  <SidebarIconAction
-                    label="Scheduler settings"
-                    selected={settingsSelected}
-                    onClick={() => {
-                      collapse();
-                      router.push(`${basePath}/settings`);
-                    }}
-                  >
-                    <Settings />
-                  </SidebarIconAction>
-                )}
-                {extension &&
-                  (installed || wrongDatabase) &&
-                  !sqlLoading &&
-                  !sqlError && (
-                    <SidebarIconAction
-                      label="New SQL job"
-                      disabled={!canCreateJob}
-                      onClick={() => {
-                        collapse();
-                        setForm({});
-                      }}
-                    >
-                      <Plus />
-                    </SidebarIconAction>
-                  )}
-              </SidebarGroupHeader>
+            </TabsContent>
+            <TabsContent value="sql" className="mt-0 px-2 pb-4">
               {sqlLoading ? (
                 <CronJobsSidebarLoading />
               ) : sqlError ? (
@@ -407,16 +428,16 @@ export default function SqlJobs() {
                     : 'pg_cron not available'}
                 </SidebarNoticeRow>
               ) : !installed ? (
-                <SidebarNoticeRow
-                  icon={<Power />}
-                  tone="primary"
-                  onClick={() => {
+                <SidebarSetupCard
+                  icon={<Database />}
+                  title="Turn on pg_cron"
+                  description="SQL jobs run inside your database with the pg_cron extension. Turn it on to start scheduling SQL."
+                  actionLabel="Enable pg_cron"
+                  onAction={() => {
                     collapse();
                     setExtensionDialog('install');
                   }}
-                >
-                  Enable pg_cron
-                </SidebarNoticeRow>
+                />
               ) : (
                 <>
                   {notPreloaded && (
@@ -431,7 +452,7 @@ export default function SqlJobs() {
                       Configure preload
                     </SidebarNoticeRow>
                   )}
-                  {filteredSql.map((job) => (
+                  {jobs.data?.map((job) => (
                     <CronJobListItem
                       key={job.jobid}
                       href={`${basePath}/sql/${job.jobid}`}
@@ -439,24 +460,18 @@ export default function SqlJobs() {
                       selected={job.jobid === jobId}
                       schedule={describeCronSchedule(job.schedule)}
                       paused={!job.active}
-                      disabled={jobActionsDisabled}
                       onNavigate={collapse}
-                      onEdit={() => setForm({ job })}
-                      onToggle={() => toggleJob(job)}
-                      onDelete={() => confirmDelete(job)}
                     />
                   ))}
-                  {filteredSql.length === 0 && (
+                  {!jobs.data?.length && (
                     <p className="p-2.5 text-muted-foreground text-sm">
-                      {jobs.data?.length
-                        ? 'No matching SQL jobs'
-                        : 'No SQL jobs yet'}
+                      No SQL jobs yet
                     </p>
                   )}
                 </>
               )}
-            </div>
-          </>
+            </TabsContent>
+          </Tabs>
         )}
       </FeatureSidebar>
       <div className="min-w-0 flex-1 overflow-auto" key={router.asPath}>

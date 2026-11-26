@@ -1,10 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
+import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 
 export default function DeleteJobButton({
   onClick,
@@ -14,20 +9,13 @@ export default function DeleteJobButton({
   disabled?: boolean;
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="subtle"
-          size="icon"
-          aria-label="Delete job"
-          disabled={disabled}
-          onClick={onClick}
-          className="hover:text-destructive dark:hover:text-destructive"
-        >
-          <Trash2 />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Delete job</TooltipContent>
-    </Tooltip>
+    <JobIconButton
+      label="Delete job"
+      destructive
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Trash2 />
+    </JobIconButton>
   );
 }

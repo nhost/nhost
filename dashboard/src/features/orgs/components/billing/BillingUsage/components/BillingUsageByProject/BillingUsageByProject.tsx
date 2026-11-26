@@ -238,7 +238,7 @@ export default function BillingUsageByProject({
             loading={refreshing}
             data-testid="billingMetricsRefreshButton"
           >
-            {!refreshing && <RefreshCw className="mr-2 h-4 w-4" />}
+            {!refreshing && <RefreshCw className="h-4 w-4" />}
             Refresh
           </ButtonWithLoading>
         </div>

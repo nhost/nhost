@@ -203,7 +203,7 @@ export default function SQLEditor({
             <TooltipTrigger asChild>
               <span className="self-start">
                 <Button disabled={isRunDisabled} onClick={handleRunSQL}>
-                  <PlayIcon className="mr-2 h-4 w-4" />
+                  <PlayIcon className="h-4 w-4" />
                   Run
                 </Button>
               </span>

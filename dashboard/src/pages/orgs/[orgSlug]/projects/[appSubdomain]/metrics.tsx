@@ -136,7 +136,7 @@ function MetricsPageContent() {
                 rel="noreferrer noopener"
               >
                 Open Grafana
-                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+                <ArrowSquareOutIcon className="h-4 w-4" />
               </Link>
             </Button>
           </div>

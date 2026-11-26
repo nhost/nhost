@@ -83,7 +83,7 @@ export default function MetadataConflictToast({
             disabled={isFetchDisabled}
           >
             {!isFetching && (
-              <RefreshCwIcon aria-hidden="true" className="mr-2 h-4 w-4" />
+              <RefreshCwIcon aria-hidden="true" className="h-4 w-4" />
             )}
             {isFetching ? 'Fetching metadata…' : fetchLabel}
           </ButtonWithLoading>

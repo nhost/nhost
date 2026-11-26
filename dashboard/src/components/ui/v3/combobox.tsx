@@ -184,7 +184,7 @@ const Combobox = function ComboboxComponent({
           {triggerContent ?? (
             <>
               <span className="truncate">{displayLabel ?? placeholder}</span>
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </>
           )}
         </Button>

@@ -1,7 +1,6 @@
 import { Pencil } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
 import {
   Tabs,
   TabsContent,
@@ -15,6 +14,7 @@ import { useEventPagination } from '@/features/orgs/projects/events/common/hooks
 import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/common/hooks/useGetScheduledEventLogsQuery';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
+import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
 import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-triggers/components/DeleteCronTriggerDialog';
@@ -127,10 +127,9 @@ export default function CronTriggerView() {
               <EditCronTriggerForm
                 cronTrigger={cronTrigger}
                 trigger={({ open }) => (
-                  <Button variant="outline" onClick={open}>
+                  <JobIconButton label="Edit job" onClick={open}>
                     <Pencil />
-                    Edit
-                  </Button>
+                  </JobIconButton>
                 )}
               />
               <DeleteJobButton onClick={() => setDeleting(true)} />

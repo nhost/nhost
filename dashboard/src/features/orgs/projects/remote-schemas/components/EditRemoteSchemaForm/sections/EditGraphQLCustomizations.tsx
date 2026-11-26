@@ -400,7 +400,7 @@ export default function EditGraphQLCustomizations({
                               <span className="truncate">
                                 {field.value ?? 'Select a type'}
                               </span>
-                              <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
+                              <ChevronsUpDown className="shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">

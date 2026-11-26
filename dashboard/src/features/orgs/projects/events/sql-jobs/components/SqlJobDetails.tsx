@@ -24,6 +24,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
+import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
 import {
   SQL_EDITOR_EXTENSIONS,
@@ -94,14 +95,20 @@ export default function SqlJobDetails({
         paused={!job.active}
         actions={
           <>
-            <Button variant="outline" disabled={disabled} onClick={onToggle}>
+            <JobIconButton
+              label={job.active ? 'Pause job' : 'Resume job'}
+              disabled={disabled}
+              onClick={onToggle}
+            >
               {job.active ? <Pause /> : <Play />}
-              {job.active ? 'Pause' : 'Resume'}
-            </Button>
-            <Button variant="outline" disabled={disabled} onClick={onEdit}>
+            </JobIconButton>
+            <JobIconButton
+              label="Edit job"
+              disabled={disabled}
+              onClick={onEdit}
+            >
               <Pencil />
-              Edit
-            </Button>
+            </JobIconButton>
             <DeleteJobButton disabled={disabled} onClick={onDelete} />
           </>
         }
@@ -125,6 +132,14 @@ export default function SqlJobDetails({
               >
                 Configure preload
               </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        {!job.active && (
+          <Alert variant="warning">
+            <AlertTitle>This job is paused</AlertTitle>
+            <AlertDescription>
+              It won't run on its schedule until you resume it.
             </AlertDescription>
           </Alert>
         )}

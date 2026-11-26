@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
+import { Button } from '@/components/ui/v3/button';
 import {
   cronJobsPath,
   webhookJobPath,
@@ -18,9 +18,13 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 const renderCreateCronTriggerButton = ({
   open,
 }: BaseCronTriggerFormTriggerProps) => (
-  <SidebarIconAction label="New webhook job" onClick={open}>
-    <Plus />
-  </SidebarIconAction>
+  <Button
+    variant="link"
+    className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+    onClick={open}
+  >
+    New Webhook Job <Plus className="h-4 w-4" />
+  </Button>
 );
 
 export default function CreateCronTriggerForm() {

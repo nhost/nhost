@@ -234,7 +234,7 @@ function OAuth2ClientsPageContent() {
             onChange={handleSearchStringChange}
           />
           <Button onClick={openCreateClientDrawer} size="sm">
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Create Client
           </Button>
         </div>
@@ -265,7 +265,7 @@ function OAuth2ClientsPageContent() {
           onChange={handleSearchStringChange}
         />
         <Button onClick={openCreateClientDrawer} size="sm">
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           Create Client
         </Button>
       </div>
@@ -280,7 +280,7 @@ function OAuth2ClientsPageContent() {
             </p>
           </div>
           <Button onClick={openCreateClientDrawer}>
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Create Client
           </Button>
         </div>

@@ -361,7 +361,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               rel="noreferrer noopener"
             >
               Configure the Nhost application on GitHub
-              <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+              <ArrowSquareOutIcon className="h-4 w-4" />
             </Link>
           </Button>
         </div>

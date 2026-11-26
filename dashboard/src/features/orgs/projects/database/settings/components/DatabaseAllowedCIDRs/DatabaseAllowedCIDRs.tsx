@@ -161,7 +161,7 @@ export default function DatabaseAllowedCIDRs() {
                 className="justify-self-start"
                 onClick={() => append({ value: '' })}
               >
-                <Plus className="mr-1 size-4" />
+                <Plus className="size-4" />
                 Add CIDR
               </Button>
             )}

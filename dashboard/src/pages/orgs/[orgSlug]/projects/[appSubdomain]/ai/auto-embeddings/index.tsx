@@ -163,7 +163,7 @@ export default function AutoEmbeddingsPage() {
               className="w-full"
               onClick={openCreateAutoEmbeddingsConfiguration}
             >
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Add a new Auto-Embeddings Configuration
             </Button>
           </div>
@@ -176,7 +176,7 @@ export default function AutoEmbeddingsPage() {
     <div className="flex w-full flex-col overflow-x-hidden">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateAutoEmbeddingsConfiguration}>
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New
         </Button>
       </div>

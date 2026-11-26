@@ -23,7 +23,7 @@ function SupportPage() {
             onClick={() => window.open('https://docs.nhost.io')}
             className="h-10 w-full xs+:w-98"
           >
-            <FileTextIcon className="mr-2 h-4 w-4 self-center" />
+            <FileTextIcon className="h-4 w-4 self-center" />
             Read our docs
           </Button>
         </div>

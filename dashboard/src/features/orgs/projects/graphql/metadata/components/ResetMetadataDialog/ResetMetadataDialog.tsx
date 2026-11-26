@@ -49,7 +49,7 @@ export default function ResetMetadataDialog() {
           variant="outline"
           className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
           Reset Metadata
         </Button>
       </DialogTrigger>

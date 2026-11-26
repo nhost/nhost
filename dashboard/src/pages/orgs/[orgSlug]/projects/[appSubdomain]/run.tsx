@@ -119,7 +119,7 @@ export default function RunPage() {
       <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
         <div className="flex flex-row place-content-end">
           <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Add service
           </Button>
         </div>
@@ -137,7 +137,7 @@ export default function RunPage() {
           {isPlatform ? (
             <div className="flex flex-row place-content-between rounded-lg">
               <Button className="w-full" onClick={openCreateServiceDialog}>
-                <PlusIcon className="mr-2 h-4 w-4" />
+                <PlusIcon className="h-4 w-4" />
                 Add service
               </Button>
             </div>
@@ -151,7 +151,7 @@ export default function RunPage() {
     <div className="flex flex-col">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           Add service
         </Button>
       </div>

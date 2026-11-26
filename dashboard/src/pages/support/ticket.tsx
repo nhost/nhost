@@ -333,7 +333,7 @@ function TicketPage() {
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
-                      {!isSubmitting && <Mail className="mr-2 size-4" />}
+                      {!isSubmitting && <Mail className="size-4" />}
                       Create Support Ticket
                     </ButtonWithLoading>
                   </div>

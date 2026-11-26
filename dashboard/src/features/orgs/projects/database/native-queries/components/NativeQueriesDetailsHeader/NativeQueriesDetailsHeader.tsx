@@ -42,7 +42,7 @@ export default function NativeQueriesDetailsHeader({
           )}
         </div>
         <Button variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="mr-2 h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" />
           Edit
         </Button>
       </div>

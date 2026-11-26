@@ -175,7 +175,7 @@ export default function EnvironmentVariableSettings() {
         }}
         actions={
           <Button type="button" variant="outline" onClick={handleOpenCreator}>
-            <PlusIcon className="mr-2" />
+            <PlusIcon />
             Create environment variable
           </Button>
         }

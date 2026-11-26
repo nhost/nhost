@@ -26,7 +26,7 @@ function EnableMfaButton() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
-          <ShieldCheck className="mr-2 h-4 w-4" />
+          <ShieldCheck className="h-4 w-4" />
           Enable multi-factor authentication
         </Button>
       </DialogTrigger>

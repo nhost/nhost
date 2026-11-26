@@ -115,7 +115,7 @@ export default function ComputedFieldsSection({
       className="text-white"
       data-testid="add-computed-field-trigger"
     >
-      <PlusIcon className="mr-2 size-4" />
+      <PlusIcon className="size-4" />
       New field
     </Button>
   ) : null;
@@ -181,7 +181,7 @@ export default function ComputedFieldsSection({
                 className="text-white"
                 data-testid="add-computed-field-empty-cta"
               >
-                <PlusIcon className="mr-2 size-4" />
+                <PlusIcon className="size-4" />
                 New field
               </Button>
             </div>

@@ -163,7 +163,7 @@ export default function OverviewDeployments() {
 
         <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
           <Button className="w-full" onClick={openGitHubModal}>
-            <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
+            <GitHubIcon className="h-4 w-4 self-center" />
             Connect to GitHub
           </Button>
         </div>
