@@ -1,5 +1,17 @@
-import { Plus, RefreshCw } from 'lucide-react';
+import {
+  CircleOff,
+  Plus,
+  Power,
+  Search,
+  Settings,
+  TriangleAlert,
+} from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
+import SidebarGroupHeader from '@/components/layout/SidebarGroupHeader/SidebarGroupHeader';
+import SidebarNoticeRow from '@/components/layout/SidebarNoticeRow/SidebarNoticeRow';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
   AlertDialog,
@@ -10,27 +22,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
-import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/v3/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { InstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/InstallExtensionDialog';
 import { PreloadExtensionDialog } from '@/features/orgs/projects/database/extensions/components/PreloadExtensionDialog';
 import { usePostgresExtensionsQuery } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { usePreloadedLibrariesQuery } from '@/features/orgs/projects/database/extensions/hooks/usePreloadedLibrariesQuery';
+import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
+import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import CronJobListItem from '@/features/orgs/projects/events/cron-jobs/components/CronJobListItem';
+import {
+  CronJobsSidebarError,
+  CronJobsSidebarLoading,
+} from '@/features/orgs/projects/events/cron-jobs/components/CronJobsSidebarStatus';
+import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
+import { cronJobsPath } from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
+import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
+import CronTriggerListItem from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar/CronTriggerListItem';
+import { CronTriggerView } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView';
+import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { SQL_JOBS_DATA_SOURCE } from '@/features/orgs/projects/events/sql-jobs/api';
 import CronSettings from '@/features/orgs/projects/events/sql-jobs/components/CronSettings';
 import SqlJobDetails from '@/features/orgs/projects/events/sql-jobs/components/SqlJobDetails';
 import SqlJobForm from '@/features/orgs/projects/events/sql-jobs/components/SqlJobForm';
-import SqlJobsTable from '@/features/orgs/projects/events/sql-jobs/components/SqlJobsTable';
 import {
   deleteSqlJobChange,
   disableCronChange,
@@ -53,10 +67,16 @@ interface Confirmation {
   description: string;
   label: string;
   change: SqlJobChange;
+  returnToList: boolean;
 }
 
 export default function SqlJobs() {
-  const isPlatform = useIsPlatform();
+  const router = useRouter();
+  const { orgSlug, appSubdomain, cronTriggerSlug, jobId, notice } =
+    router.query;
+  const basePath = cronJobsPath(orgSlug, appSubdomain);
+  const settingsSelected = router.pathname.endsWith('/cron-jobs/settings');
+  const webhook = useGetCronTriggers();
   const catalog = usePostgresExtensionsQuery(SQL_JOBS_DATA_SOURCE);
   const running = usePreloadedLibrariesQuery(SQL_JOBS_DATA_SOURCE);
   const state = useCronState();
@@ -72,15 +92,80 @@ export default function SqlJobs() {
     job?: SqlJob;
     initialValues?: Partial<SqlJobValues>;
   } | null>(null);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
-  const selectedJob = jobs.data?.find((job) => job.jobid === selectedJobId);
+  const selectedJob = jobs.data?.find((job) => job.jobid === jobId);
   const timezone =
     state.data?.settings.find(({ name }) => name === 'cron.timezone')
       ?.setting ?? 'GMT';
-  const error = catalog.error ?? state.error ?? running.error;
+  const sqlError = catalog.error ?? state.error ?? running.error ?? jobs.error;
+  const sqlLoading =
+    catalog.isLoading ||
+    state.isLoading ||
+    running.isLoading ||
+    (installed && jobs.isLoading);
+  const database = state.data?.database;
+  const wrongDatabase = Boolean(
+    state.data?.schedulerDatabase && state.data.schedulerDatabase !== database,
+  );
+  const canCreateJob = Boolean(
+    database &&
+      installed &&
+      preloaded &&
+      !wrongDatabase &&
+      !sqlError &&
+      !sqlLoading,
+  );
+  const searchVisible =
+    (webhook.data?.length ?? 0) + (jobs.data?.length ?? 0) > 10;
+  const term = searchVisible ? search.trim().toLowerCase() : '';
+  const notPreloaded = installed && !preloaded && !wrongDatabase;
+  const jobActionsDisabled = !canCreateJob || mutation.isPending;
+
+  function confirmDelete(job: SqlJob) {
+    if (!database) {
+      return;
+    }
+    mutation.reset();
+    setConfirmation({
+      title: `Delete ${job.jobname ?? `Job ${job.jobid}`}?`,
+      label: 'Delete job',
+      description:
+        'This removes the job from the scheduler. Recorded run history is kept in Postgres. A currently running command is not cancelled.',
+      change: deleteSqlJobChange(job, database),
+      returnToList: job.jobid === jobId,
+    });
+  }
+
+  function confirmDisable() {
+    if (!database || !jobs.data) {
+      return;
+    }
+    mutation.reset();
+    setConfirmation({
+      title: 'Disable pg_cron?',
+      label: 'Disable pg_cron',
+      description:
+        'This uninstalls pg_cron and permanently deletes all SQL jobs and their run history. It does not affect webhook jobs. A local down migration can recreate job definitions, but cannot restore run history. The library stays preloaded.',
+      change: disableCronChange(jobs.data, database),
+      returnToList: true,
+    });
+  }
+
+  function toggleJob(job: SqlJob) {
+    if (database) {
+      changeJob(setSqlJobActiveChange(job, database));
+    }
+  }
+
+  function retrySqlJobs() {
+    catalog.refetch();
+    running.refetch();
+    state.refetch();
+    if (installed) {
+      jobs.refetch();
+    }
+  }
 
   async function changeJob(change: SqlJobChange, onSuccess?: () => void) {
     await execPromiseWithErrorToast(
@@ -96,257 +181,287 @@ export default function SqlJobs() {
     );
   }
 
-  if (catalog.isLoading || state.isLoading || running.isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (error instanceof Error) {
-    return (
-      <div className="p-6">
-        <Alert variant="destructive">
-          <AlertTitle>Could not load SQL Jobs</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-        <Button
-          className="mt-4"
-          variant="outline"
-          onClick={() => {
-            catalog.refetch();
-            state.refetch();
-            running.refetch();
-          }}
-        >
-          Try again
-        </Button>
-      </div>
-    );
-  }
-
-  const database = state.data?.database;
-  if (!database) {
-    return null;
-  }
-
-  const filteredJobs =
-    jobs.data?.filter(
-      (job) =>
-        [job.jobname, job.command, job.database, job.username, job.schedule]
-          .join(' ')
-          .toLowerCase()
-          .includes(search.toLowerCase()) &&
-        (filter === 'all' || job.active === (filter === 'enabled')),
-    ) ?? [];
-  const wrongDatabase = Boolean(
-    state.data?.schedulerDatabase &&
-      state.data.schedulerDatabase !== state.data.database,
+  const filteredWebhooks = (webhook.data ?? []).filter((job) =>
+    job.name.toLowerCase().includes(term),
   );
-  const canCreateJob = installed && preloaded && !wrongDatabase;
+  const filteredSql = (jobs.data ?? []).filter((job) =>
+    [
+      job.jobname ?? `Job ${job.jobid}`,
+      job.command,
+      job.database,
+      job.username,
+      job.schedule,
+    ].some((value) => value.toLowerCase().includes(term)),
+  );
+
+  function renderPane() {
+    if (typeof cronTriggerSlug === 'string') {
+      return (
+        <RetryableErrorBoundary key={cronTriggerSlug}>
+          <CronTriggerView />
+        </RetryableErrorBoundary>
+      );
+    }
+    if (settingsSelected || jobId || notice) {
+      if (sqlLoading) {
+        return (
+          <div className="p-6">
+            <CronJobsSidebarLoading />
+          </div>
+        );
+      }
+      if (sqlError) {
+        return (
+          <div className="p-6">
+            <Alert variant="destructive">
+              <AlertTitle>SQL jobs could not be loaded</AlertTitle>
+              <AlertDescription>
+                <Button variant="link" size="inline" onClick={retrySqlJobs}>
+                  Try again
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+      }
+      if (!extension || wrongDatabase) {
+        return (
+          <div className="p-6">
+            {wrongDatabase ? (
+              <Alert variant="warning">
+                <TriangleAlert />
+                <AlertTitle>Different scheduler database</AlertTitle>
+                <AlertDescription>
+                  pg_cron is configured in {state.data?.schedulerDatabase}, but
+                  the default data source connects to {database}. The extension
+                  can only be installed in the scheduler database. Update your
+                  Postgres configuration or data source before enabling it here.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert>
+                <CircleOff />
+                <AlertTitle>pg_cron not available</AlertTitle>
+                <AlertDescription>
+                  The default database does not offer the pg_cron extension. Use
+                  a Postgres image that includes it.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        );
+      }
+      if (settingsSelected && installed && state.data) {
+        return (
+          <CronSettings
+            state={state.data}
+            canCreateJob={canCreateJob}
+            canDisable={Boolean(jobs.data) && !mutation.isPending}
+            onDisable={confirmDisable}
+            onCreateRetentionJob={() =>
+              setForm({
+                initialValues: {
+                  jobname: 'cleanup-cron-run-history',
+                  schedule: '0 5 * * *',
+                  command:
+                    "DELETE FROM cron.job_run_details\nWHERE end_time < now() - interval '7 days';",
+                },
+              })
+            }
+          />
+        );
+      }
+      if (selectedJob) {
+        return (
+          <SqlJobDetails
+            key={selectedJob.jobid}
+            job={selectedJob}
+            timezone={timezone}
+            disabled={jobActionsDisabled}
+            onEdit={() => setForm({ job: selectedJob })}
+            onDelete={() => confirmDelete(selectedJob)}
+            onToggle={() => toggleJob(selectedJob)}
+            onConfigurePreload={
+              notPreloaded ? () => setExtensionDialog('preload') : undefined
+            }
+          />
+        );
+      }
+      if (jobId) {
+        return (
+          <EventsEmptyState
+            title="SQL job not found"
+            description="Select another job from the sidebar."
+          />
+        );
+      }
+    }
+    return (
+      <EventsEmptyState
+        title="Cron jobs"
+        description="Select a job from the sidebar to get started."
+      />
+    );
+  }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-6 md:p-10">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="font-semibold text-2xl">SQL Jobs</h1>
-          <p className="text-muted-foreground">
-            Schedule SQL commands to run in Postgres using pg_cron.
-          </p>
-          <p className="text-muted-foreground text-sm">
-            {isPlatform
-              ? 'Changes run directly against your database.'
-              : 'Job and extension changes create Hasura migrations in your project.'}{' '}
-            Schedules use {timezone}.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={installed ? 'secondary' : 'outline'}>
-            {installed ? 'pg_cron enabled' : 'pg_cron disabled'}
-          </Badge>
-          {extension &&
-            (installed ? (
-              <Button
-                variant="outline"
-                disabled={!jobs.data || jobs.isError || mutation.isPending}
-                onClick={() => {
-                  mutation.reset();
-                  setConfirmation({
-                    title: 'Disable pg_cron?',
-                    label: 'Disable pg_cron',
-                    description:
-                      'This uninstalls pg_cron and permanently deletes all SQL jobs and their run history. It does not affect webhook cron triggers. A local down migration can recreate job definitions, but cannot restore run history. The library stays preloaded.',
-                    change: disableCronChange(jobs.data ?? [], database),
-                  });
-                }}
-              >
-                Disable pg_cron
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                disabled={wrongDatabase}
-                onClick={() => setExtensionDialog('install')}
-              >
-                Enable pg_cron
-              </Button>
-            ))}
-        </div>
-      </header>
-
-      {!extension && (
-        <Alert>
-          <AlertTitle>pg_cron is unavailable</AlertTitle>
-          <AlertDescription>
-            The default database does not offer the pg_cron extension. Use a
-            Postgres image that includes it.
-          </AlertDescription>
-        </Alert>
-      )}
-      {wrongDatabase && (
-        <Alert variant="warning">
-          <AlertTitle>Different scheduler database</AlertTitle>
-          <AlertDescription>
-            pg_cron is configured in {state.data?.schedulerDatabase}, but the
-            default data source connects to {state.data?.database}. The
-            extension can only be installed in the scheduler database. Update
-            your Postgres configuration or data source before enabling it here.
-          </AlertDescription>
-        </Alert>
-      )}
-      {installed && !preloaded && extension && (
-        <Alert variant="warning">
-          <AlertTitle>pg_cron is not preloaded</AlertTitle>
-          <AlertDescription>
-            Jobs cannot run until Postgres preloads pg_cron.
-            <Button
-              className="ml-3"
-              size="sm"
-              variant="outline"
-              onClick={() => setExtensionDialog('preload')}
-            >
-              Configure preload
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Tabs defaultValue="jobs">
-        <TabsList>
-          <TabsTrigger value="jobs">Jobs</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-        <TabsContent value="jobs" className="space-y-4 pt-4">
-          {!installed ? (
-            <div className="rounded-lg border p-10 text-center">
-              <h2 className="font-semibold text-lg">
-                Enable pg_cron to schedule SQL jobs
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                Create recurring database maintenance tasks, refresh
-                materialized views, or call stored procedures.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-3">
+    <div className="relative flex h-full min-h-0">
+      <FeatureSidebar className="w-60 shrink-0">
+        {(collapse) => (
+          <>
+            {searchVisible && (
+              <div className="px-2 pb-3">
                 <Input
-                  className="max-w-sm"
-                  aria-label="Search SQL jobs"
-                  placeholder="Search jobs, SQL, or database roles..."
+                  aria-label="Search cron jobs"
+                  placeholder="Search jobs"
+                  prefix={<Search className="size-4 text-muted-foreground" />}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
-                <ToggleGroup
-                  type="single"
-                  aria-label="Filter SQL jobs"
-                  value={filter}
-                  onValueChange={(value) => value && setFilter(value)}
-                >
-                  <ToggleGroupItem value="all">All</ToggleGroupItem>
-                  <ToggleGroupItem value="enabled">Enabled</ToggleGroupItem>
-                  <ToggleGroupItem value="disabled">Disabled</ToggleGroupItem>
-                </ToggleGroup>
-                <Button
-                  variant="outline"
-                  aria-label="Refresh SQL jobs"
-                  disabled={jobs.isFetching}
-                  onClick={() => {
-                    jobs.refetch();
-                    state.refetch();
-                  }}
-                >
-                  <RefreshCw className="size-4" />
-                </Button>
-                <Button
-                  className="ml-auto"
-                  disabled={!canCreateJob}
-                  onClick={() => setForm({})}
-                >
-                  <Plus className="mr-2 size-4" />
-                  Create SQL job
-                </Button>
               </div>
-              {jobs.isLoading ? (
-                <Spinner />
-              ) : jobs.error instanceof Error ? (
-                <Alert variant="destructive">
-                  <AlertDescription>{jobs.error.message}</AlertDescription>
-                </Alert>
-              ) : (
-                <SqlJobsTable
-                  jobs={filteredJobs}
-                  disabled={mutation.isPending || !preloaded}
-                  onView={(job) => setSelectedJobId(job.jobid)}
-                  onEdit={(job) => setForm({ job })}
-                  onToggle={(job) =>
-                    changeJob(setSqlJobActiveChange(job, database))
-                  }
-                  onDelete={(job) => {
-                    mutation.reset();
-                    setConfirmation({
-                      title: `Delete ${job.jobname ?? `Job ${job.jobid}`}?`,
-                      label: 'Delete job',
-                      description:
-                        'This removes the job from the scheduler. Recorded run history is kept in Postgres. A currently running command is not cancelled.',
-                      change: deleteSqlJobChange(job, database),
-                    });
-                  }}
+            )}
+            <div className="px-2 pb-4">
+              <SidebarGroupHeader
+                label="Webhook jobs"
+                count={webhook.data?.length}
+              >
+                <CreateCronTriggerForm />
+              </SidebarGroupHeader>
+              {webhook.isLoading ? (
+                <CronJobsSidebarLoading />
+              ) : webhook.isError ? (
+                <CronJobsSidebarError
+                  message="Webhook jobs could not be loaded."
+                  onRetry={() => webhook.refetch()}
                 />
+              ) : filteredWebhooks.length ? (
+                filteredWebhooks.map((job) => (
+                  <CronTriggerListItem
+                    key={job.name}
+                    cronTrigger={job}
+                    onNavigate={collapse}
+                  />
+                ))
+              ) : (
+                <p className="p-2.5 text-muted-foreground text-sm">
+                  {webhook.data?.length
+                    ? 'No matching webhook jobs'
+                    : 'No webhook jobs yet'}
+                </p>
               )}
-              {!jobs.isLoading &&
-                !jobs.isError &&
-                filteredJobs.length === 0 && (
-                  <p className="py-10 text-center text-muted-foreground">
-                    {jobs.data?.length
-                      ? 'No jobs match your search or filter.'
-                      : 'No SQL jobs yet. Create a job to get started.'}
-                  </p>
+            </div>
+            <div className="px-2 pb-4">
+              <SidebarGroupHeader
+                label="SQL jobs"
+                count={
+                  installed && !wrongDatabase ? jobs.data?.length : undefined
+                }
+              >
+                {installed && !wrongDatabase && !sqlLoading && !sqlError && (
+                  <SidebarIconAction
+                    label="Scheduler settings"
+                    selected={settingsSelected}
+                    onClick={() => {
+                      collapse();
+                      router.push(`${basePath}/settings`);
+                    }}
+                  >
+                    <Settings />
+                  </SidebarIconAction>
                 )}
-            </>
-          )}
-        </TabsContent>
-        <TabsContent value="settings" className="pt-4">
-          {state.data && (
-            <CronSettings
-              state={state.data}
-              canCreateJob={canCreateJob}
-              onCreateRetentionJob={() =>
-                setForm({
-                  initialValues: {
-                    jobname: 'cleanup-cron-run-history',
-                    schedule: '0 5 * * *',
-                    command:
-                      "DELETE FROM cron.job_run_details\nWHERE end_time < now() - interval '7 days';",
-                  },
-                })
-              }
-            />
-          )}
-        </TabsContent>
-      </Tabs>
-
+                {extension &&
+                  (installed || wrongDatabase) &&
+                  !sqlLoading &&
+                  !sqlError && (
+                    <SidebarIconAction
+                      label="New SQL job"
+                      disabled={!canCreateJob}
+                      onClick={() => {
+                        collapse();
+                        setForm({});
+                      }}
+                    >
+                      <Plus />
+                    </SidebarIconAction>
+                  )}
+              </SidebarGroupHeader>
+              {sqlLoading ? (
+                <CronJobsSidebarLoading />
+              ) : sqlError ? (
+                <CronJobsSidebarError
+                  message="SQL jobs could not be loaded."
+                  onRetry={retrySqlJobs}
+                />
+              ) : !extension || wrongDatabase ? (
+                <SidebarNoticeRow
+                  icon={wrongDatabase ? <TriangleAlert /> : <CircleOff />}
+                  tone={wrongDatabase ? 'warning' : 'muted'}
+                  selected={notice === 'sql'}
+                  onClick={() => {
+                    collapse();
+                    router.push(`${basePath}?notice=sql`);
+                  }}
+                >
+                  {wrongDatabase
+                    ? 'Different database'
+                    : 'pg_cron not available'}
+                </SidebarNoticeRow>
+              ) : !installed ? (
+                <SidebarNoticeRow
+                  icon={<Power />}
+                  tone="primary"
+                  onClick={() => {
+                    collapse();
+                    setExtensionDialog('install');
+                  }}
+                >
+                  Enable pg_cron
+                </SidebarNoticeRow>
+              ) : (
+                <>
+                  {notPreloaded && (
+                    <SidebarNoticeRow
+                      icon={<TriangleAlert />}
+                      tone="warning"
+                      onClick={() => {
+                        collapse();
+                        setExtensionDialog('preload');
+                      }}
+                    >
+                      Configure preload
+                    </SidebarNoticeRow>
+                  )}
+                  {filteredSql.map((job) => (
+                    <CronJobListItem
+                      key={job.jobid}
+                      href={`${basePath}/sql/${job.jobid}`}
+                      name={job.jobname ?? `Job ${job.jobid}`}
+                      selected={job.jobid === jobId}
+                      schedule={describeCronSchedule(job.schedule)}
+                      paused={!job.active}
+                      disabled={jobActionsDisabled}
+                      onNavigate={collapse}
+                      onEdit={() => setForm({ job })}
+                      onToggle={() => toggleJob(job)}
+                      onDelete={() => confirmDelete(job)}
+                    />
+                  ))}
+                  {filteredSql.length === 0 && (
+                    <p className="p-2.5 text-muted-foreground text-sm">
+                      {jobs.data?.length
+                        ? 'No matching SQL jobs'
+                        : 'No SQL jobs yet'}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </FeatureSidebar>
+      <div className="min-w-0 flex-1 overflow-auto" key={router.asPath}>
+        {renderPane()}
+      </div>
       {extensionDialog === 'install' && extension && (
         <InstallExtensionDialog
           extension={extension}
@@ -373,14 +488,6 @@ export default function SqlJobs() {
           onClose={() => setForm(null)}
         />
       )}
-      {selectedJob && (
-        <SqlJobDetails
-          key={selectedJob.jobid}
-          job={selectedJob}
-          timezone={timezone}
-          onClose={() => setSelectedJobId(null)}
-        />
-      )}
       {confirmation && (
         <AlertDialog
           open
@@ -388,9 +495,11 @@ export default function SqlJobs() {
             !open && !mutation.isPending && setConfirmation(null)
           }
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="gap-6 p-12">
             <AlertDialogHeader>
-              <AlertDialogTitle>{confirmation.title}</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">
+                {confirmation.title}
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 {confirmation.description}
               </AlertDialogDescription>
@@ -400,7 +509,7 @@ export default function SqlJobs() {
                 <AlertDescription>{mutation.error.message}</AlertDescription>
               </Alert>
             )}
-            <AlertDialogFooter>
+            <AlertDialogFooter className="mt-6">
               <AlertDialogCancel disabled={mutation.isPending}>
                 Cancel
               </AlertDialogCancel>
@@ -408,7 +517,12 @@ export default function SqlJobs() {
                 variant="destructive"
                 loading={mutation.isPending}
                 onClick={() =>
-                  changeJob(confirmation.change, () => setConfirmation(null))
+                  changeJob(confirmation.change, () => {
+                    setConfirmation(null);
+                    if (confirmation.returnToList) {
+                      router.push(basePath);
+                    }
+                  })
                 }
               >
                 {confirmation.label}

@@ -1,6 +1,10 @@
 import { useRouter } from 'next/router';
 import { type ReactNode, useEffect, useState } from 'react';
 import {
+  cronJobsPath,
+  webhookJobPath,
+} from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
+import {
   BaseCronTriggerForm,
   type BaseCronTriggerFormTriggerProps,
 } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm';
@@ -49,14 +53,14 @@ export default function EditCronTriggerForm({
         });
         setInitialData(data);
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
+          webhookJobPath(cronJobsPath(orgSlug, appSubdomain), data.triggerName),
         );
       },
       {
-        loadingMessage: 'Editing cron trigger...',
-        successMessage: 'The cron trigger has been edited successfully.',
+        loadingMessage: 'Editing webhook job...',
+        successMessage: 'The webhook job has been edited successfully.',
         errorMessage:
-          'An error occurred while editing the cron trigger. Please try again.',
+          'An error occurred while editing the webhook job. Please try again.',
       },
     );
   };
@@ -67,8 +71,8 @@ export default function EditCronTriggerForm({
       onSubmit={handleSubmit}
       isEditing
       initialData={initialData}
-      titleText="Edit Cron Trigger"
-      descriptionText="Enter the details to edit your cron trigger. Click Save when you're done."
+      titleText="Edit webhook job"
+      descriptionText="Enter the details to edit your webhook job. Click Save when you're done."
       submitButtonText="Save"
     />
   );

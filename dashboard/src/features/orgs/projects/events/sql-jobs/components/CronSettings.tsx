@@ -1,13 +1,20 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Plus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useController, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { FormInput } from '@/components/form/FormInput';
-import { FormSwitch } from '@/components/form/FormSwitch';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { Switch } from '@/components/ui/v3/switch';
 import { GitHubConnectedNotice } from '@/features/orgs/projects/common/components/settings/GitHubConnectedNotice';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { CronState } from '@/features/orgs/projects/events/sql-jobs/types';
@@ -51,13 +58,15 @@ interface CronSettingsProps {
   state: CronState;
   canCreateJob: boolean;
   onCreateRetentionJob: VoidFunction;
+  canDisable: boolean;
+  onDisable: VoidFunction;
 }
 
 function CronConfigForm({
   state,
   canCreateJob,
   onCreateRetentionJob,
-}: CronSettingsProps) {
+}: Pick<CronSettingsProps, 'state' | 'canCreateJob' | 'onCreateRetentionJob'>) {
   const concurrencySetting = state.settings.find(
     ({ name }) => name === 'cron.max_running_jobs',
   );
@@ -85,6 +94,10 @@ function CronConfigForm({
   const form = useForm<CronSettingsValues>({
     defaultValues: values,
     resolver: yupResolver(cronSettingsSchema),
+  });
+  const { field: logRun } = useController({
+    control: form.control,
+    name: 'logRun',
   });
   useEffect(() => {
     form.reset(values);
@@ -135,73 +148,102 @@ function CronConfigForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(submit)}
-        className="max-w-2xl space-y-5 rounded-lg border p-6"
-      >
-        <h2 className="font-semibold text-lg">Scheduler settings</h2>
-        <p className="text-muted-foreground text-sm">
-          These settings apply to every SQL job. They are saved in the project
-          configuration, not in database migrations.
-          {isPlatform
-            ? ' Saving restarts Postgres and causes a short downtime.'
-            : ' Locally, they are saved to nhost.toml. Run nhost up to restart Postgres and apply them.'}
-        </p>
-        <fieldset className="space-y-5" disabled={saving}>
-          <FormInput
-            control={form.control}
-            name="timezone"
-            label="Timezone"
-            helperText="For example, GMT, UTC, or Europe/Stockholm. Changing this affects every job's schedule."
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-6">
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Scheduler"
+            description={
+              isPlatform
+                ? 'Applies to every SQL job. Saving restarts Postgres and causes a short downtime.'
+                : 'Applies to every SQL job. Saved to nhost.toml. Run nhost up to apply.'
+            }
           />
-          <FormInput
-            control={form.control}
-            name="maxRunningJobs"
-            label="Maximum concurrent jobs"
-            type="number"
-            helperText={`This server accepts ${minJobs}–${maxJobs} concurrent jobs. Zero stops jobs from running.`}
-          />
-          <div className="space-y-2">
-            <FormSwitch
-              control={form.control}
-              name="logRun"
-              label="Record job runs"
-              helperText="Run history is not cleaned up automatically."
-            />
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-              <p>Consider scheduling a retention job.</p>
-              <Button
+          <SettingsCardContent className="mt-4">
+            <fieldset className="grid gap-4" disabled={saving}>
+              <FormInput
+                control={form.control}
+                name="timezone"
+                label="Time zone"
+                helperText="For example, GMT, UTC or Europe/Stockholm."
+              />
+              <FormInput
+                control={form.control}
+                name="maxRunningJobs"
+                label="Maximum concurrent jobs"
+                type="number"
+                helperText={`This server accepts ${minJobs}–${maxJobs} concurrent jobs. Zero stops jobs from running.`}
+              />
+            </fieldset>
+          </SettingsCardContent>
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              loading={saving}
+              disabled={!form.formState.isDirty}
+            >
+              {isPlatform ? 'Save and restart Postgres' : 'Save settings'}
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Record job runs"
+            description="Keeps a run history for every SQL job."
+            control={
+              <Switch
                 type="button"
-                variant="outline"
-                size="sm"
-                disabled={!canCreateJob}
-                onClick={onCreateRetentionJob}
-              >
-                Create retention job
-              </Button>
-            </div>
-          </div>
-        </fieldset>
-        <ButtonWithLoading
-          type="submit"
-          loading={saving}
-          disabled={!form.formState.isDirty}
-        >
-          {isPlatform ? 'Save and restart Postgres' : 'Save settings'}
-        </ButtonWithLoading>
+                aria-label="Record job runs"
+                checked={logRun.value}
+                onCheckedChange={logRun.onChange}
+                onBlur={logRun.onBlur}
+                ref={logRun.ref}
+                disabled={saving}
+              />
+            }
+          />
+          {logRun.value && (
+            <SettingsCardContent className="mt-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/30 p-4 text-sm">
+                <p className="text-muted-foreground">
+                  Run history is not cleaned up automatically.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!canCreateJob || saving}
+                  onClick={onCreateRetentionJob}
+                >
+                  <Plus />
+                  Create retention job
+                </Button>
+              </div>
+            </SettingsCardContent>
+          )}
+        </SettingsCard>
       </form>
     </Form>
   );
 }
 
 export default function CronSettings({
+  canDisable,
+  onDisable,
   state,
   canCreateJob,
   onCreateRetentionJob,
 }: CronSettingsProps) {
   const settingsDisabled = useSettingsDisabled();
+  const isPlatform = useIsPlatform();
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+      <div>
+        <h1 className="font-semibold text-xl">Scheduler settings</h1>
+        <p className="text-muted-foreground text-sm">
+          {isPlatform
+            ? 'Changes run directly against your database.'
+            : 'Job and extension changes create Hasura migrations in your project.'}
+        </p>
+      </div>
       <GitHubConnectedNotice />
       {settingsDisabled ? (
         <Alert>
@@ -217,6 +259,21 @@ export default function CronSettings({
           onCreateRetentionJob={onCreateRetentionJob}
         />
       )}
+      <SettingsCard>
+        <SettingsCardHeader
+          title="Disable pg_cron"
+          description="Deletes every SQL job and its run history. Webhook jobs are not affected."
+          actions={
+            <Button
+              variant="destructive"
+              disabled={!canDisable}
+              onClick={onDisable}
+            >
+              Disable pg_cron
+            </Button>
+          }
+        />
+      </SettingsCard>
     </div>
   );
 }

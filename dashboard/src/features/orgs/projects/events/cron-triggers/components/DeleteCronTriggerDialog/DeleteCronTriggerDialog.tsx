@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { cronJobsPath } from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
 import { useDeleteCronTriggerMutation } from '@/features/orgs/projects/events/cron-triggers/hooks/useDeleteCronTriggerMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
@@ -35,15 +36,13 @@ export default function DeleteCronTriggerDialog({
           cronTriggerName: cronTriggerToDelete,
         });
         if (cronTriggerSlug === cronTriggerToDelete) {
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers`,
-          );
+          router.push(cronJobsPath(orgSlug, appSubdomain));
         }
       },
       {
-        loadingMessage: 'Deleting cron trigger...',
-        successMessage: 'Cron trigger deleted successfully.',
-        errorMessage: 'An error occurred while deleting the cron trigger.',
+        loadingMessage: 'Deleting webhook job...',
+        successMessage: 'Webhook job deleted successfully.',
+        errorMessage: 'An error occurred while deleting the webhook job.',
       },
     );
     setOpen(false);
@@ -52,23 +51,23 @@ export default function DeleteCronTriggerDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="p-12"
+        className="gap-6 p-12"
         hideCloseButton
         disableOutsideClick={isDeletingCronTrigger}
       >
         <DialogHeader>
           <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
-            Delete Cron Trigger
+            Delete webhook job
           </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
               {cronTriggerToDelete}
             </span>{' '}
-            cron trigger?
+            webhook job?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-8">
+        <DialogFooter className="mt-6">
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>

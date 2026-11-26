@@ -138,6 +138,23 @@ module.exports = withBundleAnalyzer({
           '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
         permanent: true,
       },
+      {
+        source:
+          '/orgs/:orgSlug/projects/:appSubdomain/events/cron-triggers/:name',
+        destination:
+          '/orgs/:orgSlug/projects/:appSubdomain/events/cron-jobs/webhook/:name',
+        permanent: false,
+      },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/events/cron-triggers',
+        destination: '/orgs/:orgSlug/projects/:appSubdomain/events/cron-jobs',
+        permanent: false,
+      },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/events/sql-jobs',
+        destination: '/orgs/:orgSlug/projects/:appSubdomain/events/cron-jobs',
+        permanent: false,
+      },
       ...legacyProjectRedirects,
     ];
   },

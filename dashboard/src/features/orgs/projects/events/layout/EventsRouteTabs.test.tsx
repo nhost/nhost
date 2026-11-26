@@ -38,13 +38,15 @@ describe('EventsRouteTabs', () => {
       'event-triggers/[eventTriggerSlug]',
       'event-triggers/user_created',
     ],
-    ['Cron Triggers', 'cron-triggers', 'cron-triggers', 'cron-triggers'],
+    ['Cron Jobs', 'cron-jobs', 'cron-jobs', 'cron-jobs'],
     [
-      'Cron Triggers',
-      'cron-triggers',
-      'cron-triggers/[cronTriggerSlug]',
-      'cron-triggers/nightly',
+      'Cron Jobs',
+      'cron-jobs',
+      'cron-jobs/webhook/[cronTriggerSlug]',
+      'cron-jobs/webhook/nightly',
     ],
+    ['Cron Jobs', 'cron-jobs', 'cron-jobs/sql/[jobId]', 'cron-jobs/sql/123'],
+    ['Cron Jobs', 'cron-jobs', 'cron-jobs/settings', 'cron-jobs/settings'],
     ['One-Off Scheduled Events', 'one-offs', 'one-offs', 'one-offs'],
   ])('marks only %s current on %s', (name, slug, route, path) => {
     setRoute(route, path);

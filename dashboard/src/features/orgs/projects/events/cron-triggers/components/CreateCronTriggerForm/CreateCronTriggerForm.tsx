@@ -1,6 +1,10 @@
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { Button } from '@/components/ui/v3/button';
+import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
+import {
+  cronJobsPath,
+  webhookJobPath,
+} from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
 import {
   BaseCronTriggerForm,
   type BaseCronTriggerFormTriggerProps,
@@ -14,13 +18,9 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 const renderCreateCronTriggerButton = ({
   open,
 }: BaseCronTriggerFormTriggerProps) => (
-  <Button
-    variant="link"
-    className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-    onClick={() => open()}
-  >
-    New Cron Trigger <Plus className="h-4 w-4" />
-  </Button>
+  <SidebarIconAction label="New webhook job" onClick={open}>
+    <Plus />
+  </SidebarIconAction>
 );
 
 export default function CreateCronTriggerForm() {
@@ -38,14 +38,14 @@ export default function CreateCronTriggerForm() {
         });
         track('Cron Trigger Created');
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
+          webhookJobPath(cronJobsPath(orgSlug, appSubdomain), data.triggerName),
         );
       },
       {
-        loadingMessage: 'Creating cron trigger...',
-        successMessage: 'The cron trigger has been created successfully.',
+        loadingMessage: 'Creating webhook job...',
+        successMessage: 'The webhook job has been created successfully.',
         errorMessage:
-          'An error occurred while creating the cron trigger. Please try again.',
+          'An error occurred while creating the webhook job. Please try again.',
       },
     );
   };
@@ -54,8 +54,8 @@ export default function CreateCronTriggerForm() {
     <BaseCronTriggerForm
       trigger={renderCreateCronTriggerButton}
       onSubmit={handleSubmit}
-      titleText="Create a New Cron Trigger"
-      descriptionText="Enter the details to create your cron trigger. Click Create when you're done."
+      titleText="Create webhook job"
+      descriptionText="Enter the details to create your webhook job. Click Create when you're done."
       submitButtonText="Create"
     />
   );

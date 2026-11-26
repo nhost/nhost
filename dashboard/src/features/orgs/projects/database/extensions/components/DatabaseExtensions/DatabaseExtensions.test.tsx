@@ -326,18 +326,18 @@ describe('DatabaseExtensions', () => {
       const card = screen.getByTestId('extension-card-pg_cron');
       for (const container of [card, getRow(all, 'pg_cron')]) {
         const link = within(container).getByRole('link', {
-          name: 'Manage SQL jobs',
+          name: 'Manage cron jobs',
         });
         expect(link).toBeVisible();
         expect(link).toHaveAttribute(
           'href',
-          '/orgs/acme/projects/project-one/events/sql-jobs',
+          '/orgs/acme/projects/project-one/events/cron-jobs',
         );
         expect(link.querySelector('.sr-only')).toBeNull();
       }
       expect(
         within(getRow(all, 'cube')).queryByRole('link', {
-          name: 'Manage SQL jobs',
+          name: 'Manage cron jobs',
         }),
       ).not.toBeInTheDocument();
     },
@@ -353,7 +353,7 @@ describe('DatabaseExtensions', () => {
     });
     await renderPage();
     expect(
-      screen.queryByRole('link', { name: 'Manage SQL jobs' }),
+      screen.queryByRole('link', { name: 'Manage cron jobs' }),
     ).not.toBeInTheDocument();
   });
 

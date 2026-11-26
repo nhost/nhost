@@ -227,7 +227,7 @@ export default function BaseCronTriggerForm({
                   <FormInput
                     control={form.control}
                     name="triggerName"
-                    label="Cron Trigger Name"
+                    label="Name"
                     placeholder="cron_trigger_name"
                     autoFocus
                     disabled={isEditing}
@@ -238,7 +238,7 @@ export default function BaseCronTriggerForm({
                     control={form.control}
                     name="comment"
                     label="Comment"
-                    placeholder="A statement to help describe the cron trigger in brief"
+                    placeholder="A statement to help describe the webhook job in brief"
                     className="max-w-lg"
                     autoComplete="off"
                   />
@@ -277,7 +277,7 @@ export default function BaseCronTriggerForm({
                       <div className="flex flex-row items-center gap-2">
                         Payload{' '}
                         <InfoTooltip>
-                          The request payload for the cron trigger, should be a
+                          The request payload for the webhook job, should be a
                           valid JSON
                         </InfoTooltip>
                       </div>

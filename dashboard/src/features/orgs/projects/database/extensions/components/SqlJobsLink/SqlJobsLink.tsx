@@ -12,11 +12,11 @@ export default function SqlJobsLink() {
   }
   return (
     <TextLink
-      href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/sql-jobs`}
+      href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-jobs`}
       className="inline-flex items-center gap-1.5 text-sm"
     >
       <CalendarClock className="size-4" aria-hidden />
-      Manage SQL jobs
+      Manage cron jobs
     </TextLink>
   );
 }
