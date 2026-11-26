@@ -2,15 +2,27 @@ package schema
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// generateTableQueryFields generates query fields for a table.
-func generateTableQueryFields(
-	queryFields *[]*graph.Field,
+const (
+	rootSelect          = "select"
+	rootSelectByPK      = "select_by_pk"
+	rootSelectAggregate = "select_aggregate"
+	rootSelectStream    = "select_stream"
+)
+
+func allowsRootField(allowed *[]string, field string) bool {
+	return allowed == nil || slices.Contains(*allowed, field)
+}
+
+// generateTableSelectFields handles the root operations shared by queries and live subscriptions.
+func generateTableSelectFields(
+	fields *[]*graph.Field,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
 	customTableName string,
@@ -19,25 +31,28 @@ func generateTableQueryFields(
 	role string,
 	md *metadata.DatabaseMetadata,
 	caps Capabilities,
+	allowedRoots *[]string,
 ) {
-	*queryFields = append(
-		*queryFields,
-		generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
-	)
+	if allowsRootField(allowedRoots, rootSelect) {
+		*fields = append(
+			*fields,
+			generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
+		)
+	}
 
 	// _by_pk requires the role to be able to read every primary-key column;
 	// otherwise the field would error on an otherwise valid lookup.
-	if len(tableInfo.PrimaryKeys) > 0 &&
+	if allowsRootField(allowedRoots, rootSelectByPK) && len(tableInfo.PrimaryKeys) > 0 &&
 		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
-		*queryFields = append(
-			*queryFields,
+		*fields = append(
+			*fields,
 			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
-	if allowAggregations(tableMeta, role) {
-		*queryFields = append(
-			*queryFields,
+	if allowsRootField(allowedRoots, rootSelectAggregate) && allowAggregations(tableMeta, role) {
+		*fields = append(
+			*fields,
 			generateAggregateField(tableMeta, customTableName, qualifiedName, caps),
 		)
 	}

@@ -157,8 +157,8 @@ parameterized SQL values.
 | `filter` | ✅ | Row filter; AND-ed into every `WHERE`. Full Hasura boolean-expression syntax. |
 | `allow_aggregations` | ✅ | Gates the `_aggregate` root field for the role. |
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
-| `query_root_fields` | ⚪ | Cannot restrict which query root fields a role sees. |
-| `subscription_root_fields` | ⚪ | Same, for subscriptions. |
+| `query_root_fields` | ✅ | Allowlists `select`, `select_by_pk`, and `select_aggregate`. Omit the list to keep the default roots or set it to `[]` to hide all query roots for this table. |
+| `subscription_root_fields` | ✅ | Allowlists the same operations plus `select_stream`, independently of query roots. Nested relationships are unaffected by either list. |
 | `computed_fields` | 🟡 | PostgreSQL: grants scalar computed fields to the role. Table-valued fields follow the returned table's select permission and must not be listed. An invalid grant makes the whole select permission inconsistent. SQLite ignores the list. |
 
 ### Insert permission

@@ -143,9 +143,14 @@ type SelectPermissionConfig struct {
 	// Filter is a Hasura-style boolean expression that is AND-ed into the
 	// WHERE clause of every SELECT this role issues against the table.
 	Filter map[string]any `json:"filter,omitempty" toml:"filter,omitempty"`
-	// AllowAggregations enables the table's aggregate root field for this
-	// role when true; aggregates are forbidden when false.
+	// AllowAggregations permits aggregates for this role. Root allowlists
+	// can further restrict top-level aggregate fields.
 	AllowAggregations bool `json:"allow_aggregations,omitzero" toml:"allow_aggregations,omitempty"`
+	// Root-field allowlists use Hasura operation names, not custom GraphQL
+	// names. Nil leaves the defaults in place; an empty list hides every root
+	// field for this table and operation kind. Neither affects nested selects.
+	QueryRootFields        *[]string `json:"query_root_fields,omitzero"        toml:"query_root_fields,omitempty"`
+	SubscriptionRootFields *[]string `json:"subscription_root_fields,omitzero" toml:"subscription_root_fields,omitempty"`
 }
 
 // InsertPermissionConfig contains the insert permission configuration.

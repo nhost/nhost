@@ -321,11 +321,13 @@ func convertSelectPermissions(perms []hasura.SelectPermission) []SelectPermissio
 	result := make([]SelectPermission, len(perms))
 	for i, p := range perms {
 		config := SelectPermissionConfig{
-			Columns:               p.Permission.Columns,
-			ComputedFields:        nil,
-			InvalidComputedFields: nil,
-			Filter:                normalizePermissionMap(p.Permission.Filter),
-			AllowAggregations:     p.Permission.AllowAggregations,
+			Columns:                p.Permission.Columns,
+			ComputedFields:         nil,
+			InvalidComputedFields:  nil,
+			Filter:                 normalizePermissionMap(p.Permission.Filter),
+			AllowAggregations:      p.Permission.AllowAggregations,
+			QueryRootFields:        p.Permission.QueryRootFields,
+			SubscriptionRootFields: p.Permission.SubscriptionRootFields,
 		}
 		for _, grant := range p.Permission.ComputedFields.Entries {
 			if grant.DecodeError != nil {

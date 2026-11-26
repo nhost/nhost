@@ -118,6 +118,9 @@ func MergeConnectorSchema(
 		return err
 	}
 
+	combinedSchema.RestrictedReadRoots = combinedSchema.RestrictedReadRoots ||
+		schema.RestrictedReadRoots
+
 	for i, r := range roots {
 		if *r.sourceField != nil && *r.targetField == nil {
 			*r.targetField = new(r.combinedTypeName)
@@ -303,13 +306,20 @@ func mergeRootType(
 
 // BuildValidatedSchema converts a combined [graph.Schema] to an AST document
 // and validates it. The returned [ast.SchemaDocument] is the prelude-prepended
-// document, not the bare ToAST output of combinedSchema. SQL-generated empty
-// insert inputs are accepted for Hasura compatibility; every other schema
-// constraint is still validated, and both results retain zero-field inputs.
+// document, not the bare ToAST output of combinedSchema. When requested, types
+// unreachable from the composed roots or directives are pruned before validation.
+// SQL-generated empty insert inputs are accepted for Hasura compatibility and
+// both results retain their zero-field shape.
 func BuildValidatedSchema(
 	combinedSchema *graph.Schema,
 	role string,
 ) (*ast.SchemaDocument, *ast.Schema, error) {
+	if combinedSchema.RestrictedReadRoots {
+		pruned := *combinedSchema
+		pruned.PruneUnreachableTypes()
+		combinedSchema = &pruned
+	}
+
 	userSchemaDoc := combinedSchema.ToAST()
 
 	prelude, err := preludeDoc()

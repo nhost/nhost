@@ -225,6 +225,9 @@ type SelectPermissionConfig struct {
 	AllowAggregations bool                   `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 	ComputedFields    ComputedFieldGrantList `json:"computed_fields,omitzero"    yaml:"-"`
 
+	QueryRootFields        *[]string `json:"query_root_fields,omitzero"        yaml:"query_root_fields,omitempty"`
+	SubscriptionRootFields *[]string `json:"subscription_root_fields,omitzero" yaml:"subscription_root_fields,omitempty"`
+
 	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
@@ -234,9 +237,11 @@ type SelectPermissionConfig struct {
 // column list is known.
 func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error {
 	type rawConfig struct {
-		Columns           any            `yaml:"columns,omitempty"`
-		Filter            map[string]any `yaml:"filter,omitempty"`
-		AllowAggregations bool           `yaml:"allow_aggregations,omitempty"`
+		Columns                any            `yaml:"columns,omitempty"`
+		Filter                 map[string]any `yaml:"filter,omitempty"`
+		AllowAggregations      bool           `yaml:"allow_aggregations,omitempty"`
+		QueryRootFields        *[]string      `yaml:"query_root_fields,omitempty"`
+		SubscriptionRootFields *[]string      `yaml:"subscription_root_fields,omitempty"`
 	}
 
 	var extra map[string]any
@@ -257,6 +262,8 @@ func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 	p.Columns = columns
 	p.Filter = raw.Filter
 	p.AllowAggregations = raw.AllowAggregations
+	p.QueryRootFields = raw.QueryRootFields
+	p.SubscriptionRootFields = raw.SubscriptionRootFields
 
 	if value, ok := extra["computed_fields"]; ok {
 		encoded, conversionErrors := computedYAMLList(value, nil)
@@ -271,7 +278,10 @@ func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 		}
 	}
 
-	for _, key := range []string{"columns", "filter", "allow_aggregations", "computed_fields"} {
+	for _, key := range []string{
+		"columns", "filter", "allow_aggregations", "computed_fields",
+		"query_root_fields", "subscription_root_fields",
+	} {
 		delete(extra, key)
 	}
 
@@ -320,13 +330,14 @@ func parsePermissionColumnsYAML(value any) ([]string, error) {
 // column list is known.
 func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		Columns           jsontext.Value         `json:"columns,omitempty"`
-		Filter            PermissionExpression   `json:"filter,omitempty"`
-		AllowAggregations bool                   `json:"allow_aggregations,omitzero"`
-		ComputedFields    ComputedFieldGrantList `json:"computed_fields,omitzero"`
-		// Capture unmodeled Hasura permission keys (limit, query_root_fields,
-		// backend_only, …). The custom UnmarshalJSON bypasses the struct's own
-		// `,embed` field, so the sink must live on this raw struct.
+		Columns                jsontext.Value         `json:"columns,omitempty"`
+		Filter                 PermissionExpression   `json:"filter,omitempty"`
+		AllowAggregations      bool                   `json:"allow_aggregations,omitzero"`
+		ComputedFields         ComputedFieldGrantList `json:"computed_fields,omitzero"`
+		QueryRootFields        *[]string              `json:"query_root_fields,omitzero"`
+		SubscriptionRootFields *[]string              `json:"subscription_root_fields,omitzero"`
+		// The custom UnmarshalJSON bypasses the struct's own `,embed` field,
+		// so the sink for unmodeled Hasura keys must live on this raw struct.
 		Unknown jsontext.Value `json:",embed"`
 	}
 
@@ -343,6 +354,8 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 	p.Filter = raw.Filter
 	p.AllowAggregations = raw.AllowAggregations
 	p.ComputedFields = raw.ComputedFields
+	p.QueryRootFields = raw.QueryRootFields
+	p.SubscriptionRootFields = raw.SubscriptionRootFields
 	p.Unknown = raw.Unknown
 
 	return nil
