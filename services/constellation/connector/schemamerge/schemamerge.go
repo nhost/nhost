@@ -314,6 +314,14 @@ func BuildValidatedSchema(
 	combinedSchema *graph.Schema,
 	role string,
 ) (*ast.SchemaDocument, *ast.Schema, error) {
+	return buildValidatedSchema(combinedSchema, role, nil)
+}
+
+func buildValidatedSchema(
+	combinedSchema *graph.Schema,
+	role string,
+	prepare func(*ast.SchemaDocument),
+) (*ast.SchemaDocument, *ast.Schema, error) {
 	if combinedSchema.RestrictedReadRoots {
 		pruned := *combinedSchema
 		pruned.PruneUnreachableTypes()
@@ -321,6 +329,9 @@ func BuildValidatedSchema(
 	}
 
 	userSchemaDoc := combinedSchema.ToAST()
+	if prepare != nil {
+		prepare(userSchemaDoc)
+	}
 
 	prelude, err := preludeDoc()
 	if err != nil {

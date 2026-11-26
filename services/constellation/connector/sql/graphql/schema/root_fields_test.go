@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/customization"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
@@ -125,29 +126,84 @@ func TestGenerateForRole_RootFieldPermissions(t *testing.T) {
 				t.Fatalf("generating schema: %v", err)
 			}
 
-			var combined graph.Schema
-
-			fieldOwners := make(map[string]string)
-			if err := schemamerge.MergeConnectorSchema(
-				generated,
-				&combined,
-				"default",
-				fieldOwners,
-				nil,
-			); err != nil {
-				t.Fatalf("merging schema: %v", err)
-			}
-
-			_, validated, err := schemamerge.BuildValidatedSchema(&combined, tt.role)
-			if err != nil {
-				t.Fatalf("validating schema: %v", err)
-			}
+			validated := validateRootFieldsTestSchema(t, generated, tt.role)
 
 			assertFileRootFields(t, "query", validated.Query, tt.queries)
 			assertFileRootFields(t, "subscription", validated.Subscription, tt.subscriptions)
 			assertFileTypes(t, validated, tt.keep, tt.omit)
 		})
 	}
+}
+
+func TestGenerateForRole_CustomizedRootFieldPermissions(t *testing.T) {
+	t.Parallel()
+
+	md, err := metadata.FromHasuraJSON([]byte(rootFieldsMetadata))
+	if err != nil {
+		t.Fatalf("loading metadata: %v", err)
+	}
+
+	objects := rootFieldObjects()
+
+	caps := schema.NewCapabilities(schema.KindPostgres, dialect.NewPostgresDialect())
+	for _, tt := range []struct {
+		role    string
+		queries []string
+		keep    []string
+		omit    []string
+	}{
+		{
+			role: "public", queries: []string{"file"}, keep: []string{"pfx_files"},
+			omit: []string{"pfx_files_bool_exp", "pfx_files_stream_cursor_input"},
+		},
+		{
+			role: "nested", keep: []string{"pfx_files", "pfx_files_bool_exp"},
+			omit: []string{"pfx_files_stream_cursor_input"},
+		},
+	} {
+		t.Run(tt.role, func(t *testing.T) {
+			t.Parallel()
+
+			generated, err := schema.GenerateForRole(objects, tt.role, &md.Databases[0], caps)
+			if err != nil {
+				t.Fatalf("generating schema: %v", err)
+			}
+
+			customizer := customization.New(metadata.Customization{
+				RootFieldsNamespace: "ns", TypeNamesPrefix: "pfx_",
+			}, customization.FlavorDatabase)
+			validated := validateRootFieldsTestSchema(t, customizer.Apply(generated), tt.role)
+
+			query := validated.Types["pfx_ns_query"]
+
+			subscription := validated.Types["pfx_ns_subscription"]
+			if query == nil || subscription == nil {
+				t.Fatal("missing customized operation wrappers")
+			}
+
+			assertFileRootFields(t, "query", query, tt.queries)
+			assertFileRootFields(t, "subscription", subscription, nil)
+			assertFileTypes(t, validated, tt.keep, tt.omit)
+		})
+	}
+}
+
+func validateRootFieldsTestSchema(t *testing.T, generated *graph.Schema, role string) *ast.Schema {
+	t.Helper()
+
+	var combined graph.Schema
+	if err := schemamerge.MergeConnectorSchema(
+		generated, &combined, "default", make(map[string]string), nil,
+	); err != nil {
+		t.Fatalf("merging schema: %v", err)
+	}
+
+	_, validated, err := schemamerge.BuildValidatedSchema(&combined, role)
+	if err != nil {
+		t.Fatalf("validating schema: %v", err)
+	}
+
+	return validated
 }
 
 func rootFieldObjects() *introspection.Objects {

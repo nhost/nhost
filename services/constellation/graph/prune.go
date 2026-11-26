@@ -161,16 +161,20 @@ func (w *reachabilityWalker) expandInterfaceImplementors(name string) {
 func findReachableTypes(schema *Schema) map[string]struct{} {
 	w := newReachabilityWalker(schema)
 
-	if schema.QueryType != nil {
-		w.visitTypeReference(*schema.QueryType)
-	}
-
-	if schema.MutationType != nil {
-		w.visitTypeReference(*schema.MutationType)
-	}
-
-	if schema.SubscriptionType != nil {
-		w.visitTypeReference(*schema.SubscriptionType)
+	if schema.QueryType == nil && schema.MutationType == nil && schema.SubscriptionType == nil {
+		// Without an explicit schema definition gqlparser recognizes default
+		// operation names. Otherwise only declared roots are reachable.
+		for _, name := range []string{"Query", "Mutation", "Subscription"} {
+			if w.objects[name] != nil {
+				w.visitTypeReference(name)
+			}
+		}
+	} else {
+		for _, root := range []*string{schema.QueryType, schema.MutationType, schema.SubscriptionType} {
+			if root != nil {
+				w.visitTypeReference(*root)
+			}
+		}
 	}
 
 	for _, dir := range schema.Directives {
