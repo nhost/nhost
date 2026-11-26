@@ -30,6 +30,8 @@ const permissionAllColumns = "*"
 //     InsertPermission.Columns, UpdatePermission.Columns and the keys of
 //     InsertPermission.Set / UpdatePermission.Set are dropped when no such
 //     column exists on the introspected table (kind=column).
+//   - Select root allowlists: an explicit by-primary-key or aggregate root
+//     whose prerequisites are unmet drops the permission (kind=select_permission).
 //   - Functions: dropped when absent from objects.Functions (kind=function).
 //   - PostgreSQL computed fields: invalid definitions are dropped individually;
 //     invalid grants and unexecutable computed predicates drop their permission.
@@ -66,7 +68,10 @@ func reconcileMetadata(
 
 	survivingTables := make(map[string]struct{}, len(out.Tables))
 	for i := range out.Tables {
-		survivingTables[qualifyTable(out.Tables[i].Table.Schema, out.Tables[i].Table.Name)] = struct{}{}
+		t := &out.Tables[i]
+		introspected, _ := objects.GetTable(t.Table.Schema, t.Table.Name)
+		reconcileSelectRootAllowlists(ctx, logger, inc, dbMeta.Name, t, introspected.PrimaryKeys)
+		survivingTables[qualifyTable(t.Table.Schema, t.Table.Name)] = struct{}{}
 	}
 
 	out.Functions = reconcileFunctions(

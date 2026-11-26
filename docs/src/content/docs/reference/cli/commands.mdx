@@ -269,7 +269,7 @@ Start local development environment.
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
 | `--auth-port=""` | If specified, expose auth on this port. Not recommended. Default: `0`. |
 | `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
-| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.11.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.11.1"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
 | `--functions-port=""` | If specified, expose functions on this port. Not recommended. Default: `0`. |
@@ -301,7 +301,7 @@ Start local development environment connected to an Nhost Cloud project.
 | --- | --- |
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
 | `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
-| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.11.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.11.1"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
 | `--hasura-console-port=""` | If specified, expose hasura console on this port. Not recommended. Default: `0`. |
@@ -378,6 +378,26 @@ Install credentials helper and configure docker so it can authenticate with Nhos
 | --- | --- |
 | `--docker-config=""` | Path to docker config file. Default: `$HOME/.docker/config.json`. Env: `$DOCKER_CONFIG`. |
 | `--no-interactive` | Do not prompt for confirmation. Env: `$NO_INTERACTIVE`. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## info
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost info`
+
+<div class="cli-body">
+
+Show the signed-in user and the linked project.
 
 </div>
 

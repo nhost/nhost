@@ -50,11 +50,6 @@ export function writeConsentCookie(accepted: boolean) {
   document.cookie = `${CONSENT_COOKIE}=${value}${attributes(MAX_AGE_SECONDS)}`;
 }
 
-export function deleteConsentCookie() {
-  // biome-ignore lint/suspicious/noDocumentCookie: the Cookie Store API is async and not in every browser we support
-  document.cookie = `${CONSENT_COOKIE}=${attributes(0)}`;
-}
-
 /**
  * Carries over only legacy rejections. Acceptances are dropped so people are
  * asked again, now that the choice covers nhost.io and advertising cookies too.

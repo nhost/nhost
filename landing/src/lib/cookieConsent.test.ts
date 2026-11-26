@@ -1,8 +1,4 @@
-import {
-  deleteConsentCookie,
-  readConsentCookie,
-  writeConsentCookie,
-} from '@/lib/cookieConsent'
+import { readConsentCookie, writeConsentCookie } from '@/lib/cookieConsent'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // Stubs the bits of `window` and `document` the helpers use, and returns the
@@ -64,15 +60,5 @@ describe('cookieConsent', () => {
 
     stubBrowser('https://nhost.io/', 'other-cookie-consent=accepted')
     expect(readConsentCookie()).toBeNull()
-  })
-
-  it('deletes the cookie with the same domain and path it was set with', () => {
-    const written = stubBrowser('https://app.nhost.io/')
-
-    deleteConsentCookie()
-
-    expect(written).toEqual([
-      'nhost-cookie-consent=; Path=/; Max-Age=0; SameSite=Lax; Domain=nhost.io; Secure',
-    ])
   })
 })

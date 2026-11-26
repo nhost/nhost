@@ -118,6 +118,9 @@ func MergeConnectorSchema(
 		return err
 	}
 
+	combinedSchema.RestrictedReadRoots = combinedSchema.RestrictedReadRoots ||
+		schema.RestrictedReadRoots
+
 	for i, r := range roots {
 		if *r.sourceField != nil && *r.targetField == nil {
 			*r.targetField = new(r.combinedTypeName)
@@ -303,14 +306,34 @@ func mergeRootType(
 
 // BuildValidatedSchema converts a combined [graph.Schema] to an AST document
 // and validates it. The returned [ast.SchemaDocument] is the prelude-prepended
-// document, not the bare ToAST output of combinedSchema. SQL-generated empty
-// insert inputs are accepted for Hasura compatibility; every other schema
-// constraint is still validated, and both results retain zero-field inputs.
+// document, not the bare ToAST output of combinedSchema. If RestrictedReadRoots
+// is set, types unreachable from the declared (or implicit default) roots or
+// directive arguments are pruned from a shallow copy before validation, leaving
+// combinedSchema unchanged. Unlike [BuildComposedSchema], this does not add the
+// empty-query fallback. SQL-generated empty insert inputs are accepted for Hasura
+// compatibility and both results retain their zero-field shape.
 func BuildValidatedSchema(
 	combinedSchema *graph.Schema,
 	role string,
 ) (*ast.SchemaDocument, *ast.Schema, error) {
+	return buildValidatedSchema(combinedSchema, role, nil)
+}
+
+func buildValidatedSchema(
+	combinedSchema *graph.Schema,
+	role string,
+	prepare func(*ast.SchemaDocument),
+) (*ast.SchemaDocument, *ast.Schema, error) {
+	if combinedSchema.RestrictedReadRoots {
+		pruned := *combinedSchema
+		pruned.PruneUnreachableTypes()
+		combinedSchema = &pruned
+	}
+
 	userSchemaDoc := combinedSchema.ToAST()
+	if prepare != nil {
+		prepare(userSchemaDoc)
+	}
 
 	prelude, err := preludeDoc()
 	if err != nil {
