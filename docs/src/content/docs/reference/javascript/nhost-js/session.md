@@ -358,7 +358,7 @@ Removes the session from the underlying storage and notifies subscribers
 #### set()
 
 ```ts
-set(value: Session): void;
+set(value: Session): StoredSession;
 ```
 
 Sets the session in the underlying storage and notifies subscribers
@@ -371,7 +371,9 @@ Sets the session in the underlying storage and notifies subscribers
 
 ##### Returns
 
-`void`
+[`StoredSession`](./index#storedsession)
+
+The stored session, including the decoded access token
 
 # Interfaces
 

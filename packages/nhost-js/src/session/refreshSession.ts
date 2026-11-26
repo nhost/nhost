@@ -4,24 +4,21 @@ import type { StoredSession } from './session';
 import type { SessionStorage } from './storage';
 
 class DummyLock implements Lock {
-  async request(
+  async request<T>(
     _name: string,
     _options: { mode: 'exclusive' | 'shared' },
-    // biome-ignore lint/suspicious/noExplicitAny: any
-    callback: () => Promise<any>,
-  ) {
+    callback: () => Promise<T>,
+  ): Promise<T> {
     return callback();
   }
 }
 
 interface Lock {
-  request: (
+  request: <T>(
     name: string,
     options: { mode: 'exclusive' | 'shared' },
-    // biome-ignore lint/suspicious/noExplicitAny: blah
-    callback: () => Promise<any>,
-    // biome-ignore lint/suspicious/noExplicitAny: blah
-  ) => Promise<any>;
+    callback: () => Promise<T>,
+  ) => Promise<T>;
 }
 
 const lock: Lock =
@@ -117,9 +114,10 @@ const _refreshSession = async (
         const response = await auth.refreshToken({
           refreshToken: session.refreshToken,
         });
-        storage.set(response.body);
 
-        return response.body;
+        // Return the stored session, which includes the decoded token, not
+        // the raw auth response.
+        return storage.set(response.body);
       } catch (error) {
         if (!sessionExpired) {
           return session;
