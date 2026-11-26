@@ -29,12 +29,10 @@ export function useSupportSession() {
 
   async function requestHeaders(requestRole: SupportRole = role) {
     assertSession();
-    const activeSession = await nhost.refreshSession(60);
-    if (
-      !activeSession ||
-      activeSession.user?.id !== user?.id ||
-      nhost.getUserSession()?.user?.id !== user?.id
-    ) {
+    const refreshed = await nhost.refreshSession(60);
+    // The stored session is always decoded, so read the roles from it.
+    const activeSession = refreshed && nhost.getUserSession();
+    if (!activeSession || activeSession.user?.id !== user?.id) {
       throw new Error('Your session changed. Please sign in again.');
     }
     const activeRoles =
