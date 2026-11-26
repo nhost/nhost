@@ -1,44 +1,36 @@
 import { X } from 'lucide-react';
 import NextLink from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import useCookieConsent from './useCookieConsent';
 
 interface CookieConsentProps {
   onAccept: () => void;
 }
 
 export default function CookieConsent({ onAccept }: CookieConsentProps) {
-  const [consentGiven, setConsentGiven] = useSSRLocalStorage<boolean | null>(
-    'cookie-consent',
-    null,
-  );
-  const [showBanner, setShowBanner] = useState(false);
+  const [consentGiven, setConsentGiven] = useCookieConsent();
 
   useEffect(() => {
-    if (consentGiven === null) {
-      setShowBanner(true);
-    } else if (consentGiven === true) {
+    if (consentGiven === true) {
       onAccept();
     }
   }, [consentGiven, onAccept]);
 
   const handleAccept = () => {
     setConsentGiven(true);
-    setShowBanner(false);
-    onAccept();
   };
 
   const handleDecline = () => {
     setConsentGiven(false);
-    setShowBanner(false);
   };
 
   const handleClose = () => {
     handleDecline();
   };
 
-  if (!showBanner) {
+  // `undefined` until the choice is read on the client.
+  if (consentGiven !== null) {
     return null;
   }
 
@@ -47,12 +39,10 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
       <div className="rounded-lg border bg-black/95 p-6 shadow-lg backdrop-blur-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="mb-3 font-semibold text-sm text-white">
-              We use cookies for payments and analytics to improve our services.
-            </h3>
-            <p className="mb-4 text-neutral-400 text-xs">
+            <p className="mb-4 text-neutral-300 text-sm">
+              We use cookies to understand how Nhost is used and to improve it.{' '}
               <NextLink
-                href="https://nhost.io/legal/privacy-policy"
+                href="https://nhost.io/legal/cookies-policy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white underline hover:no-underline"
