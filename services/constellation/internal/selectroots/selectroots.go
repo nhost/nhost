@@ -1,4 +1,5 @@
-// Package selectroots validates table select root allowlists across metadata formats.
+// Package selectroots defines the operation names shared by metadata validation
+// and SQL schema generation for table select root allowlists.
 package selectroots
 
 import (
@@ -12,6 +13,14 @@ type Kind string
 const (
 	Query        Kind = "query_root_fields"
 	Subscription Kind = "subscription_root_fields"
+)
+
+// Operation names used in Hasura table select root allowlists.
+const (
+	Select          = "select"
+	SelectByPK      = "select_by_pk"
+	SelectAggregate = "select_aggregate"
+	SelectStream    = "select_stream"
 )
 
 var (
@@ -53,9 +62,9 @@ func (k Kind) Decode(value any) (*[]string, error) {
 func (k Kind) Validate(fields []string) error {
 	for i, field := range fields {
 		switch field {
-		case "select", "select_by_pk", "select_aggregate":
+		case Select, SelectByPK, SelectAggregate:
 			continue
-		case "select_stream":
+		case SelectStream:
 			if k == Subscription {
 				continue
 			}

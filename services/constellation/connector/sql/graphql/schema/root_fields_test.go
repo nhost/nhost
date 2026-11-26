@@ -38,10 +38,9 @@ const rootFieldsMetadata = `{
           "columns": ["id", "is_uploaded"], "filter": {}, "allow_aggregations": true,
           "query_root_fields": ["select_aggregate"], "subscription_root_fields": ["select_stream"]
         }},
-        {"role": "missing_pk", "permission": {
-          "columns": ["is_uploaded"], "filter": {},
-          "query_root_fields": ["select_by_pk", "select_aggregate"],
-          "subscription_root_fields": ["select_by_pk", "select_aggregate"]
+        {"role": "collection", "permission": {
+          "columns": ["id", "is_uploaded"], "filter": {}, "allow_aggregations": true,
+          "query_root_fields": ["select"], "subscription_root_fields": ["select"]
         }},
         {"role": "unrestricted", "permission": {"columns": ["id", "is_uploaded"], "filter": {}}}
       ]
@@ -105,7 +104,8 @@ func TestGenerateForRole_RootFieldPermissions(t *testing.T) {
 			},
 		},
 		{
-			role: "missing_pk", omit: []string{"files", "files_bool_exp", "cursor_ordering"},
+			role: "collection", queries: []string{"files"}, subscriptions: []string{"files"},
+			keep: []string{"files", "files_bool_exp"}, omit: []string{"files_stream_cursor_input"},
 		},
 		{
 			role: "unrestricted", queries: []string{"file", "files"},

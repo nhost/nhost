@@ -6,14 +6,8 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/nhost/nhost/services/constellation/metadata"
-)
-
-const (
-	rootSelect          = "select"
-	rootSelectByPK      = "select_by_pk"
-	rootSelectAggregate = "select_aggregate"
-	rootSelectStream    = "select_stream"
 )
 
 func allowsRootField(allowed *[]string, field string) bool {
@@ -33,7 +27,7 @@ func generateTableSelectFields(
 	caps Capabilities,
 	allowedRoots *[]string,
 ) {
-	if allowsRootField(allowedRoots, rootSelect) {
+	if allowsRootField(allowedRoots, selectroots.Select) {
 		*fields = append(
 			*fields,
 			generateCollectionField(tableMeta, customTableName, qualifiedName, caps),
@@ -42,7 +36,7 @@ func generateTableSelectFields(
 
 	// _by_pk requires the role to be able to read every primary-key column;
 	// otherwise the field would error on an otherwise valid lookup.
-	if allowsRootField(allowedRoots, rootSelectByPK) && len(tableInfo.PrimaryKeys) > 0 &&
+	if allowsRootField(allowedRoots, selectroots.SelectByPK) && len(tableInfo.PrimaryKeys) > 0 &&
 		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
 		*fields = append(
 			*fields,
@@ -50,7 +44,8 @@ func generateTableSelectFields(
 		)
 	}
 
-	if allowsRootField(allowedRoots, rootSelectAggregate) && allowAggregations(tableMeta, role) {
+	if allowsRootField(allowedRoots, selectroots.SelectAggregate) &&
+		allowAggregations(tableMeta, role) {
 		*fields = append(
 			*fields,
 			generateAggregateField(tableMeta, customTableName, qualifiedName, caps),

@@ -5,6 +5,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
@@ -26,7 +27,7 @@ func generateTableSubscriptionFields(
 		allowedColumns, role, md, caps, allowedRoots,
 	)
 
-	if allowsRootField(allowedRoots, rootSelectStream) {
+	if allowsRootField(allowedRoots, selectroots.SelectStream) {
 		*subscriptionFields = append(
 			*subscriptionFields,
 			generateStreamField(tableMeta, customTableName, qualifiedName),

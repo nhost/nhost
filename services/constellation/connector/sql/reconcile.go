@@ -30,6 +30,8 @@ const permissionAllColumns = "*"
 //     InsertPermission.Columns, UpdatePermission.Columns and the keys of
 //     InsertPermission.Set / UpdatePermission.Set are dropped when no such
 //     column exists on the introspected table (kind=column).
+//   - Select root allowlists: an explicit by-primary-key or aggregate root
+//     whose prerequisites are unmet drops the permission (kind=select_permission).
 //   - Functions: dropped when absent from objects.Functions (kind=function).
 //   - PostgreSQL computed fields: invalid definitions are dropped individually;
 //     invalid grants and unexecutable computed predicates drop their permission.
@@ -126,6 +128,7 @@ func reconcileTables(
 
 		reconcileColumnConfig(ctx, logger, inc, dbName, t, cols)
 		reconcilePermissionColumns(ctx, logger, inc, dbName, t, columnNames, cols)
+		reconcileSelectRootAllowlists(ctx, logger, inc, dbName, t, introspected.PrimaryKeys)
 		reconcileRemoteRelationshipTypes(ctx, logger, inc, dbName, t)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
 		reconcileRelationshipFKIntrospection(

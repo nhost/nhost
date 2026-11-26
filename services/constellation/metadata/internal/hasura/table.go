@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/nhost/nhost/services/constellation/metadata/internal/selectroots"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 )
 
 // errUnexpectedForeignKeyToken signals that foreign_key_constraint_on carried

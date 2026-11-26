@@ -157,11 +157,11 @@ parameterized SQL values.
 | `filter` | ✅ | Row filter; AND-ed into every `WHERE`. Full Hasura boolean-expression syntax. |
 | `allow_aggregations` | ✅ | Gates the `_aggregate` root field for the role. |
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
-| `query_root_fields` | ✅ | Accepts `select`, `select_by_pk`, and `select_aggregate`. Omit the list or use `null` to keep the default roots, or use `[]` to hide this table's generated query roots. |
+| `query_root_fields` | ✅ | Accepts `select`, `select_by_pk`, and `select_aggregate`. Omit the list or use `null` to keep the default roots, or use `[]` to hide this table's generated query roots. An explicit `select_by_pk` or `select_aggregate` without its prerequisites makes the [select permission inconsistent](./inconsistencies.md#select_permission-for-root-allowlists-postgresql--sqlite-source). |
 | `subscription_root_fields` | ✅ | Accepts the same operations plus `select_stream`, independently of query roots. |
 | `computed_fields` | 🟡 | PostgreSQL: grants scalar computed fields to the role. Table-valued fields follow the returned table's select permission and must not be listed. An invalid grant makes the whole select permission inconsistent. SQLite ignores the list. |
 
-Constellation rejects metadata with invalid entries in either root field list. Neither list restricts nested relationships or separately permitted tracked functions. If the role has no query fields across all sources and remote schemas, `no_queries_available` keeps schema introspection available.
+Constellation rejects metadata with unknown or unsupported operation names in either list. Valid lists restrict generated table roots, not nested relationships or separately permitted tracked functions. If the role has no query fields across all sources and remote schemas, `no_queries_available` keeps schema introspection available.
 
 ### Insert permission
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nhost/nhost/services/constellation/metadata/internal/selectroots"
+	"github.com/nhost/nhost/services/constellation/internal/selectroots"
 	"github.com/pelletier/go-toml/v2"
 )
 
