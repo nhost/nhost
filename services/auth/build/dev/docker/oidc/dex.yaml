@@ -1,0 +1,54 @@
+# Dex configuration for the isolated OIDC integration-test stack.
+#
+# Dex (https://dexidp.io) is a real, standards-compliant OpenID Connect
+# provider. It is provisioned entirely from this file (static clients and
+# users) so the tests need no manual dashboard setup. Storage is in-memory:
+# the provider is ephemeral and deterministic for every run.
+#
+# The issuer and the client redirect URI use the static IP addresses assigned
+# in docker-compose.yaml so the same URLs resolve from both the Auth container
+# (Docker network) and the test runner on the host (Linux routes the bridge
+# subnet). TLS is served directly by Dex with a committed test certificate.
+issuer: https://10.233.0.10:5556/dex
+
+storage:
+  type: memory
+
+web:
+  https: 0.0.0.0:5556
+  tlsCert: /certs/dex.crt
+  tlsKey: /certs/dex.key
+
+telemetry:
+  http: 0.0.0.0:5558
+
+oauth2:
+  # Consent is irrelevant for a fixed test client; skipping it keeps the
+  # authorization-code flow a deterministic sequence of redirects.
+  skipApprovalScreen: true
+  responseTypes:
+    - code
+
+enablePasswordDB: true
+
+staticClients:
+  - id: web-dex
+    name: Nhost Auth (integration test)
+    secret: test-secret
+    redirectURIs:
+      - https://10.233.0.11/signin/oidc/dex/callback
+
+# Passwords are "Password123!" (bcrypt, cost 10). Test-only credentials.
+staticPasswords:
+  - email: alice@oidc.local
+    hash: "$2b$10$X5xS7Uc.W9crxxGE1pW/2OpOWwXNJp.V8Xkapofny.gY2kEfAQTPu"
+    username: alice
+    userID: a1b2c3d4-0000-4000-8000-000000000001
+  - email: bob@oidc.local
+    hash: "$2b$10$a3LWkShWBosr1Mf6W1gQX.M/NfTnutQKgZ3xkn9GshZcgMPEGxCgK"
+    username: bob
+    userID: a1b2c3d4-0000-4000-8000-000000000002
+  - email: carol@oidc.local
+    hash: "$2b$10$s93umUcAEnZRQU5dZNHhQONeyhmc.5iLMT.TFBQ4hk5HUAdgKNREi"
+    username: carol
+    userID: a1b2c3d4-0000-4000-8000-000000000003
