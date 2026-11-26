@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-type QueryResult<TData> = {
+interface QueryResult<TData> {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
   error: unknown;
   refetch: () => Promise<unknown> | undefined;
-};
+}
 
 export interface UseEventPaginationOptions<
   TArgs,

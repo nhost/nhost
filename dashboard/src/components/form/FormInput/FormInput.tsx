@@ -1,9 +1,8 @@
-import {
-  type ChangeEventHandler,
-  type FocusEventHandler,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
+import type {
+  ChangeEventHandler,
+  FocusEventHandler,
+  ReactNode,
+  Ref,
 } from 'react';
 import type {
   Control,
@@ -79,35 +78,33 @@ interface FormInputProps<
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
-function InnerFormInput<
+function FormInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  {
-    control,
-    name,
-    label,
-    placeholder,
-    className = '',
-    containerClassName = '',
-    type = 'text',
-    inline,
-    helperText,
-    disabled,
-    autoComplete,
-    autoCapitalize,
-    autoFocus,
-    spellCheck,
-    transform,
-    addonStart,
-    addonEnd,
-    'data-testid': dataTestId,
-    'aria-label': ariaLabel,
-    onChange: onChangeProp,
-    onBlur: onBlurProp,
-  }: FormInputProps<TFieldValues, TName>,
-  ref?: ForwardedRef<HTMLInputElement>,
-) {
+>({
+  control,
+  name,
+  label,
+  placeholder,
+  className = '',
+  containerClassName = '',
+  type = 'text',
+  inline,
+  helperText,
+  disabled,
+  autoComplete,
+  autoCapitalize,
+  autoFocus,
+  spellCheck,
+  transform,
+  addonStart,
+  addonEnd,
+  'data-testid': dataTestId,
+  'aria-label': ariaLabel,
+  onChange: onChangeProp,
+  onBlur: onBlurProp,
+  ref,
+}: FormInputProps<TFieldValues, TName> & { ref?: Ref<HTMLInputElement> }) {
   const hasAddon = !!addonStart || !!addonEnd;
 
   return (
@@ -221,14 +218,5 @@ function InnerFormInput<
     />
   );
 }
-
-const FormInput = forwardRef(InnerFormInput) as <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: FormInputProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLInputElement>;
-  },
-) => ReturnType<typeof InnerFormInput>;
 
 export default FormInput;

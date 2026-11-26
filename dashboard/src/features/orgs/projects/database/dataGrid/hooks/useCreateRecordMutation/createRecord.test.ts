@@ -27,7 +27,9 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-type CapturedRequest = { args: Array<{ args: { sql: string } }> };
+interface CapturedRequest {
+  args: Array<{ args: { sql: string } }>;
+}
 
 describe('createRecord', () => {
   test('inserts scalar values as SQL literals', async () => {

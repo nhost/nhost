@@ -2,9 +2,9 @@
 
 **Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
 
-**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only MCP-specific patterns (tool annotations, OAuth2/PKCE auth flow, JWT forwarding to upstream GraphQL, query allowlists) are documented below.
+**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only MCP-specific patterns (tool annotations, OAuth2/PKCE auth flow, JWT forwarding to upstream services, storage downloads, query allowlists) are documented below.
 
-This document contains patterns, conventions, and workflows for implementing new tools and features in the Nhost MCP service. The service exposes a Hasura GraphQL endpoint as an MCP (Model Context Protocol) server, allowing AI assistants to query and mutate data.
+This document contains patterns, conventions, and workflows for implementing new tools and features in the Nhost MCP service. The service exposes a Hasura GraphQL endpoint and optional Nhost storage service as an MCP (Model Context Protocol) server, allowing AI assistants to query/mutate data and download files.
 
 ## Core Principles
 
@@ -27,7 +27,13 @@ services/mcp/
 ├── tools/
 │   ├── query.go                     # GraphQL query and mutation tools
 │   ├── schema.go                    # Schema introspection and summarization tool
-│   └── query_internal_test.go       # Tool handler tests
+│   ├── query_internal_test.go       # GraphQL tool handler tests
+│   ├── storage.go                   # Storage registration, authenticated HTTP transport and responses
+│   ├── storage_download.go          # Download transformations, conditions and ranges
+│   ├── storage_preview.{go,html}    # Embedded MCP Apps image viewer
+│   ├── storage_test.go              # In-process MCP and HTTP storage contract tests
+│   ├── storage_limits*_test.go      # Transfer-budget and bounded-read tests
+│   └── storage_streaming_test.go    # Large download behavior
 ├── project.nix                      # Nix build configuration
 └── Makefile                         # Standard shared Makefile targets
 ```
@@ -68,7 +74,7 @@ func (t *Tool) RegisterYourTool(mcpServer *mcpserver.MCPServer) {
 
 ```go
 type YourToolRequest struct {
-    Param string `json:"param" jsonschema:"required,description=Parameter description"`
+    Param string `json:"param" jsonschema:"Parameter description"`
 }
 
 func (t *Tool) handleYourTool(
@@ -104,13 +110,25 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 3. Client sends `Authorization: Bearer <token>` header on MCP requests
 4. Middleware fetches JWKS from `<auth-url>/.well-known/jwks.json` and validates the JWT (signature, issuer, expiration)
 5. The validated JWT (and its Authorization header) are propagated to tool handlers via context
-6. Tool handlers forward the Authorization header to downstream GraphQL requests via `authorizationInterceptor`, so Hasura enforces permissions based on the JWT's Hasura claims
+6. Tool handlers forward the Authorization header to downstream GraphQL and storage requests via `authorizationInterceptor`, so backend permissions apply based on the JWT's Hasura claims
 
 **Discovery endpoints** served by the MCP server:
 - `/.well-known/oauth-authorization-server` - authorization server metadata (issuer, token endpoint, supported grants/scopes)
 - `/.well-known/oauth-protected-resource` - resource metadata (resource URI, authorized servers, supported scopes)
 
 **Role enforcement**: The `--enforce-role` flag checks that the JWT's `x-hasura-default-role` Hasura claim matches the specified role. When set, requests whose token carries a different default role receive a 403 Forbidden response. OAuth2 scopes (`openid`, `graphql`) are always advertised in the well-known endpoints.
+
+## Storage Downloads
+
+- `--storage-url` / `MCP_STORAGE_URL` explicitly configures the storage API URL for the same backend, including its API prefix (normally `/v1`). Without it, `storage-download` is not registered. Do not infer service URLs from GraphQL hosts.
+- `tools.RegisterStorage` registers only `storage-download`. Keep parity with GET `/files/{id}` in `services/storage/controller/openapi.yaml`.
+- Use plain descriptions in `jsonschema` struct tags. Derive the download schema from its request struct, then set validation keywords on the generated properties.
+- Forward the caller's Authorization header via the same context/interceptor as GraphQL. Do not add admin secrets, accept arbitrary request URLs or headers, or follow upstream redirects.
+- `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` limits upstream response bodies (default 50,000,000 bytes). It must be positive and less than MaxInt64. Keep flags, registry metadata, docs and tool descriptions in sync; descriptions and errors must show the configured budget.
+- Check Content-Length before reading and use `io.LimitReader` for unknown or incorrect lengths. Successful downloads encode directly into a base64 builder, but MCP responses are still buffered. Oversize errors retain upstream status and headers without truncated data; advise callers to retry with ranges and omit transformations.
+- Preserve status and headers for successful, conditional, partial, and error responses. Only complete, successful, nonempty images carry bytes in MCP image content; omit `data` from their structured response and JSON text summary. Other downloads retain base64 `data`.
+- `storage-download` links to a static MCP Apps resource in `storage_preview.html`. Serve it through `resources/read` on the existing authenticated endpoint. The view accepts tool results from the parent frame, renders supported image blocks as data URLs, and makes no network requests. It must not receive credentials or duplicate image bytes in the tool result. Keep the embedded HTML in the Nix source fileset.
+- The private `httpClient` interface supports inline stubs for byte-read accounting in `storage_limits_internal_test.go`. `storage_test.go` exercises the real transport with `httptest`. `RegisterStorage` owns the timeout and no-redirect policy.
 
 ## GraphQL Query Validation
 

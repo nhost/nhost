@@ -67,14 +67,15 @@ func New(
 // Result holds the output of schema composition across providers.
 //
 // The maps are owned by the Composer that produced this Result: callers must
-// treat them as read-only. Mutating them is undefined behaviour, and because
-// the value is small (four map headers) Result is returned and embedded by
-// value so the ownership contract is not blurred by pointer aliasing.
+// treat them as read-only. Result is returned and embedded by value.
 type Result struct {
 	// SchemaDocs is keyed by role name.
 	SchemaDocs map[string]*ast.SchemaDocument
 	// ValidatedSchemas is keyed by role name.
 	ValidatedSchemas map[string]*ast.Schema
+	// EmptyQueryRoots identifies roles whose query root contains only the local
+	// fallback. A connector may own a real field with the same name for another role.
+	EmptyQueryRoots map[string]bool
 	// FieldToConnector maps schemamerge.FieldKey(op, fieldName) to the name of
 	// the connector that owns that root field; used by the controller to route
 	// operations.
@@ -103,6 +104,7 @@ func (c *Composer) Compose(
 	result := Result{
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),
 		ValidatedSchemas: make(map[string]*ast.Schema),
+		EmptyQueryRoots:  make(map[string]bool),
 		FieldToConnector: make(map[string]string),
 		TypeToConnectors: make(map[string][]string),
 	}
@@ -176,7 +178,9 @@ func (c *Composer) composeRole(
 		)
 	}
 
-	schemaDoc, validatedSchema, err := schemamerge.BuildValidatedSchema(&combinedSchema, role)
+	schemaDoc, validatedSchema, emptyQueryRoot, err := schemamerge.BuildComposedSchema(
+		&combinedSchema, role,
+	)
 	if err != nil {
 		c.inconsistencies.RecordRole(
 			ctx, logger,
@@ -188,7 +192,9 @@ func (c *Composer) composeRole(
 	}
 
 	result.SchemaDocs[role] = schemaDoc
+
 	result.ValidatedSchemas[role] = validatedSchema
+	result.EmptyQueryRoots[role] = emptyQueryRoot
 
 	maps.Copy(result.FieldToConnector, fieldToConnector)
 	maps.Copy(result.TypeToConnectors, typeToConnectors)

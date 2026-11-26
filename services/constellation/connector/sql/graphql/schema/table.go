@@ -79,7 +79,12 @@ func generateForTable( //nolint:funlen
 		objects, generatedAggregateOrderBy, caps, append(computedFields, tableFields...),
 	)
 
-	generateTableQueryFields(
+	queryRoots, subscriptionRoots := selectRootAllowlists(tableMeta, role)
+	if queryRoots != nil || subscriptionRoots != nil {
+		schema.RestrictedReadRoots = true
+	}
+
+	generateTableSelectFields(
 		queryFields,
 		tableMeta,
 		tableInfo,
@@ -89,6 +94,7 @@ func generateForTable( //nolint:funlen
 		role,
 		md,
 		caps,
+		queryRoots,
 	)
 
 	mutationFieldCount := len(*mutationFields)
@@ -119,6 +125,7 @@ func generateForTable( //nolint:funlen
 		role,
 		md,
 		caps,
+		subscriptionRoots,
 	)
 
 	if allowAggregations(tableMeta, role) {
@@ -163,6 +170,14 @@ func generateForTable( //nolint:funlen
 		qualifiedName,
 		allowedColumns,
 	)
+}
+
+func selectRootAllowlists(tableMeta *metadata.TableMetadata, role string) (*[]string, *[]string) {
+	if perm := getSelectPermission(tableMeta, role); role != roleAdmin && perm != nil {
+		return perm.Permission.QueryRootFields, perm.Permission.SubscriptionRootFields
+	}
+
+	return nil, nil
 }
 
 func collectSelectColumnTypeUses(

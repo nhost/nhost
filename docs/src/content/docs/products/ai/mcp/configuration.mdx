@@ -2,8 +2,8 @@
 title: Configuration
 description: >-
   Every flag and environment variable for the Backend MCP Server, including the
-  GraphQL endpoint, OAuth2 auth URL, role enforcement, and tool instructions.
-keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
+  GraphQL endpoint, optional storage URL and download limit, OAuth2 auth URL, role enforcement, and tool instructions.
+keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_STORAGE_URL", "MCP_STORAGE_MAX_TRANSFER_BYTES", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
 head:
   - tag: title
     content: "Backend MCP Server Flags and Environment Variables | Nhost Docs"
@@ -27,6 +27,28 @@ Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
 | Flag | Environment variable | Description |
 |------|----------------------|-------------|
 | `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | **Required.** The GraphQL endpoint the server forwards queries and mutations to. On Nhost Run this is usually the internal endpoint, for example `http://hasura-service:8080/v1/graphql`. |
+
+## Storage
+
+| Flag | Environment variable | Description |
+|------|----------------------|-------------|
+| `--storage-url` | `MCP_STORAGE_URL` | **Optional.** The storage service URL for the **same backend** as the GraphQL and Auth endpoints, including its API prefix (normally `/v1`), for example `https://SUBDOMAIN.storage.REGION.nhost.run/v1`. Enables the read-only `storage-download` tool when set. |
+
+On Nhost Run, use `http://hasura-storage-service:5000/v1`. For other deployments, use an absolute HTTP or HTTPS URL reachable from the MCP server. Do not include credentials, a query string, or a fragment. The server rejects invalid URLs at startup. Leave this setting unset to disable the tool.
+
+Setting the URL does not grant [Storage permissions](/products/ai/mcp/permissions#storage-permissions). Downloads run with the signed-in user's role.
+
+### Transfer limits
+
+| Flag | Environment variable | Default | Description |
+|------|----------------------|---------|-------------|
+| `--storage-max-transfer-bytes` | `MCP_STORAGE_MAX_TRANSFER_BYTES` | `50000000` (50 MB) | Maximum upstream storage download response in bytes, including error bodies. |
+
+The limit must be a positive integer below `9223372036854775807`; invalid values make startup fail when storage is enabled. Storage still enforces bucket limits and permissions.
+
+This limit is per download, not a cap on server memory. The server buffers and encodes each response, so large or concurrent downloads can use much more memory than the file size suggests. The [Nhost Run examples](/products/ai/mcp/deployment#file-downloads) set a 10 MB limit for a 256 MiB service. Test with your expected file sizes and concurrency before raising the limit. Your MCP client, model provider, or proxy may impose a smaller limit.
+
+If a file exceeds the limit, retry with smaller byte ranges or request a smaller image. Storage ignores byte ranges when you request an image transformation.
 
 ## Authentication
 

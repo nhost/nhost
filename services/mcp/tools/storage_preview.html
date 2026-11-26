@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src data:; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
+    >
+    <title>Storage image preview</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { margin: 0; padding: 12px; }
+      img { display: block; max-width: 100%; max-height: 320px; margin: auto; }
+      [hidden] { display: none; }
+      p { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <p id="status" role="status">Waiting for the download…</p>
+    <img id="preview" alt="Downloaded image" hidden>
+    <script>
+      const preview = document.getElementById('preview');
+      const statusMessage = document.getElementById('status');
+      const protocolVersion = '2026-01-26';
+      const initializeID = 'initialize';
+      const imageTypes = new Set([
+        'image/avif',
+        'image/gif',
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+      ]);
+      let initialized = false;
+      let lastHeight = 0;
+
+      function send(message) {
+        // The host proxy can have an opaque origin. Send only protocol control messages.
+        window.parent.postMessage({ jsonrpc: '2.0', ...message }, '*');
+      }
+
+      function showStatus(message) {
+        preview.hidden = true;
+        preview.removeAttribute('src');
+        statusMessage.hidden = false;
+        statusMessage.textContent = message;
+      }
+
+      preview.addEventListener('load', () => {
+        statusMessage.hidden = true;
+        preview.hidden = false;
+      });
+      preview.addEventListener('error', () => {
+        showStatus('This client could not display the downloaded image.');
+      });
+
+      function showResult(result) {
+        if (result?.isError) {
+          showStatus('Download failed. See the tool result for details.');
+          return;
+        }
+
+        const image = Array.isArray(result?.content)
+          ? result.content.find((block) => block?.type === 'image')
+          : undefined;
+        const mimeType = typeof image?.mimeType === 'string' ? image.mimeType.toLowerCase() : '';
+        if (!imageTypes.has(mimeType) || typeof image.data !== 'string' || !image.data) {
+          showStatus('No image preview is available for this download.');
+          return;
+        }
+
+        showStatus('Loading image…');
+        preview.src = `data:${mimeType};base64,${image.data}`;
+      }
+
+      const resizeObserver = new ResizeObserver(() => {
+        const height = Math.ceil(document.body.getBoundingClientRect().height);
+        if (initialized && height !== lastHeight) {
+          lastHeight = height;
+          send({ method: 'ui/notifications/size-changed', params: { height } });
+        }
+      });
+
+      function receive(event) {
+        if (event.source !== window.parent || event.data?.jsonrpc !== '2.0') {
+          return;
+        }
+
+        const message = event.data;
+        if (!initialized && message.id === initializeID) {
+          if (message.result?.protocolVersion !== protocolVersion) {
+            showStatus('This client could not initialize the image preview.');
+            return;
+          }
+
+          initialized = true;
+          send({ method: 'ui/notifications/initialized', params: {} });
+          resizeObserver.observe(document.body);
+          return;
+        }
+
+        if (!initialized) {
+          return;
+        }
+
+        switch (message.method) {
+          case 'ping':
+            send({ id: message.id, result: {} });
+            break;
+          case 'ui/notifications/tool-result':
+            showResult(message.params);
+            break;
+          case 'ui/notifications/tool-cancelled':
+            showStatus('Download cancelled.');
+            break;
+          case 'ui/resource-teardown':
+            resizeObserver.disconnect();
+            window.removeEventListener('message', receive);
+            preview.removeAttribute('src');
+            send({ id: message.id, result: {} });
+            break;
+        }
+      }
+
+      if (window.parent !== window) {
+        window.addEventListener('message', receive);
+        send({
+          id: initializeID,
+          method: 'ui/initialize',
+          params: {
+            appInfo: { name: 'Nhost Storage Preview', version: '1.0.0' },
+            appCapabilities: { availableDisplayModes: ['inline'] },
+            protocolVersion,
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

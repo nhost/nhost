@@ -8,13 +8,9 @@ head:
   - tag: title
     content: "Deploy the Backend MCP Server to Nhost Run | Nhost Docs"
 ---
-import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-The Backend MCP Server is a container image (`nhost/mcp`) that you deploy alongside your project using [Nhost Run](/products/run). Running it next to your GraphQL API keeps latency low and lets it reach the API over the internal network.
-
-:::note
-Check the [releases page](https://github.com/nhost/nhost/releases) and use the most recent version of Backend MCP. The examples below pin `nhost/mcp:0.1.0` — update the tag as needed.
-:::
+The Backend MCP Server is a container image (`nhost/mcp`) that you deploy alongside your project on [Nhost Run](/products/run). It connects to your project's GraphQL and Storage APIs over the internal network.
 
 ## Before you deploy
 
@@ -25,17 +21,18 @@ Backend MCP relies on your Nhost Auth project being set up as an OAuth2 provider
 <Tabs>
 <TabItem label="One-click install">
 
-Use the one-click install link to create the Run service with sensible defaults:
+Open the installer and select your Nhost project:
 
-[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9)
+[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC40LjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9VUkwiLCJ2YWx1ZSI6Imh0dHA6Ly9oYXN1cmEtc3RvcmFnZS1zZXJ2aWNlOjUwMDAvdjEifSx7Im5hbWUiOiJNQ1BfU1RPUkFHRV9NQVhfVFJBTlNGRVJfQllURVMiLCJ2YWx1ZSI6IjEwMDAwMDAwIn1dLCJwb3J0cyI6W3sicG9ydCI6MzAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV0sImhlYWx0aENoZWNrIjpudWxsfQ==)
 
-After clicking the link, edit the environment variables to match your project:
+Review these environment variables before deploying:
 
-- **`MCP_AUTH_URL`** — your project's auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1` (or your custom domain).
-- **`MCP_REALM`** — the public URL where Backend MCP will be reachable.
-- **`MCP_GRAPHQL_ENDPOINT`** — the GraphQL endpoint Backend MCP forwards requests to.
-- **`MCP_INSTRUCTIONS`** — instructions that help the assistant understand your application.
-- **`MCP_ENFORCE_ROLE`** — the role to enforce (for example `user_mcp`), or remove it to accept any role.
+- **`MCP_AUTH_URL`** — set it to your project's Auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1`.
+- **`MCP_REALM`** — set it to the [public URL](/products/run/networking#exposing-your-service-to-the-internet) of your MCP service.
+- **`MCP_INSTRUCTIONS`** — replace the sample text with a description of your application.
+- **`MCP_ENFORCE_ROLE`** — set it to your [dedicated MCP role](/products/ai/mcp/permissions#enforce-a-dedicated-role), or remove it to use each signed-in user's default role.
+
+The installer preconfigures `MCP_GRAPHQL_ENDPOINT` and `MCP_STORAGE_URL` to use your project's internal endpoints.
 
 </TabItem>
 <TabItem label="run-mcp.toml">
@@ -47,7 +44,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.1.0'
+image = 'nhost/mcp:0.4.0'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
@@ -60,6 +57,14 @@ value = 'https://mcp.acme.com'
 [[environment]]
 name = 'MCP_GRAPHQL_ENDPOINT'
 value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_STORAGE_URL'
+value = 'http://hasura-storage-service:5000/v1'
+
+[[environment]]
+name = 'MCP_STORAGE_MAX_TRANSFER_BYTES'
+value = '10000000'
 
 [[environment]]
 name = 'MCP_INSTRUCTIONS'
@@ -82,7 +87,7 @@ cpu = 125
 memory = 256
 ```
 
-Then deploy Backend MCP:
+Replace the sample Auth URL, realm, instructions, and role with values for your project. Set `SERVICE_ID` to your Nhost Run service ID, then deploy Backend MCP:
 
 ```bash
 nhost run config-deploy \
@@ -93,17 +98,21 @@ nhost run config-deploy \
 </TabItem>
 </Tabs>
 
-Once deployed, Backend MCP is reachable at its published port and any MCP-compatible client can connect. See [Connecting clients](/products/ai/mcp/clients).
+### File downloads
+
+Both deployment options enable the `storage-download` tool. It can only read files allowed by the signed-in user's [Download permissions](/products/ai/mcp/permissions#storage-permissions). If your assistant doesn't need to download files, remove `MCP_STORAGE_URL` to disable the tool.
+
+### Connect your client
+
+Once the service is running, [connect your MCP client](/products/ai/mcp/clients) using the service's public URL.
 
 ## Run locally
 
-To try Backend MCP against a local project, run it as part of your local stack:
+To run Backend MCP in your local Nhost stack, set `MCP_AUTH_URL` in `run-mcp.toml` to your local Auth URL, for example `https://local.auth.local.nhost.run/v1`. Keep the internal GraphQL and Storage URLs. Then start the stack:
 
 ```bash
 nhost up --run-service run-mcp.toml
 ```
-
-Point `MCP_AUTH_URL` and `MCP_GRAPHQL_ENDPOINT` at your local endpoints (for example `https://local.auth.local.nhost.run/v1`).
 
 ## Configuration reference
 

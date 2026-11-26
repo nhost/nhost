@@ -38,6 +38,7 @@
           }
         },
         "noUselessElse": "error",
+        "useConsistentTypeDefinitions": "error",
         "noParameterAssign": {
           "level": "error",
           "options": {
@@ -56,10 +57,13 @@
             "allow": ["error", "warn", "info"]
           }
         },
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noReactForwardRef": "error"
       },
       "correctness": {
         "noInnerDeclarations": "error",
+        "noNestedComponentDefinitions": "error",
+        "noReactPropAssignments": "error",
         "noUnusedImports": {
           "level": "error",
           "fix": "safe"

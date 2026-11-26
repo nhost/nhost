@@ -21,7 +21,11 @@ export function isValidMinuteOrSecond(value: string) {
   return /^[0-5][0-9]$/.test(value);
 }
 
-type GetValidNumberConfig = { max: number; min?: number; loop?: boolean };
+interface GetValidNumberConfig {
+  max: number;
+  min?: number;
+  loop?: boolean;
+}
 
 export function getValidNumber(
   value: string,
@@ -72,11 +76,11 @@ export function getValidMinuteOrSecond(value: string) {
   return getValidNumber(value, { max: 59 });
 }
 
-type GetValidArrowNumberConfig = {
+interface GetValidArrowNumberConfig {
   min: number;
   max: number;
   step: number;
-};
+}
 
 export function getValidArrowNumber(
   value: string,

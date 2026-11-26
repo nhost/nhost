@@ -1,16 +1,19 @@
 import * as ProgressPrimitive from '@radix-ui/react-progress';
-import * as React from 'react';
+import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 interface ProgressProps
-  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+  extends React.ComponentProps<typeof ProgressPrimitive.Root> {
   indeterminate?: boolean;
 }
 
-const Progress = React.forwardRef<
-  React.ComponentRef<typeof ProgressPrimitive.Root>,
-  ProgressProps
->(({ className, value, indeterminate = false, ...props }, ref) => (
+const Progress = ({
+  className,
+  value,
+  indeterminate = false,
+  ref,
+  ...props
+}: ProgressProps) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
@@ -27,7 +30,6 @@ const Progress = React.forwardRef<
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>
-));
-Progress.displayName = ProgressPrimitive.Root.displayName;
+);
 
 export { Progress };

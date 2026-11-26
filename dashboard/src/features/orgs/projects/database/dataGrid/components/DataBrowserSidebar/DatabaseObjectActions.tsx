@@ -37,7 +37,7 @@ const idPrefixes: Record<DatabaseObjectType, string> = {
   FUNCTION: 'function',
 };
 
-type Props = {
+interface Props {
   objectName: string;
   objectType: DatabaseObjectType;
   isUntracked: boolean;
@@ -54,7 +54,7 @@ type Props = {
   onEditGraphQLSettings: () => void;
   onEditRelationships?: () => void;
   onDelete: () => void;
-};
+}
 
 function DatabaseObjectActions({
   objectName,

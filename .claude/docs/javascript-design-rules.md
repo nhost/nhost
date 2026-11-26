@@ -60,7 +60,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 - `.tsx` for React components.
 - Function components with TypeScript interfaces for props.
-- `React.forwardRef` for components that need ref forwarding; set `displayName`.
+- Take `ref` as a regular prop, not `forwardRef`; type Radix wrapper props as `React.ComponentProps<typeof Primitive.Root>`.
 - Avoid `React.FC`; prefer explicit prop types.
 - Arrow functions are allowed for components.
 - Use Shadcn / `ui/v3` components; MUI and `ui/v2` have been removed.
