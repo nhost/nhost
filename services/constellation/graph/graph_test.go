@@ -10,6 +10,34 @@ import (
 	"github.com/vektah/gqlparser/v2/validator"
 )
 
+func TestTypeBaseName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		typ  *graph.Type
+		want string
+	}{
+		{name: "nil type"},
+		{name: "named type", typ: graph.NewNamedType("String"), want: "String"},
+		{
+			name: "nested lists",
+			typ:  graph.NewListType(graph.NewNonNullListType(graph.NewNonNullType("ID"))),
+			want: "ID",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.typ.BaseName(); got != tt.want {
+				t.Errorf("BaseName() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTypeHelpers(t *testing.T) {
 	t.Parallel()
 

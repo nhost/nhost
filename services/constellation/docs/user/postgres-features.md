@@ -281,7 +281,8 @@ delete_permissions:
 - Session variables of the form `X-Hasura-*` are extracted from request headers or JWT Hasura claims by `controller/middleware/`.
 - `_eq: X-Hasura-User-Id` substitutes the session variable as a parameterized SQL value.
 - `set` (insert/update) writes column presets — including session variables — on every affected row.
-- **Not enforced:** a per-role `limit` on select permissions, plus `query_root_fields`, `subscription_root_fields`, `backend_only`, and `validate_input`. These parse without error but have no effect — see [hasura-metadata-support.md](./hasura-metadata-support.md).
+- `query_root_fields` and `subscription_root_fields` control which of a table's generated root fields a role can use. Use Hasura operation names such as `select_by_pk`, even when the GraphQL field has a custom name. These lists do not restrict nested relationships or tracked functions that return the table. Control tracked function access with the function's own `permissions`; the table's select filter and column permissions still apply.
+- **Not enforced:** a per-role `limit` on select permissions, plus `backend_only` and `validate_input`. These parse without error but have no effect. See [Hasura metadata support](./hasura-metadata-support.md).
 
 ### Computed fields on tracked tables
 

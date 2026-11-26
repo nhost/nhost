@@ -166,7 +166,7 @@ func introspectViaHTTP(ctx context.Context, client *httpClient) (*graph.Schema, 
 
 	schema := introspectionToGraphSchema(&result.Data.Schema)
 
-	pruneUnreachableTypes(schema)
+	schema.PruneUnreachableTypes()
 
 	return schema, nil
 }
@@ -221,16 +221,17 @@ type introspectionEnumValue struct {
 // introspectionToGraphSchema converts an introspection result directly to graph.Schema.
 func introspectionToGraphSchema(schema *introspectionSchema) *graph.Schema {
 	result := &graph.Schema{
-		Types:            nil,
-		Scalars:          nil,
-		Enums:            nil,
-		Interfaces:       nil,
-		Unions:           nil,
-		Inputs:           nil,
-		Directives:       nil,
-		QueryType:        nil,
-		MutationType:     nil,
-		SubscriptionType: nil,
+		Types:               nil,
+		Scalars:             nil,
+		Enums:               nil,
+		Interfaces:          nil,
+		Unions:              nil,
+		Inputs:              nil,
+		Directives:          nil,
+		QueryType:           nil,
+		MutationType:        nil,
+		SubscriptionType:    nil,
+		RestrictedReadRoots: false,
 	}
 
 	if schema.QueryType != nil {

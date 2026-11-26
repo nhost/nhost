@@ -42,6 +42,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `jwt/` - JWT validation (HMAC/RSA, static keys, JWKS URLs). Multiple secrets with fallthrough. Extracts Hasura claims and builds session variables
   - `jsonpath/` - Dot-separated JSON path navigation with array flattening. Used by planner/resolver for phantom field injection and result manipulation
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
+  - `selectroots/` - Operation names for select root allowlists, shared by metadata parsing, SQL reconciliation, and schema generation
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
   - `github.com/nhost/nhost/internal/lib/oapi/middleware` (repo-root shared package, not under constellation's `internal/`) - Gin middleware for CORS, request logging (slog), and B3 distributed tracing
   - `github.com/nhost/nhost/internal/lib/syncmap` - typed generic map safe for concurrent use
