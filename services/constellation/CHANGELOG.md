@@ -1,3 +1,9 @@
+## [constellation@0.8.2] - 2026-11-26
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Honor query and subscription root permissions (#5455)
+
 ## [constellation@0.8.1] - 2026-11-23
 
 ### 🐛 Bug Fixes

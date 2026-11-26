@@ -46,7 +46,3 @@ export function writeConsentCookie(accepted: boolean) {
   const value = accepted ? 'accepted' : 'rejected';
   document.cookie = `${CONSENT_COOKIE}=${value}${attributes(MAX_AGE_SECONDS)}`;
 }
-
-export function deleteConsentCookie() {
-  document.cookie = `${CONSENT_COOKIE}=${attributes(0)}`;
-}
