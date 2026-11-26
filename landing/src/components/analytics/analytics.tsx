@@ -1,12 +1,18 @@
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { analytics, loadAnalytics } from '@/lib/segment';
 import CookieConsent from './CookieConsent';
-import { useCookieConsent } from './useCookieConsent';
+import {
+  OPEN_COOKIE_SETTINGS_EVENT,
+  useCookieConsent,
+  withdrawCookieConsent,
+} from './useCookieConsent';
 
 export default function Analytics() {
   const router = useRouter();
   const [consent, setConsent] = useCookieConsent();
+  // Reopened from "Cookie settings" after a choice was made.
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     // Segment (and the Google Ads tag it loads) only runs after consent.
@@ -35,14 +41,41 @@ export default function Analytics() {
     };
   }, [consent, router.events]);
 
-  if (consent !== null) {
+  useEffect(() => {
+    const openSettings = () => setSettingsOpen(true);
+    window.addEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings);
+
+    return () =>
+      window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings);
+  }, []);
+
+  // `undefined` until the choice is read on the client.
+  if (consent === undefined || (consent !== null && !settingsOpen)) {
     return null;
   }
 
+  const handleAccept = () => {
+    setConsent(true);
+    setSettingsOpen(false);
+  };
+
+  const handleReject = () => {
+    // Segment is already running, and only a reload stops it.
+    if (consent === true) {
+      withdrawCookieConsent();
+      return;
+    }
+
+    setConsent(false);
+    setSettingsOpen(false);
+  };
+
   return (
     <CookieConsent
-      onAccept={() => setConsent(true)}
-      onReject={() => setConsent(false)}
+      consent={consent}
+      onAccept={handleAccept}
+      onReject={handleReject}
+      onClose={() => setSettingsOpen(false)}
     />
   );
 }
