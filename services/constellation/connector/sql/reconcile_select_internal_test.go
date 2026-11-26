@@ -6,9 +6,79 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+func TestReconcileMetadata_SelectRootAllowlistsPreserveComputedGrantIndex(t *testing.T) {
+	t.Parallel()
+
+	objects := makeObjects()
+	input := &metadata.DatabaseMetadata{
+		Name: "default", Kind: "postgres",
+		Tables: []metadata.TableMetadata{{
+			Table: metadata.TableSource{Schema: "public", Name: "users"},
+			SelectPermissions: []metadata.SelectPermission{
+				{
+					Role: "grant",
+					Permission: metadata.SelectPermissionConfig{
+						Columns: []string{"id"}, ComputedFields: []string{"stale"},
+						QueryRootFields: new([]string{"select", "select_aggregate"}),
+					},
+				},
+				{
+					Role: "filter",
+					Permission: metadata.SelectPermissionConfig{
+						Columns: []string{"id"},
+						Filter:  map[string]any{"stale": map[string]any{"_eq": "value"}},
+					},
+				},
+				{
+					Role:       "healthy",
+					Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}},
+				},
+			},
+		}},
+	}
+	inc := metadata.NewInconsistencies()
+	effective := reconcileMetadata(t.Context(), nil, inc, input, objects)
+	dial := dialect.NewPostgresDialect()
+
+	caps := schema.NewCapabilities(schema.KindPostgres, dial)
+	if _, _, err := queries.BuildRoots(objects, effective, dial, caps); err != nil {
+		t.Errorf("reconciled source must still build its roots: %v", err)
+	}
+
+	if diff := cmp.Diff(
+		input.Tables[0].SelectPermissions[2:],
+		effective.Tables[0].SelectPermissions,
+	); diff != "" {
+		t.Errorf("surviving permissions (-want +got):\n%s", diff)
+	}
+
+	records := inc.Snapshot()
+
+	names := make([]string, 0, len(records))
+	for _, record := range records {
+		if record.Kind != "select_permission" || !strings.Contains(record.Reason, `"stale"`) {
+			t.Errorf(
+				"want a select permission inconsistency about the stale computed field: %+v",
+				record,
+			)
+		}
+
+		names = append(names, record.Name)
+	}
+
+	slices.Sort(names)
+
+	if diff := cmp.Diff([]string{"public.users.filter", "public.users.grant"}, names); diff != "" {
+		t.Errorf("inconsistent permissions (-want +got):\n%s", diff)
+	}
+}
 
 func TestReconcileMetadata_SelectRootAllowlists(t *testing.T) {
 	t.Parallel()

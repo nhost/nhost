@@ -10,10 +10,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// reconcileSelectRootAllowlists runs after reconcilePermissionColumns has
-// copied the permissions, expanded wildcard grants and filtered the columns.
-// Like Hasura, discard the entire select permission when an explicitly
-// allowed root lacks a prerequisite, including access through relationships.
+// reconcileSelectRootAllowlists drops the entire select permission when an
+// explicitly allowed root lacks a prerequisite. Run it after column and
+// computed-field reconciliation: wildcard columns must be expanded, and
+// the computed-field pass must index all grants before this pass removes any.
 func reconcileSelectRootAllowlists(
 	ctx context.Context,
 	logger *slog.Logger,

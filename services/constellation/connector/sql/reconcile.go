@@ -68,7 +68,10 @@ func reconcileMetadata(
 
 	survivingTables := make(map[string]struct{}, len(out.Tables))
 	for i := range out.Tables {
-		survivingTables[qualifyTable(out.Tables[i].Table.Schema, out.Tables[i].Table.Name)] = struct{}{}
+		t := &out.Tables[i]
+		introspected, _ := objects.GetTable(t.Table.Schema, t.Table.Name)
+		reconcileSelectRootAllowlists(ctx, logger, inc, dbMeta.Name, t, introspected.PrimaryKeys)
+		survivingTables[qualifyTable(t.Table.Schema, t.Table.Name)] = struct{}{}
 	}
 
 	out.Functions = reconcileFunctions(
@@ -128,7 +131,6 @@ func reconcileTables(
 
 		reconcileColumnConfig(ctx, logger, inc, dbName, t, cols)
 		reconcilePermissionColumns(ctx, logger, inc, dbName, t, columnNames, cols)
-		reconcileSelectRootAllowlists(ctx, logger, inc, dbName, t, introspected.PrimaryKeys)
 		reconcileRemoteRelationshipTypes(ctx, logger, inc, dbName, t)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
 		reconcileRelationshipFKIntrospection(
