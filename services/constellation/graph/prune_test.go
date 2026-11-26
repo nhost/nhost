@@ -3,8 +3,67 @@ package graph_test
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/nhost/nhost/services/constellation/graph"
 )
+
+func TestPruneUnreachableTypes_RootSelection(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		queryType *string
+		want      []string
+	}{
+		{
+			"implicit roots",
+			nil,
+			[]string{"Query", "Mutation", "Subscription", "QTarget", "MTarget", "STarget"},
+		},
+		{"explicit query only", new("query_root"), []string{"query_root", "QTarget"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			object := func(name, target string) *graph.ObjectType {
+				return &graph.ObjectType{
+					Name:       name,
+					Fields:     []*graph.Field{{Name: "value", Type: graph.NewNamedType(target)}},
+					Interfaces: nil,
+					Directives: nil,
+				}
+			}
+			schema := &graph.Schema{
+				QueryType: tt.queryType,
+				Types: []*graph.ObjectType{
+					object("Query", "QTarget"),
+					object("Mutation", "MTarget"),
+					object("Subscription", "STarget"),
+					object("query_root", "QTarget"),
+					object("mutation_root", "Unused"),
+					object("QTarget", "String"),
+					object("MTarget", "String"),
+					object("STarget", "String"),
+					object("Unused", "String"),
+				},
+			}
+
+			schema.PruneUnreachableTypes()
+
+			got := make([]string, 0, len(schema.Types))
+			for _, typ := range schema.Types {
+				got = append(got, typ.Name)
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("reachable types (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 
 func TestPruneUnreachableTypes_DirectiveArgumentTypes(t *testing.T) {
 	t.Parallel()
