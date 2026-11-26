@@ -7,6 +7,7 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatArrayValue } from '@/features/orgs/projects/database/dataGrid/utils/formatArrayValue';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { formatSpatialValue } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 
@@ -43,13 +44,7 @@ export default async function createRecord<TData extends object = {}>({
       }
 
       if (isArray) {
-        try {
-          return format('ARRAY[%L]', JSON.parse(value as string));
-        } catch {
-          throw new Error(
-            `Invalid array value for column "${columnId}". Use JSON array format, e.g. [1, 2, 3].`,
-          );
-        }
+        return formatArrayValue(columnId, value as string);
       }
 
       if (spatialType) {
