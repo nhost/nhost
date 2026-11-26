@@ -103,7 +103,18 @@ unaffected.
 
 A filter key counts as a computed field only if the table defines or grants it. Any other unknown key, such as a misspelled computed field, keeps the existing behavior: the whole source fails to build. Hasura marks only that permission inconsistent (see [known differences](../../KNOWN_DIFFERENCES.md#computed-fields)).
 
-SQLite sources ignore computed fields and record none of these inconsistencies.
+SQLite sources ignore computed fields and do not record computed-field or predicate inconsistencies.
+
+### `select_permission` for root allowlists (PostgreSQL / SQLite source)
+
+An explicit `query_root_fields` or `subscription_root_fields` allowlist can include
+`select_by_pk` only if the table has a primary key and the role can select every
+primary-key column. It can include `select_aggregate` only if
+`allow_aggregations` is `true`. These checks do not apply to omitted or null lists.
+
+**Effect:** Constellation removes the role's entire select permission for the
+table. The role loses read access through both root fields and relationships.
+Other permissions remain in effect.
 
 ### `function` (PostgreSQL source)
 
@@ -183,7 +194,7 @@ Recorded when schema composition fails for a specific role. Triggers:
 * `connector/schemamerge.MergeConnectorSchema` rejects an incoming connector's
   schema (duplicate field/type with incompatible shape, conflicting enums,
   conflicting `_comparison_exp` inputs).
-* `BuildValidatedSchema` rejects the merged schema for the role (any
+* `schemamerge.BuildComposedSchema` rejects the merged schema for the role (any
   GraphQL-spec violation that survived merging).
 
 **Effect:** only that role is dropped from `validatedSchemas`. Requests for
@@ -223,6 +234,7 @@ produce.
 | `column` | ✅ | ✅ | — |
 | `function` | ✅ | — | — |
 | `computed_field` | ✅ | — | — |
+| `select_permission` (invalid root allowlists) | ✅ | ✅ | — |
 | `select_permission` / `insert_permission` / `update_permission` / `delete_permission` (computed references or invalid PostgreSQL `_exists`) | ✅ | — | — |
 | `relationship` | ✅ | ✅ | — |
 | `enum_values` | ✅ | ✅ | — |

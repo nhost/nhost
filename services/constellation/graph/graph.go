@@ -26,6 +26,9 @@ type Schema struct {
 	QueryType        *string
 	MutationType     *string
 	SubscriptionType *string
+	// RestrictedReadRoots reports SQL root allowlists that can leave unused
+	// types. Pruning waits until cross-connector relationships are composed.
+	RestrictedReadRoots bool
 }
 
 // ObjectType represents a GraphQL object type with fields.
@@ -62,6 +65,19 @@ type Type struct {
 	// nil for named types. Setting Elem AND NamedType simultaneously is
 	// incorrect; see NamedType.
 	Elem *Type
+}
+
+// BaseName returns the named type beneath any list wrappers, or "" for nil.
+func (t *Type) BaseName() string {
+	for t != nil && t.Elem != nil {
+		t = t.Elem
+	}
+
+	if t == nil {
+		return ""
+	}
+
+	return t.NamedType
 }
 
 // Argument represents an argument to a field.
