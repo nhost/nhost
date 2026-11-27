@@ -1,3 +1,14 @@
+## [mcp@0.5.0] - 2026-11-27
+
+### 🚀 Features
+
+- *(auth)* Type JWTs by purpose and add audience, sid and jti claims (#5240)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Type JWTs by purpose (#5114)
+
 ## [mcp@0.4.0] - 2026-11-26
 
 ### 🚀 Features
