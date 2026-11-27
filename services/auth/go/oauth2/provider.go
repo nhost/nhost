@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 const (
@@ -50,8 +51,10 @@ type ValidatedClaims struct {
 
 //go:generate mockgen -package mock -destination mock/signer.go . Signer
 type Signer interface {
-	SignTokenWithClaims(claims jwt.MapClaims, exp time.Time) (string, error)
-	Validate(token string) (*jwt.Token, error)
+	SignTokenWithClaims(
+		claims jwt.MapClaims, exp time.Time, purpose tokenpurpose.Purpose,
+	) (string, error)
+	Validate(token string, purpose tokenpurpose.Purpose) (*jwt.Token, error)
 	Issuer() string
 	Alg() string
 	GraphQLClaims(
