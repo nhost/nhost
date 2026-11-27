@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
+import * as jose from 'jose';
 import { Client } from 'pg';
 
 import { ENV } from '../../src/env';
@@ -43,5 +44,28 @@ describe('token', () => {
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
     expect(mfa).toBe(undefined);
+  });
+
+  it('should keep sid and issue a new jti on refresh', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+    });
+
+    const { body } = await request
+      .post('/signin/anonymous')
+      .send()
+      .expect(StatusCodes.OK);
+
+    const { body: refreshed } = await request
+      .post('/token')
+      .send({ refreshToken: body.session.refreshToken })
+      .expect(StatusCodes.OK);
+
+    const initialClaims = jose.decodeJwt(body.session.accessToken);
+    const refreshedClaims = jose.decodeJwt(refreshed.accessToken);
+    expect(refreshedClaims.sid).toBe(body.session.refreshTokenId);
+    expect(refreshedClaims.sid).toBe(initialClaims.sid);
+    expect(refreshedClaims.jti).not.toBe(initialClaims.jti);
   });
 });
