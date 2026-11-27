@@ -1009,6 +1009,13 @@ describe('new ticket attachment drafts', () => {
       ticketID: null,
       completed: true,
     });
+    expect(
+      screen.queryByText(/The previous submission could not be confirmed/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Remove logs.txt' }),
+    ).toBeEnabled();
+    expect(screen.getByLabelText('Choose attachments')).toBeEnabled();
     failTicketInsert = false;
     await uploaded();
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
@@ -1020,6 +1027,25 @@ describe('new ticket attachment drafts', () => {
     );
     expect(storageRequests).toHaveLength(1);
     expect(draft).toBeNull();
+  });
+
+  it('allows an organization change after ticket creation is rejected', async () => {
+    failTicketInsert = true;
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await uploadFiles(user);
+    await uploaded();
+    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+    await screen.findByText(/Draft cannot be submitted/);
+    await selectOrganization(user, 'Other org');
+    await user.click(
+      await screen.findByRole('button', { name: 'Remove files and change' }),
+    );
+    await waitFor(() => expect(records[0].discarded).toBe(true));
+    expect(
+      screen.getByRole('combobox', { name: 'Organization' }),
+    ).toHaveTextContent('Other org');
   });
 
   it('retains the same submission token if submission and its recovery lookup both fail', async () => {

@@ -58,7 +58,7 @@ export default function SubscriptionPlan({
     refetch: refetchOrg,
     error,
   } = useCurrentOrg(dialogOnly?.orgSlug);
-  const track = useTrackEvent();
+  const track = useTrackEvent(dialogOnly?.orgSlug);
   const [open, setOpen] = useState(!!dialogOnly);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();

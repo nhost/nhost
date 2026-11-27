@@ -1983,7 +1983,7 @@ describe('native dashboard support', () => {
       ).toBeInTheDocument();
     });
 
-    it('refreshes everything after reconnecting', async () => {
+    it("refreshes the ticket's data after reconnecting", async () => {
       await openTicket();
       act(() =>
         subscriptions.get('dashboardSupportTicketChanges')!.onReconnect?.(),
@@ -1991,6 +1991,7 @@ describe('native dashboard support', () => {
       await waitFor(() => {
         expect(count('detail')).toBe(2);
         expect(count('comments')).toBe(2);
+        expect(count('attachments')).toBe(2);
       });
     });
 

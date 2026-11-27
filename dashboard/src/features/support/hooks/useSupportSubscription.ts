@@ -107,7 +107,8 @@ export function useSupportSubscription<TData>({
       disposed = true;
       clearTimeout(retryTimer);
       unsubscribe();
-      void client.dispose();
+      // Disposing during a reconnect rejects with the pending connection's close.
+      void Promise.resolve(client.dispose()).catch(() => undefined);
     };
   }, [document, enabled, nhost, role, userId, variablesKey]);
 }

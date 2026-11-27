@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useSupportSession } from '@/features/support/hooks/useSupportSession';
 import {
@@ -70,6 +71,20 @@ export function useSupportTicketAttachments(
   const [uploads, setUploads] = useState<AttachmentUpload[]>([]);
   const attachmentsKey = [...queryKey, 'attachments', ticketId];
   const attachments = useSupportTicketAttachmentList(ticketId);
+  function addUploads(files: File[]) {
+    const added = files.map((file): AttachmentUpload => {
+      const error = attachmentValidationError(file);
+      nextUploadId.current += 1;
+      return {
+        id: nextUploadId.current,
+        file,
+        status: error ? 'invalid' : 'pending',
+        error,
+      };
+    });
+    setUploads((current) => [...current, ...added]);
+    return added;
+  }
   function updateUpload(id: number, changes: Partial<AttachmentUpload>) {
     setUploads((current) =>
       current.map((candidate) =>
@@ -89,21 +104,7 @@ export function useSupportTicketAttachments(
           'Attachments cannot be uploaded to this ticket right now.',
         );
       }
-      const candidates = selected
-        ? selected.map((file): AttachmentUpload => {
-            const error = attachmentValidationError(file);
-            nextUploadId.current += 1;
-            return {
-              id: nextUploadId.current,
-              file,
-              status: error ? 'invalid' : 'pending',
-              error,
-            };
-          })
-        : uploads;
-      if (selected) {
-        setUploads((current) => [...current, ...candidates]);
-      }
+      const candidates = selected ? addUploads(selected) : uploads;
       let failed = 0;
       // One file per request preserves per-file outcomes without multipart ambiguity.
       for (const item of candidates.filter(
@@ -173,15 +174,34 @@ export function useSupportTicketAttachments(
       attachments.isError ||
       attachments.isLoading,
     files: attachments.data ?? [],
-    uploadFiles: (files?: File[], onUploaded?: SupportAttachmentUploaded) =>
-      execPromiseWithErrorToast(
+    uploadFiles: async (
+      files?: File[],
+      onUploaded?: SupportAttachmentUploaded,
+    ) => {
+      if (files) {
+        let hasValidFile = false;
+        for (const file of files) {
+          const error = attachmentValidationError(file);
+          if (error) {
+            toast.error(error);
+          } else {
+            hasValidFile = true;
+          }
+        }
+        if (!hasValidFile) {
+          addUploads(files);
+          return;
+        }
+      }
+      return execPromiseWithErrorToast(
         () => upload.mutateAsync({ files, onUploaded }),
         {
           loadingMessage: 'Uploading files…',
           successMessage: 'Files uploaded',
           errorMessage: 'Unable to upload files.',
         },
-      ),
+      );
+    },
     removeUpload: (id: number) => {
       if (!uploading) {
         setUploads((current) =>

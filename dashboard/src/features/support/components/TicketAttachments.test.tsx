@@ -210,14 +210,9 @@ afterAll(() => server.close());
 
 async function chooseFiles(user: TestUserEvent, selected: File[]) {
   await waitFor(() =>
-    expect(
-      screen.getByLabelText('Attach files', { selector: 'input' }),
-    ).toBeEnabled(),
+    expect(screen.getByLabelText('Choose attachments')).toBeEnabled(),
   );
-  await user.upload(
-    screen.getByLabelText('Attach files', { selector: 'input' }),
-    selected,
-  );
+  await user.upload(screen.getByLabelText('Choose attachments'), selected);
 }
 function Attachments({ closed = false }: { closed?: boolean }) {
   const controller = useSupportTicketAttachments(ticketId, closed, false);
@@ -302,9 +297,7 @@ describe('ticket attachments', () => {
     async (mimeType) => {
       renderAttachments();
       await waitFor(() =>
-        expect(
-          screen.getByLabelText('Attach files', { selector: 'input' }),
-        ).toBeEnabled(),
+        expect(screen.getByLabelText('Choose attachments')).toBeEnabled(),
       );
       fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
         dataTransfer: {
@@ -333,9 +326,7 @@ describe('ticket attachments', () => {
     failures.add('failed.txt');
     renderAttachments();
     await waitFor(() =>
-      expect(
-        screen.getByLabelText('Attach files', { selector: 'input' }),
-      ).toBeEnabled(),
+      expect(screen.getByLabelText('Choose attachments')).toBeEnabled(),
     );
     fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
       dataTransfer: {
@@ -395,7 +386,7 @@ describe('ticket attachments', () => {
           type: 'text/plain',
         }),
       ]);
-      await screen.findByText('Uploaded');
+      await screen.findByRole('button', { name: 'Download diagnostic.txt' });
       expect(reservations).toEqual([
         { id: expect.any(String), role, variables: { ticketId } },
       ]);
@@ -410,7 +401,6 @@ describe('ticket attachments', () => {
         },
       ]);
       expect(queries[0]).toEqual({ role, variables: { ticketId, offset: 0 } });
-      await screen.findByRole('button', { name: 'Download diagnostic.txt' });
     },
   );
 
@@ -422,10 +412,10 @@ describe('ticket attachments', () => {
       new File([new Uint8Array(5_000_001)], 'large.txt'),
     ]);
     expect(
-      screen.getByText('Empty files cannot be attached.'),
+      screen.getByText('Empty files cannot be attached.', { selector: 'li p' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Files must be 5 MB or smaller.'),
+      screen.getByText('Files must be 5 MB or smaller.', { selector: 'li p' }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Retry failed uploads' }),
@@ -434,6 +424,57 @@ describe('ticket attachments', () => {
     expect(uploads).toEqual([]);
     await user.click(screen.getByRole('button', { name: 'Remove empty.txt' }));
     expect(screen.queryByText('empty.txt')).not.toBeInTheDocument();
+  });
+
+  it('reports an oversized dropped file as rejected instead of uploaded', async () => {
+    renderAttachments();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Choose attachments')).toBeEnabled(),
+    );
+    fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
+      dataTransfer: {
+        types: ['Files'],
+        files: [new File([new Uint8Array(5_000_001)], 'large.txt')],
+      },
+    });
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('status').map((item) => item.textContent),
+      ).toContain('Files must be 5 MB or smaller.'),
+    );
+    await screen.findByText('large.txt');
+    expect(screen.queryByText('Files uploaded')).not.toBeInTheDocument();
+    expect(reservations).toEqual([]);
+    expect(uploads).toEqual([]);
+  });
+
+  it('uploads only the valid files of a batch with an oversized file', async () => {
+    renderAttachments();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Choose attachments')).toBeEnabled(),
+    );
+    fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
+      dataTransfer: {
+        types: ['Files'],
+        files: [
+          new File(['kept'], 'kept.txt'),
+          new File([new Uint8Array(5_000_001)], 'large.txt'),
+        ],
+      },
+    });
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('status').map((item) => item.textContent),
+      ).toContain('Files must be 5 MB or smaller.'),
+    );
+    await waitFor(() =>
+      expectInputValue(
+        screen.getByRole('textbox', { name: 'Your reply' }),
+        `[kept.txt](attachment:${reservations[0]?.id})\n`,
+      ),
+    );
+    expect(uploads.map(({ name }) => name)).toEqual(['kept.txt']);
+    expect(screen.getByText('large.txt')).toBeInTheDocument();
   });
 
   it('keeps successful files and reserves a fresh ID when retrying a failed file', async () => {
@@ -455,9 +496,7 @@ describe('ticket attachments', () => {
     await user.click(
       screen.getByRole('button', { name: 'Retry failed uploads' }),
     );
-    await waitFor(() =>
-      expect(screen.getAllByText('Uploaded')).toHaveLength(2),
-    );
+    await screen.findByRole('button', { name: 'Download second.txt' });
     expect(uploads.map(({ name }) => name)).toEqual([
       'first.txt',
       'second.txt',
@@ -507,7 +546,7 @@ describe('ticket attachments', () => {
         document.querySelector('iframe, embed, article script'),
       ).toBeNull();
       expect(
-        screen.queryByLabelText('Attach files', { selector: 'input' }),
+        screen.queryByLabelText('Choose attachments'),
       ).not.toBeInTheDocument();
       await waitFor(
         () =>
@@ -575,9 +614,7 @@ describe('ticket attachments', () => {
     await queryClient.invalidateQueries({ queryKey: ['support'] });
     await screen.findByText(/Unable to load attachments/);
     expect(screen.queryByText('diagnostic.html')).not.toBeInTheDocument();
-    expect(
-      screen.getByLabelText('Attach files', { selector: 'input' }),
-    ).toBeDisabled();
+    expect(screen.getByLabelText('Choose attachments')).toBeDisabled();
   });
 
   it('discards a download if the signed-in account changes while bytes are in flight', async () => {

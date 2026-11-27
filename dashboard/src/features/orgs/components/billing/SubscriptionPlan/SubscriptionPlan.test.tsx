@@ -2,14 +2,25 @@ import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { Organization_Status_Enum } from '@/generated/graphql';
-import { mockOrganization, mockRouter } from '@/tests/mocks';
+import {
+  mockMatchMediaValue,
+  mockOrganization,
+  mockRouter,
+} from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
-import { queryClient, render, screen } from '@/tests/testUtils';
+import {
+  queryClient,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import SubscriptionPlan from './SubscriptionPlan';
 
-const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
+const mocks = vi.hoisted(() => ({ useRouter: vi.fn(), track: vi.fn() }));
 
 vi.mock('next/router', () => ({ useRouter: mocks.useRouter }));
+vi.mock('@/lib/segment', () => ({ analytics: { track: mocks.track } }));
 
 const server = setupServer();
 
@@ -87,5 +98,49 @@ describe('SubscriptionPlan', () => {
       await screen.findByRole('button', { name: 'Upgrade' }),
     ).toBeInTheDocument();
     expect(screen.queryByText('Cancelled')).not.toBeInTheDocument();
+  });
+
+  it('tracks a dialog-only upgrade against the given organization', async () => {
+    window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+    mocks.useRouter.mockReturnValue({
+      ...mockRouter,
+      pathname: '/support/ticket',
+      route: '/support/ticket',
+      asPath: '/support/ticket',
+      query: {},
+      isReady: true,
+    });
+    setOrganization(Organization_Status_Enum.Ok);
+    server.use(
+      nhostGraphQLLink.query('getOrganizationPlans', () =>
+        HttpResponse.json({
+          data: {
+            plans: [
+              mockOrganization.plan,
+              { ...mockOrganization.plan, id: 'team', name: 'Team' },
+            ],
+          },
+        }),
+      ),
+      nhostGraphQLLink.mutation('billingChangeOrganizationPlan', () =>
+        HttpResponse.json({ data: { billingChangeOrganizationPlan: true } }),
+      ),
+    );
+    const user = new TestUserEvent();
+
+    render(
+      <SubscriptionPlan
+        dialogOnly={{ orgSlug: mockOrganization.slug, onClose: vi.fn() }}
+      />,
+    );
+    await user.click(await screen.findByRole('radio', { name: /Team/ }));
+    await user.click(screen.getByTestId('upgradeOrgSubmitButton'));
+
+    await waitFor(() =>
+      expect(mocks.track).toHaveBeenCalledWith(
+        'Plan Changed',
+        expect.objectContaining({ org_id: mockOrganization.id }),
+      ),
+    );
   });
 });

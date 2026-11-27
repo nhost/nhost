@@ -104,6 +104,7 @@ function FullSizeImage({
       return bytes;
     },
     enabled: !!user,
+    staleTime: Infinity,
     cacheTime: 0,
     retry: false,
   });

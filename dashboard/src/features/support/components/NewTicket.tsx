@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FetchError } from '@nhost/nhost-js/fetch';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Lock } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -80,6 +81,16 @@ const severityHints = {
   urgent: 'Production is down',
 };
 const listFormat = new Intl.ListFormat('en', { type: 'conjunction' });
+
+// The server answered with GraphQL errors, so the mutation was rolled back and
+// created nothing. Transport failures and 5xx responses may have committed.
+function isRejectedMutation(error: unknown) {
+  if (!(error instanceof FetchError) || error.status >= 500) {
+    return false;
+  }
+  const { errors } = (error.body ?? {}) as { errors?: unknown };
+  return Array.isArray(errors) && errors.length > 0;
+}
 
 export default function NewTicket() {
   const { user } = useSupportSession();
@@ -280,7 +291,7 @@ function NewTicketForm() {
         }
         return result.insertSupportTicket.id as string;
       } catch (error: unknown) {
-        if (submission.draftID) {
+        if (submission.draftID && !isRejectedMutation(error)) {
           try {
             const recoveredID = await draft.recoverSubmission();
             if (recoveredID) {

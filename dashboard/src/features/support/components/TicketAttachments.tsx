@@ -1,7 +1,6 @@
-import { Download, FilePlus2, Paperclip, X } from 'lucide-react';
-import { useId, useRef, useState } from 'react';
+import { Download, FilePlus2, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tooltip,
@@ -19,13 +18,10 @@ import {
   type SupportAttachmentFile,
   type SupportAttachmentScope,
 } from '@/features/support/utils/attachments';
-import { supportDate } from '@/features/support/utils/tickets';
-import { cn } from '@/lib/utils';
 
 interface TicketAttachmentsProps {
   controller: SupportTicketAttachmentsController;
   closed: boolean;
-  compact?: boolean;
   scope?: SupportAttachmentScope;
   onInsert?: (file: SupportAttachmentFile) => void;
 }
@@ -33,11 +29,9 @@ interface TicketAttachmentsProps {
 export default function TicketAttachments({
   controller,
   closed,
-  compact = false,
   scope,
   onInsert,
 }: TicketAttachmentsProps) {
-  const inputId = useId();
   const { role } = useSupportSession();
   const previewTrigger = useRef<HTMLButtonElement>(null);
   const [previewID, setPreviewID] = useState<string>();
@@ -67,11 +61,8 @@ export default function TicketAttachments({
       },
     );
   }
-  const pendingUploads = uploads.filter(
-    (item) => !compact || item.status !== 'uploaded',
-  );
+  const pendingUploads = uploads.filter((item) => item.status !== 'uploaded');
   if (
-    compact &&
     !attachments.isError &&
     !attachments.isLoading &&
     files.length === 0 &&
@@ -82,21 +73,11 @@ export default function TicketAttachments({
   return (
     <section
       aria-label="Ticket attachments"
-      className={cn('space-y-4 rounded-lg border', compact ? 'p-4' : 'p-5')}
+      className="space-y-4 rounded-lg border p-4"
     >
       <h2 className="flex items-center gap-2 font-semibold text-sm">
-        {compact ? (
-          <>
-            Attachments
-            {!attachments.isError &&
-              !attachments.isLoading &&
-              ` · ${files.length}`}
-          </>
-        ) : (
-          <>
-            <Paperclip className="size-4" /> Attachments
-          </>
-        )}
+        Attachments
+        {!attachments.isError && !attachments.isLoading && ` · ${files.length}`}
       </h2>
       {attachments.isError ? (
         <SupportError
@@ -119,8 +100,7 @@ export default function TicketAttachments({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  {compact &&
-                  scope &&
+                  {scope &&
                   attachment.file &&
                   isSupportImage(attachment.file.mimeType ?? '') ? (
                     <button
@@ -141,27 +121,13 @@ export default function TicketAttachments({
                   ) : (
                     <SupportAttachmentPreview
                       file={attachment.file}
-                      className={compact ? 'size-8' : undefined}
+                      className="size-8"
                     />
                   )}
                   <div className="min-w-0">
-                    <p
-                      className={
-                        compact
-                          ? 'truncate text-muted-foreground text-xs'
-                          : 'break-words'
-                      }
-                    >
+                    <p className="truncate text-muted-foreground text-xs">
                       {attachment.file?.name ?? 'Attachment unavailable'}
                     </p>
-                    {!compact && (
-                      <p className="text-muted-foreground text-xs">
-                        {attachment.file &&
-                          `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
-                        {attachment.uploaderName} ·{' '}
-                        {supportDate(attachment.createdAt)}
-                      </p>
-                    )}
                   </div>
                 </div>
                 {attachment.file && (
@@ -171,7 +137,7 @@ export default function TicketAttachments({
                         <Button
                           type="button"
                           variant="subtle"
-                          disabled={download.status === 'loading'}
+                          disabled={download.isPending}
                           aria-label={`Download ${attachment.file.name ?? 'attachment'}`}
                           onClick={() => {
                             const file = attachment.file;
@@ -211,39 +177,8 @@ export default function TicketAttachments({
           </ul>
         </>
       )}
-      {!closed && (!compact || pendingUploads.length > 0) && (
+      {!closed && pendingUploads.length > 0 && (
         <div className="space-y-3 border-t pt-4">
-          {!compact && (
-            <>
-              <label htmlFor={inputId} className="font-medium text-sm">
-                Attach files
-              </label>
-              <Input
-                id={inputId}
-                type="file"
-                multiple
-                disabled={unavailable}
-                aria-describedby={`${inputId}-help`}
-                onChange={(event) => {
-                  const input = event.currentTarget;
-                  const selected = Array.from(input.files ?? []);
-                  input.value = '';
-                  if (selected.length > 0) {
-                    void uploadFiles(selected);
-                  }
-                }}
-              />
-              <p
-                id={`${inputId}-help`}
-                className="text-muted-foreground text-xs"
-              >
-                Drop files onto your reply or select them here to upload
-                automatically. Up to 5 MB per file. Visible to everyone with
-                access to this ticket. Uploads do not send a reply or change
-                ticket status. Do not include secrets.
-              </p>
-            </>
-          )}
           <ul className="space-y-2" aria-live="polite">
             {pendingUploads.map((item) => (
               <li
@@ -308,7 +243,7 @@ export default function TicketAttachments({
           scope={scope}
           requestRole={role}
           onDownload={() => downloadFile(previewFile)}
-          downloading={download.status === 'loading'}
+          downloading={download.isPending}
         />
       )}
     </section>

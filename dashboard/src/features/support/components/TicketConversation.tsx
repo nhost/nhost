@@ -355,7 +355,6 @@ export default function TicketConversation({
                             scope={attachmentScope}
                             closed={false}
                             onInsert={insert}
-                            compact
                           />,
                           attachmentPanel,
                         )
@@ -383,7 +382,6 @@ export default function TicketConversation({
             controller={attachments}
             scope={attachmentScope}
             closed
-            compact
           />
         ) : (
           <div ref={setAttachmentPanel} />

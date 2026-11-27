@@ -121,7 +121,11 @@ export default function TicketDetail() {
       }
     },
     onReconnect: () => {
-      void invalidate();
+      for (const part of ['ticket', 'comments', 'events', 'attachments']) {
+        void client.invalidateQueries({
+          queryKey: [...queryKey, part, ticketId],
+        });
+      }
     },
   });
   const update = useMutation({

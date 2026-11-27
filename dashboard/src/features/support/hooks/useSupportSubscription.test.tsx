@@ -223,6 +223,43 @@ describe('useSupportSubscription', () => {
     expect(client.subscribe).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores the dispose rejection when unmounting during a reconnect', async () => {
+    const rejections: unknown[] = [];
+    const onRejection = (reason: unknown) => rejections.push(reason);
+    process.on('unhandledRejection', onRejection);
+    try {
+      const { unmount } = renderHook(
+        () =>
+          useSupportSubscription({
+            document: DashboardSupportTicketChangesDocument,
+            variables: { id: ticketId },
+            onData: vi.fn(),
+          }),
+        { wrapper: Providers },
+      );
+      await waitFor(() => expect(ws.clients).toHaveLength(1));
+      const [client] = ws.clients;
+      const dispose = vi.fn();
+      // vi.fn handles the promises it returns, which would hide the rejection.
+      Object.assign(client, {
+        dispose: () => {
+          dispose();
+          return Promise.reject({
+            code: 1000,
+            reason: 'All Subscriptions Gone',
+          });
+        },
+      });
+
+      unmount();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(dispose).toHaveBeenCalled();
+      expect(rejections).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onRejection);
+    }
+  });
+
   it('does not connect while disabled', async () => {
     renderHook(
       () =>
