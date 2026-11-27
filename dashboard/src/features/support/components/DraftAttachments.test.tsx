@@ -83,6 +83,7 @@ let failUpload: Set<string>;
 let loseUploadResponse: boolean;
 let loseReservationResponse: boolean;
 let loseSubmissionResponse: boolean;
+let failAfterSubmission: boolean;
 let failSubmissionRecovery: boolean;
 let draftQueryFailures: number;
 let denyDraftReads: boolean;
@@ -335,6 +336,11 @@ const server = setupServer(
           return HttpResponse.error();
         }
         publishDraft(String(input.attachmentDraftID));
+        if (failAfterSubmission) {
+          return HttpResponse.json({
+            errors: [{ message: 'internal server error' }],
+          });
+        }
       }
       if (loseSubmissionResponse) {
         loseSubmissionResponse = false;
@@ -449,6 +455,7 @@ beforeEach(() => {
   loseUploadResponse = false;
   loseReservationResponse = false;
   loseSubmissionResponse = false;
+  failAfterSubmission = false;
   failSubmissionRecovery = false;
   denyDraftReads = false;
   draftQueryFailures = 0;
@@ -979,6 +986,22 @@ describe('new ticket attachment drafts', () => {
 
   it('recovers the created ticket after a lost submission response without inserting again', async () => {
     loseSubmissionResponse = true;
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await uploadFiles(user);
+    await uploaded();
+    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(`/support/tickets/${ticketID}`),
+    );
+    expect(requests.filter((item) => item.operation === 'ticket')).toHaveLength(
+      1,
+    );
+  });
+
+  it('opens the created ticket when a committed submission still reports an error', async () => {
+    failAfterSubmission = true;
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);

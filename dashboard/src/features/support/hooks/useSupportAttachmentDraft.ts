@@ -358,10 +358,14 @@ export function useSupportAttachmentDraft(organizationID: string) {
     return identity ? { draftID: identity.id } : {};
   }
 
-  async function recoverSubmission(): Promise<string | undefined> {
-    setSubmissionUncertain(true);
+  async function checkSubmission(): Promise<string | undefined> {
     const state = await refreshDraft();
     return state.ticketID;
+  }
+
+  async function recoverSubmission(): Promise<string | undefined> {
+    setSubmissionUncertain(true);
+    return checkSubmission();
   }
 
   const data = query.data?.draft;
@@ -417,6 +421,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
     action,
     addFiles,
     prepareSubmission,
+    checkSubmission,
     recoverSubmission,
     submissionUncertain,
     busy,

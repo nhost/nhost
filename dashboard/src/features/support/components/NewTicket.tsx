@@ -82,8 +82,9 @@ const severityHints = {
 };
 const listFormat = new Intl.ListFormat('en', { type: 'conjunction' });
 
-// The server answered with GraphQL errors, so the mutation was rolled back and
-// created nothing. Transport failures and 5xx responses may have committed.
+// The server answered with GraphQL errors, which normally means the mutation
+// was rolled back. A failed COMMIT answers the same way, so the ticket is still
+// looked up. Transport failures and 5xx responses may have committed.
 function isRejectedMutation(error: unknown) {
   if (!(error instanceof FetchError) || error.status >= 500) {
     return false;
@@ -291,9 +292,13 @@ function NewTicketForm() {
         }
         return result.insertSupportTicket.id as string;
       } catch (error: unknown) {
-        if (submission.draftID && !isRejectedMutation(error)) {
+        if (submission.draftID) {
           try {
-            const recoveredID = await draft.recoverSubmission();
+            const recoveredID = isRejectedMutation(error)
+              ? await draft
+                  .checkSubmission()
+                  .catch(() => draft.recoverSubmission())
+              : await draft.recoverSubmission();
             if (recoveredID) {
               return recoveredID;
             }
