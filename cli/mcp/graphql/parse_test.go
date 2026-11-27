@@ -106,3 +106,13 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+
+func TestKindUnmarshalInterfaceAndUnion(t *testing.T) {
+	t.Parallel()
+	for _, raw := range []string{`"INTERFACE"`, `"UNION"`, `"OBJECT"`, `"SCALAR"`} {
+		var k graphql.Kind
+		if err := json.Unmarshal([]byte(raw), &k); err != nil {
+			t.Fatalf("expected %s to unmarshal cleanly, got error: %v", raw, err)
+		}
+	}
+}
