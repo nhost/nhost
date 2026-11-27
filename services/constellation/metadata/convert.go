@@ -166,11 +166,27 @@ func convertDatabase(h hasura.DatabaseMetadata) DatabaseMetadata {
 			ConnectionInfo: DatabaseConnectionInfo{
 				DatabaseURL: convertDatabaseURL(h.Configuration.ConnectionInfo.DatabaseURL),
 			},
+			ReadReplicas: convertReadReplicas(h.Configuration.ReadReplicas),
 		},
 		Customization: convertDatabaseCustomization(h.Customization),
 		Tables:        tables,
 		Functions:     functions,
 	}
+}
+
+func convertReadReplicas(h []hasura.DatabaseConnectionInfo) []DatabaseConnectionInfo {
+	if len(h) == 0 {
+		return nil
+	}
+
+	replicas := make([]DatabaseConnectionInfo, len(h))
+	for i, r := range h {
+		replicas[i] = DatabaseConnectionInfo{
+			DatabaseURL: convertDatabaseURL(r.DatabaseURL),
+		}
+	}
+
+	return replicas
 }
 
 // convertDatabaseCustomization normalizes a Hasura database source's

@@ -27,12 +27,31 @@ func (c *Connector) Execute(
 		return nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
-	results, err := c.driver.ExecuteOperations(ctx, operations, logger)
+	results, err := c.executeOperations(ctx, operation, operations, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute operations: %w", err)
 	}
 
 	return results, nil
+}
+
+// executeOperations sends queries to the driver's read path when it has one
+// and everything else, including queries on VOLATILE functions, to the
+// primary.
+func (c *Connector) executeOperations(
+	ctx context.Context,
+	operation *ast.OperationDefinition,
+	operations []core.SQLOperation,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	if operation != nil && operation.Operation == ast.Query &&
+		!c.roots.UsesVolatileFunction(operation) {
+		if reader, ok := c.driver.(readReplicaDriver); ok {
+			return reader.ExecuteReadOperations(ctx, operations, logger) //nolint:wrapcheck
+		}
+	}
+
+	return c.driver.ExecuteOperations(ctx, operations, logger) //nolint:wrapcheck
 }
 
 // ValidateOperation builds the SQL for the operation and discards it, surfacing

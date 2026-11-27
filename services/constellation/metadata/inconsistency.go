@@ -3,6 +3,7 @@ package metadata
 import (
 	"context"
 	"log/slog"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -54,6 +55,11 @@ const (
 	InconsistencyKindUpdatePermission = "update_permission"
 	// InconsistencyKindDeletePermission drops a whole invalid delete grant.
 	InconsistencyKindDeletePermission = "delete_permission"
+	// InconsistencyKindReadReplica reports that a database source's read
+	// replica could not be used (unresolved URL, connection failure, or a
+	// source kind without replica support). The replica is skipped; the
+	// source keeps serving from its primary.
+	InconsistencyKindReadReplica = "read_replica"
 )
 
 // Inconsistency records a non-fatal failure encountered while turning a
@@ -77,6 +83,7 @@ type Inconsistency struct {
 	//   - relationship: "schema.table.relationship"
 	//   - computed_field: "schema.table.field" (empty field for a malformed nameless entry)
 	//   - operation_permission: "schema.table.role"
+	//   - read_replica: "read_replicas[N]" (position in the source's list)
 	Name string
 	// Reason is a human-readable description of what went wrong.
 	Reason string
@@ -166,6 +173,22 @@ func (i *Inconsistencies) RecordDatabase(
 	name, reason string,
 ) {
 	i.Record(ctx, logger, InconsistencyKindDatabase, "", name, reason)
+}
+
+// RecordReadReplica records that the read replica at position index in the
+// source's read_replicas list was skipped. The URL is never recorded because
+// it can carry credentials.
+func (i *Inconsistencies) RecordReadReplica(
+	ctx context.Context,
+	logger *slog.Logger,
+	source string,
+	index int,
+	reason string,
+) {
+	i.Record(
+		ctx, logger, InconsistencyKindReadReplica, source,
+		"read_replicas["+strconv.Itoa(index)+"]", reason,
+	)
 }
 
 // RecordRemoteSchema records a source-level remote-schema inconsistency. Use

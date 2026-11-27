@@ -53,6 +53,14 @@ type Driver interface {
 	Close()
 }
 
+// readReplicaDriver is implemented by drivers that can serve read-only
+// operations from read replicas.
+type readReplicaDriver interface {
+	ExecuteReadOperations(
+		ctx context.Context, operations []core.SQLOperation, logger *slog.Logger,
+	) (map[string]any, error)
+}
+
 // Connector implements the connector.Connector interface for SQL databases.
 // It also satisfies groupedaggregate.Executor for batched grouped-aggregate
 // dispatch. Both contracts are enforced by compile-time assertions in
