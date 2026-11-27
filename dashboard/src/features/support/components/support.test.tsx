@@ -87,8 +87,13 @@ const initialTicket: NonNullable<DashboardSupportTicketQuery['supportTicket']> =
     resolvedAt: null,
     closedAt: null,
     organization: {
-      plan: { supportAllowedSeverities: ['low', 'normal', 'high', 'urgent'] },
+      slug: 'acme-org',
+      plan: {
+        name: 'Team',
+        supportAllowedSeverities: ['low', 'normal', 'high', 'urgent'],
+      },
     },
+    project: { slug: 'acme-production' },
   };
 const initialEvent: DashboardSupportEventsQuery['supportTicketEvents'][number] =
   {
@@ -1484,6 +1489,30 @@ describe('native dashboard support', () => {
     expect(
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
+  });
+  it('shows the organization slug, project slug, and plan in Details', async () => {
+    render(<TicketDetail />);
+    const details = within(
+      await screen.findByRole('region', { name: 'Details' }),
+    );
+    expect(details.getByText('Organization slug')).toBeInTheDocument();
+    expect(details.getByText('acme-org')).toBeInTheDocument();
+    expect(details.getByText('Project slug')).toBeInTheDocument();
+    expect(details.getByText('acme-production')).toBeInTheDocument();
+    expect(details.getByText('Plan')).toBeInTheDocument();
+    expect(details.getByText('Team')).toBeInTheDocument();
+  });
+  it('shows the organization plan without a project slug for organization-wide tickets', async () => {
+    ticket.projectID = null;
+    ticket.projectName = null;
+    ticket.project = null;
+    render(<TicketDetail />);
+    const details = within(
+      await screen.findByRole('region', { name: 'Details' }),
+    );
+    expect(details.getByText('Organization-wide')).toBeInTheDocument();
+    expect(details.queryByText('Project slug')).not.toBeInTheDocument();
+    expect(details.getByText('Team')).toBeInTheDocument();
   });
   it('renders tickets whose services are built-in object property names', async () => {
     ticket.services = ['constructor', '__proto__', 'valueOf', 'hasOwnProperty'];

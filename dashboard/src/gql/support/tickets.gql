@@ -41,9 +41,14 @@ query dashboardSupportTicket($id: uuid!) {
     resolvedAt
     closedAt
     organization {
+      slug
       plan {
+        name
         supportAllowedSeverities
       }
+    }
+    project {
+      slug
     }
   }
   supportTicketTransitions {

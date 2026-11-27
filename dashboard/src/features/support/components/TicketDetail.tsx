@@ -449,12 +449,38 @@ export default function TicketDetail() {
                       {ticket.organizationName}
                     </dd>
                   </div>
+                  {ticket.organization?.slug && (
+                    <div className="flex justify-between gap-3 py-2.5">
+                      <dt className="text-muted-foreground">
+                        Organization slug
+                      </dt>
+                      <dd className="min-w-0 break-words text-right font-mono">
+                        {ticket.organization.slug}
+                      </dd>
+                    </div>
+                  )}
                   <div className="flex justify-between gap-3 py-2.5">
                     <dt className="text-muted-foreground">Project</dt>
                     <dd className="min-w-0 break-words text-right">
                       {ticket.projectName ?? 'Organization-wide'}
                     </dd>
                   </div>
+                  {ticket.project?.slug && (
+                    <div className="flex justify-between gap-3 py-2.5">
+                      <dt className="text-muted-foreground">Project slug</dt>
+                      <dd className="min-w-0 break-words text-right font-mono">
+                        {ticket.project.slug}
+                      </dd>
+                    </div>
+                  )}
+                  {ticket.organization?.plan?.name && (
+                    <div className="flex justify-between gap-3 py-2.5">
+                      <dt className="text-muted-foreground">Plan</dt>
+                      <dd className="min-w-0 break-words text-right">
+                        {ticket.organization.plan.name}
+                      </dd>
+                    </div>
+                  )}
                   {isAgent && (
                     <div className="flex justify-between gap-3 py-2.5">
                       <dt className="text-muted-foreground">Opened</dt>
