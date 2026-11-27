@@ -5,8 +5,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export interface ProjectLabelProps {
@@ -14,11 +12,10 @@ export interface ProjectLabelProps {
 }
 
 /**
- * The current project as shown in the header triggers: name, GitHub marker,
- * status pill and the updating badge.
+ * The current project as shown in the header triggers: name, GitHub marker
+ * and the updating badge.
  */
 export default function ProjectLabel({ name }: ProjectLabelProps) {
-  const { state: appState } = useAppState();
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
 
@@ -45,7 +42,8 @@ export default function ProjectLabel({ name }: ProjectLabelProps) {
           </TooltipContent>
         </Tooltip>
       )}
-      <ProjectStatusPill status={appState} size="compact" />
+      {/* BRANCHES PROTOTYPE: the status pill moved to the branch switcher,
+          since each branch has its own status. */}
       <ProjectStatus />
     </div>
   );

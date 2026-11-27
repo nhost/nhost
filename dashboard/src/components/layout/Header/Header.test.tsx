@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server';
 import { vi } from 'vitest';
-
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
+import { CommandPaletteProvider } from '@/features/command-palette/CommandPaletteProvider';
 import { openCreateOrgDialog } from '@/features/orgs/components/CreateOrgFormDialog/createOrgDialogStore';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
@@ -188,7 +188,12 @@ beforeEach(() => {
   mockViewport('desktop');
 });
 
-const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
+const renderHeader = (props: HeaderProps = {}) =>
+  render(
+    <CommandPaletteProvider>
+      <Header {...props} />
+    </CommandPaletteProvider>,
+  );
 
 mockScrollIntoViewAndPointerCapture();
 
@@ -262,9 +267,7 @@ describe('Header', () => {
     const user = new TestUserEvent();
     renderHeader();
 
-    await user.click(
-      screen.getByRole('button', { name: 'Open command palette' }),
-    );
+    await user.keyboard('{Meta>}k{/Meta}');
     const search = await screen.findByLabelText('Search dashboard');
     await user.type(search, 'data');
 
@@ -284,59 +287,28 @@ describe('Header', () => {
     );
   });
 
-  it('opens the command palette from the desktop header', async () => {
+  it.each(['desktop', 'tablet', 'mobile'] as const)(
+    'keeps search out of the %s header',
+    (viewport) => {
+      mockViewport(viewport);
+      renderHeader();
+      expect(
+        screen.queryByRole('button', { name: 'Open command palette' }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it('opens search from the mobile navigation menu', async () => {
     const user = new TestUserEvent();
-
+    mockViewport('mobile');
     renderHeader();
-
+    await user.click(screen.getByRole('button', { name: 'Open navigation' }));
     await user.click(
       screen.getByRole('button', { name: 'Open command palette' }),
     );
-
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-  });
-
-  it('renders the icon trigger on mobile', () => {
-    mockViewport('mobile');
-
-    renderHeader();
-
     expect(
-      screen.getByRole('button', { name: 'Open command palette' }),
+      await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText('Search or navigate to...'),
-    ).not.toBeInTheDocument();
-  });
-
-  it('replaces the search box with the icon trigger on tablet', () => {
-    mockViewport('tablet');
-
-    renderHeader();
-
-    expect(
-      screen.getByRole('button', { name: 'Open command palette' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText('Search or navigate to...'),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText('Inbox')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Help and support' }),
-    ).toBeInTheDocument();
-  });
-
-  it('opens the command palette from the mobile icon trigger', async () => {
-    const user = new TestUserEvent();
-    mockViewport('mobile');
-
-    renderHeader();
-
-    await user.click(
-      screen.getByRole('button', { name: 'Open command palette' }),
-    );
-
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
   it('opens and closes one command palette with the shortcut on mobile', async () => {

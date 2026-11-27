@@ -8,11 +8,21 @@ import {
 import { DashboardNavigation } from '@/components/layout/DashboardNavigation';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { CommandPaletteProvider } from '@/features/command-palette/CommandPaletteProvider';
 import { OrgStatusStrip } from '@/features/orgs/components/OrgStatus';
 
 // Client-only: the sidebar restores its collapsed state from localStorage on
 // first render, which the prerendered HTML cannot know, so hydrating it would
 // leave the DOM out of sync with that state.
+// Client-only: reads the (dummy) current branch from localStorage.
+const BranchModeBanner = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/branches/components/BranchModeBanner'
+    ).then((mod) => mod.default),
+  { ssr: false },
+);
+
 const DashboardSidebar = dynamic(
   () =>
     import('@/components/layout/DashboardSidebar').then(
@@ -21,7 +31,10 @@ const DashboardSidebar = dynamic(
   { ssr: false },
 );
 
-type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
+type AppLayoutProps = Omit<BaseLayoutProps, 'className'> & {
+  /** DUMMY PROTOTYPE: hides the app sidebar (used by the Branches page). */
+  hideSidebar?: boolean;
+};
 
 /**
  * The dashboard shell: an organization status strip above everything, then the
@@ -34,7 +47,11 @@ type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
  * `getLayout`; React keeps the shell mounted across navigation only while the
  * root type stays the same.
  */
-export default function AppLayout({ children, ...props }: AppLayoutProps) {
+export default function AppLayout({
+  children,
+  hideSidebar = false,
+  ...props
+}: AppLayoutProps) {
   const router = useRouter();
   // Matches the header, which also renders the desktop layout until the
   // viewport is known.
@@ -42,25 +59,28 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <OrgStatusStrip />
-      <Header className="shrink-0 py-1" />
+      <CommandPaletteProvider>
+        <OrgStatusStrip />
+        <Header className="shrink-0 py-1" />
+        <BranchModeBanner />
 
-      <div className="flex min-h-0 flex-1">
-        {isDesktop && (
-          <DashboardSidebar>
-            <DashboardNavigation />
-          </DashboardSidebar>
-        )}
+        <div className="flex min-h-0 flex-1">
+          {isDesktop && !hideSidebar && (
+            <DashboardSidebar>
+              <DashboardNavigation />
+            </DashboardSidebar>
+          )}
 
-        <main className="relative flex min-w-0 flex-1 flex-col bg-background">
-          <RetryableErrorBoundary
-            errorMessageProps={{ className: 'flex flex-col items-center' }}
-            resetKeys={[router.asPath]}
-          >
-            {children}
-          </RetryableErrorBoundary>
-        </main>
-      </div>
+          <main className="relative flex min-w-0 flex-1 flex-col bg-background">
+            <RetryableErrorBoundary
+              errorMessageProps={{ className: 'flex flex-col items-center' }}
+              resetKeys={[router.asPath]}
+            >
+              {children}
+            </RetryableErrorBoundary>
+          </main>
+        </div>
+      </CommandPaletteProvider>
     </BaseLayout>
   );
 }

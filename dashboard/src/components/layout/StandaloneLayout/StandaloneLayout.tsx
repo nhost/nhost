@@ -5,6 +5,10 @@ import {
 } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import {
+  CommandPaletteProvider,
+  NavigationSearch,
+} from '@/features/command-palette/CommandPaletteProvider';
 
 export type StandaloneLayoutProps = Omit<BaseLayoutProps, 'className'>;
 
@@ -20,16 +24,22 @@ export default function StandaloneLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="shrink-0 py-1" />
+      <CommandPaletteProvider>
+        <Header className="shrink-0 py-1" />
 
-      <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
-        <RetryableErrorBoundary
-          errorMessageProps={{ className: 'flex flex-col items-center' }}
-          resetKeys={[router.asPath]}
-        >
-          {children}
-        </RetryableErrorBoundary>
-      </main>
+        <div className="w-52 p-2">
+          <NavigationSearch />
+        </div>
+
+        <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
+          <RetryableErrorBoundary
+            errorMessageProps={{ className: 'flex flex-col items-center' }}
+            resetKeys={[router.asPath]}
+          >
+            {children}
+          </RetryableErrorBoundary>
+        </main>
+      </CommandPaletteProvider>
     </BaseLayout>
   );
 }

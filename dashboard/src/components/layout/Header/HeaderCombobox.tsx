@@ -24,12 +24,14 @@ interface HeaderComboboxProps
   > {
   linkHref?: string;
   linkContent?: ReactNode;
+  linkClassName?: string;
 }
 
 export default function HeaderCombobox({
   className,
   linkHref,
   linkContent,
+  linkClassName,
   popoverContentClassName,
   ...props
 }: HeaderComboboxProps) {
@@ -40,7 +42,10 @@ export default function HeaderCombobox({
   return (
     <div ref={setAnchor} className="flex min-w-0 items-center">
       {hasLink && (
-        <Link href={linkHref} className={headerComboboxLinkClassName}>
+        <Link
+          href={linkHref}
+          className={cn(headerComboboxLinkClassName, linkClassName)}
+        >
           {linkContent}
         </Link>
       )}
