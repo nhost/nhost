@@ -1,76 +1,36 @@
-package remoteschema
+package graph
 
-import "github.com/nhost/nhost/services/constellation/graph"
+// PruneUnreachableTypes removes types from the schema that are not transitively
+// reachable from the root operation types or directives.
+// It replaces the schema's slices without modifying the underlying types.
+func (s *Schema) PruneUnreachableTypes() {
+	reachable := findReachableTypes(s)
 
-// builtinTypes is the set of built-in GraphQL type names that must be skipped
-// when converting an SDL/introspection result into graph.Schema.
-var builtinTypes = map[string]struct{}{ //nolint:gochecknoglobals
-	"String":              {},
-	"Int":                 {},
-	"Float":               {},
-	"Boolean":             {},
-	"ID":                  {},
-	"__Schema":            {},
-	"__Type":              {},
-	"__TypeKind":          {},
-	"__Field":             {},
-	"__InputValue":        {},
-	"__EnumValue":         {},
-	"__Directive":         {},
-	"__DirectiveLocation": {},
-}
-
-// isBuiltinType reports whether name is a GraphQL built-in/introspection type.
-func isBuiltinType(name string) bool {
-	_, ok := builtinTypes[name]
-	return ok
-}
-
-// graphBaseTypeName extracts the leaf named type from a potentially nested graph.Type.
-func graphBaseTypeName(t *graph.Type) string {
-	if t == nil {
-		return ""
-	}
-
-	if t.Elem != nil {
-		return graphBaseTypeName(t.Elem)
-	}
-
-	return t.NamedType
-}
-
-// pruneUnreachableTypes removes types from the schema that are not transitively
-// reachable from the root operation types (Query, Mutation, Subscription).
-// This prevents orphaned types (e.g., return types of mutations not exposed to
-// a role) from leaking into the schema.
-func pruneUnreachableTypes(schema *graph.Schema) {
-	reachable := findReachableTypes(schema)
-
-	schema.Types = filterTypes(schema.Types, reachable)
-	schema.Inputs = filterInputs(schema.Inputs, reachable)
-	schema.Scalars = filterScalars(schema.Scalars, reachable)
-	schema.Enums = filterEnums(schema.Enums, reachable)
-	schema.Interfaces = filterInterfaces(schema.Interfaces, reachable)
-	schema.Unions = filterUnions(schema.Unions, reachable)
+	s.Types = filterTypes(s.Types, reachable)
+	s.Inputs = filterInputs(s.Inputs, reachable)
+	s.Scalars = filterScalars(s.Scalars, reachable)
+	s.Enums = filterEnums(s.Enums, reachable)
+	s.Interfaces = filterInterfaces(s.Interfaces, reachable)
+	s.Unions = filterUnions(s.Unions, reachable)
 }
 
 // reachabilityWalker holds type lookup maps and walks type references transitively.
 type reachabilityWalker struct {
-	objects            map[string]*graph.ObjectType
-	inputs             map[string]*graph.InputObjectType
-	interfaces         map[string]*graph.InterfaceType
-	unions             map[string]*graph.UnionType
+	objects            map[string]*ObjectType
+	inputs             map[string]*InputObjectType
+	interfaces         map[string]*InterfaceType
+	unions             map[string]*UnionType
 	implementors       map[string][]string
 	expandedInterfaces map[string]struct{}
 	reachable          map[string]struct{}
 }
 
-func newReachabilityWalker(schema *graph.Schema) *reachabilityWalker {
+func newReachabilityWalker(schema *Schema) *reachabilityWalker {
 	w := &reachabilityWalker{
-		objects:            make(map[string]*graph.ObjectType, len(schema.Types)),
-		inputs:             make(map[string]*graph.InputObjectType, len(schema.Inputs)),
-		interfaces:         make(map[string]*graph.InterfaceType, len(schema.Interfaces)),
-		unions:             make(map[string]*graph.UnionType, len(schema.Unions)),
+		objects:            make(map[string]*ObjectType, len(schema.Types)),
+		inputs:             make(map[string]*InputObjectType, len(schema.Inputs)),
+		interfaces:         make(map[string]*InterfaceType, len(schema.Interfaces)),
+		unions:             make(map[string]*UnionType, len(schema.Unions)),
 		implementors:       make(map[string][]string),
 		expandedInterfaces: make(map[string]struct{}),
 		reachable:          make(map[string]struct{}),
@@ -156,7 +116,7 @@ func (w *reachabilityWalker) visit(name string, expandInterfaceImplementors bool
 
 		if inp, ok := w.inputs[name]; ok {
 			for _, f := range inp.Fields {
-				w.visitTypeReference(graphBaseTypeName(f.Type))
+				w.visitTypeReference(f.Type.BaseName())
 			}
 		}
 
@@ -198,42 +158,46 @@ func (w *reachabilityWalker) expandInterfaceImplementors(name string) {
 
 // findReachableTypes walks the schema from root operations and directive arguments,
 // returning the set of transitively reachable type names.
-func findReachableTypes(schema *graph.Schema) map[string]struct{} {
+func findReachableTypes(schema *Schema) map[string]struct{} {
 	w := newReachabilityWalker(schema)
 
-	if schema.QueryType != nil {
-		w.visitTypeReference(*schema.QueryType)
-	}
-
-	if schema.MutationType != nil {
-		w.visitTypeReference(*schema.MutationType)
-	}
-
-	if schema.SubscriptionType != nil {
-		w.visitTypeReference(*schema.SubscriptionType)
+	if schema.QueryType == nil && schema.MutationType == nil && schema.SubscriptionType == nil {
+		// Without an explicit schema definition gqlparser recognizes default
+		// operation names. Otherwise only declared roots are reachable.
+		for _, name := range []string{"Query", "Mutation", "Subscription"} {
+			if w.objects[name] != nil {
+				w.visitTypeReference(name)
+			}
+		}
+	} else {
+		for _, root := range []*string{schema.QueryType, schema.MutationType, schema.SubscriptionType} {
+			if root != nil {
+				w.visitTypeReference(*root)
+			}
+		}
 	}
 
 	for _, dir := range schema.Directives {
 		for _, arg := range dir.Arguments {
-			w.visitTypeReference(graphBaseTypeName(arg.Type))
+			w.visitTypeReference(arg.Type.BaseName())
 		}
 	}
 
 	return w.reachable
 }
 
-func visitFields(fields []*graph.Field, visit func(string)) {
+func visitFields(fields []*Field, visit func(string)) {
 	for _, f := range fields {
-		visit(graphBaseTypeName(f.Type))
+		visit(f.Type.BaseName())
 
 		for _, arg := range f.Arguments {
-			visit(graphBaseTypeName(arg.Type))
+			visit(arg.Type.BaseName())
 		}
 	}
 }
 
-func filterTypes(types []*graph.ObjectType, reachable map[string]struct{}) []*graph.ObjectType {
-	filtered := make([]*graph.ObjectType, 0, len(types))
+func filterTypes(types []*ObjectType, reachable map[string]struct{}) []*ObjectType {
+	filtered := make([]*ObjectType, 0, len(types))
 
 	for _, t := range types {
 		if _, ok := reachable[t.Name]; ok {
@@ -245,10 +209,10 @@ func filterTypes(types []*graph.ObjectType, reachable map[string]struct{}) []*gr
 }
 
 func filterInputs(
-	inputs []*graph.InputObjectType,
+	inputs []*InputObjectType,
 	reachable map[string]struct{},
-) []*graph.InputObjectType {
-	filtered := make([]*graph.InputObjectType, 0, len(inputs))
+) []*InputObjectType {
+	filtered := make([]*InputObjectType, 0, len(inputs))
 
 	for _, t := range inputs {
 		if _, ok := reachable[t.Name]; ok {
@@ -259,8 +223,8 @@ func filterInputs(
 	return filtered
 }
 
-func filterScalars(scalars []*graph.ScalarType, reachable map[string]struct{}) []*graph.ScalarType {
-	filtered := make([]*graph.ScalarType, 0, len(scalars))
+func filterScalars(scalars []*ScalarType, reachable map[string]struct{}) []*ScalarType {
+	filtered := make([]*ScalarType, 0, len(scalars))
 
 	for _, t := range scalars {
 		if _, ok := reachable[t.Name]; ok {
@@ -271,8 +235,8 @@ func filterScalars(scalars []*graph.ScalarType, reachable map[string]struct{}) [
 	return filtered
 }
 
-func filterEnums(enums []*graph.EnumType, reachable map[string]struct{}) []*graph.EnumType {
-	filtered := make([]*graph.EnumType, 0, len(enums))
+func filterEnums(enums []*EnumType, reachable map[string]struct{}) []*EnumType {
+	filtered := make([]*EnumType, 0, len(enums))
 
 	for _, t := range enums {
 		if _, ok := reachable[t.Name]; ok {
@@ -284,9 +248,9 @@ func filterEnums(enums []*graph.EnumType, reachable map[string]struct{}) []*grap
 }
 
 func filterInterfaces(
-	ifaces []*graph.InterfaceType, reachable map[string]struct{},
-) []*graph.InterfaceType {
-	filtered := make([]*graph.InterfaceType, 0, len(ifaces))
+	ifaces []*InterfaceType, reachable map[string]struct{},
+) []*InterfaceType {
+	filtered := make([]*InterfaceType, 0, len(ifaces))
 
 	for _, t := range ifaces {
 		if _, ok := reachable[t.Name]; ok {
@@ -297,8 +261,8 @@ func filterInterfaces(
 	return filtered
 }
 
-func filterUnions(unions []*graph.UnionType, reachable map[string]struct{}) []*graph.UnionType {
-	filtered := make([]*graph.UnionType, 0, len(unions))
+func filterUnions(unions []*UnionType, reachable map[string]struct{}) []*UnionType {
+	filtered := make([]*UnionType, 0, len(unions))
 
 	for _, t := range unions {
 		if _, ok := reachable[t.Name]; ok {

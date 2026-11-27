@@ -30,7 +30,7 @@ describe('commandPaletteTree', () => {
       title: 'Account Settings',
       kind: 'page',
       path: '/account',
-      keywords: ['account', 'profile', 'settings'],
+      keywords: ['account', 'profile', 'settings', 'cookies'],
       gate: 'platform',
     });
     expect(accountSettings?.icon?.type).toBe(CircleUserIcon);

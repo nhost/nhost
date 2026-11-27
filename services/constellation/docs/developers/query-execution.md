@@ -26,7 +26,7 @@ This document traces a GraphQL request through Constellation, from HTTP arrival 
 │  • Expand root fragments; prune @skip / @include selections          │
 │  • queries.NormalizeInputVariables (copy-on-write; may reject)       │
 │  • groupFieldsByConnector (route root fields by fieldToConnector)    │
-│  • Introspection shortcut: __schema / __type → controller/intro…     │
+│  • Resolve local meta-fields and the empty-query fallback            │
 │  • state.queryPlanner.Plan(operation, fragments, role, variables)    │
 │      → QueryPlan { PrimaryQueries, RemoteQueries }                   │
 │  • Reject remote relationships in subscriptions                      │
@@ -87,7 +87,7 @@ defer release()
 
 `acquireState` loads the pointer, increments the state's atomic `inflight` counter, and rechecks the pointer. If it changed, acquisition decrements the old counter and retries without using that state. The successful registration lasts throughout `Resolve`, including parsing, validation, connector execution, and remote-relationship stitching; `defer release()` covers all return paths. New HTTP paths that execute against connectors must use this protocol, not a bare `c.state.Load()`.
 
-The snapshot carries per-role validated schemas, the connector map, `fieldToConnector` routing, the planner/resolver, metadata, inconsistencies, subscription handler maps, and the LRU query cache. All published `controllerState` configuration fields must be rebuilt through `buildState` — never mutate the published snapshot in place. Only synchronized lifecycle state (`done`/`inflight`) and query-cache internals are exempt from that immutable-snapshot contract; cached ASTs and errors remain read-only. The HTTP `inflight` counter is separate from the cache's singleflight loads.
+The snapshot carries per-role validated schemas, the connector map, `fieldToConnector` routing, per-role `emptyQueryRoots` fallback flags, the planner/resolver, metadata, inconsistencies, subscription handler maps, and the LRU query cache. All published `controllerState` configuration fields must be rebuilt through `buildState` — never mutate the published snapshot in place. Only synchronized lifecycle state (`done`/`inflight`) and query-cache internals are exempt from that immutable-snapshot contract; cached ASTs and errors remain read-only. The HTTP `inflight` counter is separate from the cache's singleflight loads.
 
 WebSocket `HandlerGet` still snapshots with `c.state.Load()` and cancels the connection when `state.done` closes; it does not use HTTP registration. See [architecture.md](./architecture.md) for the swap and drain protocol.
 
@@ -113,9 +113,9 @@ Both rejection cases produce a structured `QueryValidationError` with `extension
 
 Rewriting is copy-on-write, including reachable fragments, so cached ASTs remain unchanged. The planner and connectors receive the input-normalized operations and fragments; `buildConnectorOperation` later calls `pruneConnectorDocument` to drop unused fragments and variable definitions. `queries.Roots.BuildQuery` reapplies normalization for direct SQL and subscription callers that bypass HTTP `Resolve`; controller-level normalization is still needed before remote planning discards the original input metadata.
 
-## 5. Introspection shortcut
+## 5. Local fields
 
-`isIntrospectionQuery` (`controller/resolve.go:423`) checks whether any root selection is `__schema` or `__type`. If so, the controller delegates to `controller/introspection.Execute`, which walks the validated schema directly — no connector calls, no planner work. The introspection package is intentionally state-less; it gets the schema and the AST and returns a map.
+`executeWithLocalFields` calls `controller/introspection.Execute` to resolve meta-fields (`__schema`, `__type`, and `__typename`) against the validated schema. It also writes `schemamerge.EmptyQueryMessage` for each selection of `no_queries_available`, using the response alias when present. Composition adds this fallback only when the merged role schema has no query fields (see `connector/schemamerge/empty_query_root.go`). Local selections do not need a planner or connector; mixed operations merge the local results with the connector results.
 
 ## 6. Query planning
 
@@ -143,7 +143,9 @@ Mutations are not rejected here, but mutation pipelines never produce cross-conn
 
 ## 7. Field routing
 
-`groupFieldsByConnector` (`controller/resolve.go`) walks the input-normalized operation (not the planner's clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
+`groupFieldsByConnector` (`controller/resolve.go`) walks the input-normalized operation, not the planner's clean one. It sets aside selections that match `isMetaField` or select `schemamerge.EmptyQueryField` in a query for a role with `state.emptyQueryRoots[role]` set. The role check keeps the fallback from shadowing a connector field of the same name in another role's schema.
+
+The remaining selections route through `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]`. The composer builds that mapping during schema composition. Any remaining field without an owner returns `errResponseNoConnector`.
 
 ## 8. Pre-execution connector validation
 

@@ -215,16 +215,17 @@ func (c *connector) GetSchema() (map[string]*graph.Schema, error) {
 	types = append(types, c.objects...)
 
 	schema := &graph.Schema{
-		Types:            types,
-		Scalars:          nil,
-		Enums:            nil,
-		Interfaces:       nil,
-		Unions:           nil,
-		Inputs:           nil,
-		Directives:       nil,
-		QueryType:        &queryRoot,
-		MutationType:     nil,
-		SubscriptionType: nil,
+		Types:               types,
+		Scalars:             nil,
+		Enums:               nil,
+		Interfaces:          nil,
+		Unions:              nil,
+		Inputs:              nil,
+		Directives:          nil,
+		QueryType:           &queryRoot,
+		MutationType:        nil,
+		SubscriptionType:    nil,
+		RestrictedReadRoots: false,
 	}
 
 	return map[string]*graph.Schema{
