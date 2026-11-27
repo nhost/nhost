@@ -1,0 +1,114 @@
+---
+title: Nhost Cloud API
+description: Use the Nhost CLI to inspect the Nhost Cloud GraphQL schema and send GraphQL queries and mutations to Nhost Cloud from your terminal or agent.
+keywords: ["Nhost Cloud API", "nhost cloud graphql", "GraphQL", "CLI", "AI agents", "personal access token"]
+head:
+  - tag: title
+    content: "Send Raw GraphQL Requests to Nhost Cloud from the CLI | Nhost Docs"
+---
+
+`nhost cloud graphql schema` and `nhost cloud graphql request` let you inspect the Nhost Cloud schema and send GraphQL requests from the CLI. The Nhost Cloud API manages your organizations and projects, and is separate from your project's own [GraphQL API](/products/graphql). `nhost cloud graphql schema` reads a snapshot bundled with the CLI, and `nhost cloud graphql request` sends a query or mutation with your account's permissions. `nhost cloud graphql schema` needs no login, `NHOST_PAT` or network access. For the full syntax, see the [command reference](/reference/cli/commands#nhost-cloud-graphql).
+
+If your agent has the [CLI MCP tools](/platform/cli/mcp) and they cover your task, use them instead. Use these commands for tasks they don't cover, or when the MCP server isn't set up, such as in a script.
+
+The MCP server allows mutations to Nhost Cloud only if `enable_mutations` is on in its [configuration](/platform/cli/mcp/configuration). `nhost cloud graphql request` sends mutations without that setting, so set your agent to ask before it runs `nhost cloud graphql request` (see [Set up your agent](#set-up-your-agent)).
+
+The Nhost Cloud API calls projects `apps`, so that's the name you see in the schema and in the examples on this page.
+
+## Sign in
+
+Only `nhost cloud graphql request` uses your CLI login session. You can inspect the schema without signing in. To send a request, sign in first:
+
+```bash
+nhost login
+```
+
+This opens your browser to sign in to your Nhost account and saves the session in `~/.nhost/state/auth.json`, or in `$XDG_STATE_HOME/nhost/auth.json` if `XDG_STATE_HOME` is set. Other CLI commands and the CLI MCP server use the same session.
+
+`nhost cloud graphql request` never opens a browser or asks for input. Each call gets a short-lived access token from the saved session and saves the renewed session back to the file. If there's no session, or it has expired or been revoked, the command fails, and you need to run `nhost login` again.
+
+To use a personal access token instead, for example in CI, set the `NHOST_PAT` environment variable. When it's set, `nhost cloud graphql request` uses the token and ignores the saved session. You can create a token in the dashboard under **Account Settings**.
+
+## Set up your agent
+
+In your agent's command permissions:
+
+- Let `nhost cloud graphql schema` run with any arguments without approval. It's read-only and works offline.
+- Require your approval for every `nhost cloud graphql request` call. Reads can return sensitive values, such as a project's secrets and its Hasura admin secret, and your agent sees everything the command prints. Mutations can change your organizations and projects.
+
+If your agent runs `nhost cloud graphql request` in a sandbox and uses your login session, give it read and write access to the session folder: `~/.nhost/state/`, or `$XDG_STATE_HOME/nhost/` if `XDG_STATE_HOME` is set. Without it, requests can fail, and you may need to run `nhost login` again. With `NHOST_PAT` set, the session folder isn't used. `nhost cloud graphql schema` doesn't use the session.
+
+:::caution
+`nhost cloud graphql request` sends mutations as written, with no further checks or confirmation. Review the operation and variables before you approve the call.
+:::
+
+## Inspect the schema
+
+Start with the summary to find the query and mutation names:
+
+```bash
+nhost cloud graphql schema
+```
+
+With no arguments, the command prints indented JSON with sorted root field names in the `query` and `mutation` arrays.
+
+Name a query or mutation field to see its arguments, return type and related type definitions as GraphQL schema definition language (SDL):
+
+```bash
+nhost cloud graphql schema apps
+nhost cloud graphql schema updateApp
+```
+
+You can name several fields at once, and mix queries and mutations, for example `nhost cloud graphql schema apps updateApp`.
+
+Use `--depth N` (default `1`) to limit how many levels of object, input, interface and union types are defined. Selected root fields are level `0`; their return and argument types are level `1`. Each further type reference adds a level. Deeper types stay referenced but aren't defined. Used enums and custom scalars are always included; built-in scalars aren't defined.
+
+`--depth 0` prints only the selected root field signatures with their enums and custom scalars. Use a large depth to include every needed type, for example:
+
+```bash
+nhost cloud graphql schema updateConfig --depth 10
+```
+
+Output grows quickly with depth, so raise `--depth` only as far as needed.
+
+`--depth` requires at least one field name.
+
+## Send a query
+
+`nhost cloud graphql request` takes one quoted GraphQL document and an optional `--variables` JSON object. It sends queries and mutations, and refuses subscriptions.
+
+For example, to list up to five projects, ordered by name:
+
+```bash
+nhost cloud graphql request 'query {
+  apps(limit: 5, order_by: {name: asc}) {
+    id
+    name
+  }
+}'
+```
+
+The output looks like this:
+
+```json
+{"apps":[{"id":"<project-id>","name":"My project"}]}
+```
+
+## Send a mutation
+
+This example renames a project. Replace `<project-id>` with an `id` from the previous query, and `New project name` with the new name:
+
+```bash
+nhost cloud graphql request 'mutation RenameProject($id: uuid!, $name: String!) {
+  updateApp(pk_columns: {id: $id}, _set: {name: $name}) {
+    id
+    name
+  }
+}' --variables '{"id":"<project-id>","name":"New project name"}'
+```
+
+`nhost cloud graphql request` doesn't retry the GraphQL request. After a network error, you can't tell whether the mutation was applied, so query the current state before you send it again.
+
+## Output and errors
+
+On success, `nhost cloud graphql schema` prints summary JSON or selected SDL to stdout. `nhost cloud graphql request` prints only the response's `data` field as JSON to stdout. On any failure, the command exits with code `1` and writes the error to stderr. For GraphQL and HTTP errors, `nhost cloud graphql request` includes the server's response in the error.
