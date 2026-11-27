@@ -18,6 +18,7 @@ const (
 	toolExecutionFailMsg      = "Tool execution failed"
 	maxIterationsExceededMsg  = "tool execution skipped: agent loop iteration limit reached"
 	maxIterationsExceededWarn = "max iterations exceeded"
+	streamClosedSkippedMsg    = "tool execution skipped: response stream closed"
 )
 
 var errUnknownProvider = errors.New("unknown provider error")
@@ -340,7 +341,7 @@ func executeToolCalls(
 ) ([]provider.Message, error) {
 	var results []provider.Message
 
-	for _, tc := range toolCalls {
+	for i, tc := range toolCalls {
 		t, err := tools.Get(tc.Name)
 		if err != nil {
 			results = append(results, provider.Message{
@@ -374,9 +375,25 @@ func executeToolCalls(
 
 		results = append(results, msg)
 		if err != nil {
-			return results, err
+			return append(results, skippedToolResults(toolCalls[i+1:])...), err
 		}
 	}
 
 	return results, nil
+}
+
+func skippedToolResults(toolCalls []provider.ToolCall) []provider.Message {
+	results := make([]provider.Message, 0, len(toolCalls))
+
+	for _, tc := range toolCalls {
+		results = append(results, provider.Message{
+			Role:       provider.RoleTool,
+			Content:    streamClosedSkippedMsg,
+			ToolCalls:  nil,
+			ToolCallID: tc.ID,
+			ToolName:   tc.Name,
+		})
+	}
+
+	return results
 }
