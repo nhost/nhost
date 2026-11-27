@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { DefaultOrganizationSettings } from '@/features/orgs/components/general/components/DefaultOrganizationSettings';
 import { DeleteOrg } from '@/features/orgs/components/general/components/DeleteOrg';
 import { GeneralSettings } from '@/features/orgs/components/general/components/GeneralSettings';
 import { Soc2Download } from '@/features/orgs/components/general/components/Soc2Download';
@@ -10,6 +11,7 @@ export default function OrgSettings() {
     <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-5 py-8">
       <h1 className="font-normal text-3xl">Settings</h1>
       <GeneralSettings />
+      <DefaultOrganizationSettings />
       <Soc2Download />
       <DeleteOrg />
     </div>
