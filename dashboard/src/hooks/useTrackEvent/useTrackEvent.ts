@@ -9,10 +9,11 @@ export type TrackEventProperties = Record<string, unknown>;
  * Returns a `track` function that forwards to Segment while automatically
  * attaching the current `org_id` and `project_id` to every event, so each
  * event can be attributed to an organization (billing is org-scoped) and a
- * project without every call site having to resolve them.
+ * project without every call site having to resolve them. Pass `orgSlug` when
+ * the organization isn't in the route.
  */
-export default function useTrackEvent() {
-  const { org } = useCurrentOrg();
+export default function useTrackEvent(orgSlug?: string) {
+  const { org } = useCurrentOrg(orgSlug);
   const { project } = useProject();
 
   return useCallback(

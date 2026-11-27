@@ -1,0 +1,28 @@
+subscription dashboardSupportTicketChanges($id: uuid!) {
+  supportTicket(id: $id) {
+    id
+    updatedAt
+    attachments(
+      where: {
+        discardedAt: { _is_null: true }
+        file: {
+          bucketId: { _eq: "support_tickets_attachments" }
+          isUploaded: { _eq: true }
+        }
+      }
+    ) {
+      id
+    }
+  }
+}
+
+subscription dashboardSupportQueueChanges($where: supportTickets_bool_exp!) {
+  supportTicketsAggregate(where: $where) {
+    aggregate {
+      count
+      max {
+        updatedAt
+      }
+    }
+  }
+}

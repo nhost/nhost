@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { tabsListVariants, tabsTriggerVariants } from '@/components/ui/v3/tabs';
 import { isRouteActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +42,7 @@ function DesktopRouteTabs({
     <nav className={cn('overflow-x-auto', className)} {...props}>
       <div
         className={cn(
-          'inline-flex h-10 items-center justify-start gap-6 text-muted-foreground dark:text-sidebar-foreground',
+          tabsListVariants({ variant: 'underline' }),
           listClassName,
         )}
       >
@@ -134,7 +135,7 @@ export function RouteTabLink({
 
   const active = isRouteActive(asPath, href, exact);
   const tabClassName = cn(
-    'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-semibold text-sm ring-offset-background transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-primary data-[state=active]:text-primary',
+    tabsTriggerVariants({ variant: 'underline' }),
     disabled && 'pointer-events-none opacity-50 hover:text-muted-foreground',
     className,
   );

@@ -41,6 +41,10 @@ export interface InputWithSuggestionsProps
    */
   filterSuggestions?: boolean;
   /**
+   * Called after a suggestion is picked, with its `value`.
+   */
+  onSuggestionSelect?: (value: string) => void;
+  /**
    * Node rendered at the right end of the input (e.g. an info tooltip).
    */
   endAdornment?: ReactNode;
@@ -61,6 +65,7 @@ function InputWithSuggestions({
   onChange,
   suggestions,
   filterSuggestions = true,
+  onSuggestionSelect,
   endAdornment,
   disabled,
   onFocus,
@@ -105,6 +110,7 @@ function InputWithSuggestions({
   function pickSuggestion(suggestionValue: string) {
     onChange(suggestionValue);
     close();
+    onSuggestionSelect?.(suggestionValue);
     // Note: keep focus on the input so typing/arrowing can continue and a
     // click or ArrowDown reopens the list.
     inputRef.current?.focus();

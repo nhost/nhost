@@ -193,8 +193,12 @@ module.exports = {
         apps: '928px',
         '2.5xl': '720px',
       },
+      gridTemplateColumns: {
+        'support-ticket': '16rem minmax(0, 1fr)',
+      },
       minHeight: {
         38: '9.5rem',
+        112: '28rem',
       },
       paddingLeft: {
         'pl-1.5': '7px',

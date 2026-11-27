@@ -46,10 +46,20 @@ const changeOrgPlanForm = z.object({
   plan: z.string(),
 });
 
-export default function SubscriptionPlan() {
-  const { org, refetch: refetchOrg } = useCurrentOrg();
-  const track = useTrackEvent();
-  const [open, setOpen] = useState(false);
+interface SubscriptionPlanProps {
+  dialogOnly?: { orgSlug: string; onClose: VoidFunction };
+}
+
+export default function SubscriptionPlan({
+  dialogOnly,
+}: SubscriptionPlanProps) {
+  const {
+    org,
+    refetch: refetchOrg,
+    error,
+  } = useCurrentOrg(dialogOnly?.orgSlug);
+  const track = useTrackEvent(dialogOnly?.orgSlug);
+  const [open, setOpen] = useState(!!dialogOnly);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const [updateFreeOrg] = useBillingUpgradeFreeOrganizationMutation();
@@ -77,11 +87,18 @@ export default function SubscriptionPlan() {
   }, [form, org]);
 
   useEffect(() => {
-    if (isReady && openUpgradeModal) {
+    if (!dialogOnly && isReady && openUpgradeModal) {
       setOpen(true);
       removeQueryParamsFromUrl('openUpgradeModal');
     }
-  }, [openUpgradeModal, isReady, removeQueryParamsFromUrl]);
+  }, [dialogOnly, openUpgradeModal, isReady, removeQueryParamsFromUrl]);
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      dialogOnly?.onClose();
+    }
+  }
 
   const selectedPlan = form.watch('plan');
 
@@ -90,7 +107,9 @@ export default function SubscriptionPlan() {
     const { id: organizationID, plan } = org;
 
     if (plan.isFree) {
-      const path = asPath.split('?')[0];
+      const path = dialogOnly
+        ? `/orgs/${encodeURIComponent(dialogOnly.orgSlug)}/billing`
+        : asPath.split('?')[0];
       const redirectURL =
         typeof window !== 'undefined' ? `${window.location.origin}${path}` : '';
 
@@ -121,7 +140,7 @@ export default function SubscriptionPlan() {
 
           await refetchOrg();
           form.reset({ plan: planID });
-          setOpen(false);
+          changeOpen(false);
         },
         {
           loadingMessage: 'Upgrading organization plan',
@@ -178,91 +197,96 @@ export default function SubscriptionPlan() {
 
   return (
     <>
-      <div>
-        <div className="flex w-full flex-col rounded-md border bg-background">
-          <div className="flex w-full flex-col gap-1 border-b p-4">
-            <h4 className="font-medium">Subscription plan</h4>
-          </div>
-          <div className="flex w-full flex-col justify-between gap-8 p-4 md:flex-row">
-            <div className="flex basis-1/2 flex-col gap-4">
-              <span className="font-medium">Organization name</span>
-              <span className="font-medium">{org?.name}</span>
+      {!dialogOnly && (
+        <div>
+          <div className="flex w-full flex-col rounded-md border bg-background">
+            <div className="flex w-full flex-col gap-1 border-b p-4">
+              <h4 className="font-medium">Subscription plan</h4>
             </div>
-            <div className="flex flex-1 flex-col gap-8 md:flex-row">
-              <div className="flex flex-1 flex-col gap-2">
-                <span className="font-medium">Current plan</span>
-                {isCancelled ? (
-                  <Alert variant="destructive" className="text-left">
-                    <AlertTitle>This subscription is cancelled</AlertTitle>
-                    <AlertDescription>
-                      Several payments failed, so the subscription was
-                      cancelled. To restore access to this organization,{' '}
-                      <TextLink href={SUPPORT_TICKET_URL} external>
-                        open a support ticket
-                        <span className="sr-only">(opens in a new tab)</span>
-                      </TextLink>
-                      .
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <span className="font-bold text-primary text-xl">
-                    {org?.plan?.name}
-                  </span>
+            <div className="flex w-full flex-col justify-between gap-8 p-4 md:flex-row">
+              <div className="flex basis-1/2 flex-col gap-4">
+                <span className="font-medium">Organization name</span>
+                <span className="font-medium">{org?.name}</span>
+              </div>
+              <div className="flex flex-1 flex-col gap-8 md:flex-row">
+                <div className="flex flex-1 flex-col gap-2">
+                  <span className="font-medium">Current plan</span>
+                  {isCancelled ? (
+                    <Alert variant="destructive" className="text-left">
+                      <AlertTitle>This subscription is cancelled</AlertTitle>
+                      <AlertDescription>
+                        Several payments failed, so the subscription was
+                        cancelled. To restore access to this organization,{' '}
+                        <TextLink href={SUPPORT_TICKET_URL} external>
+                          open a support ticket
+                          <span className="sr-only">(opens in a new tab)</span>
+                        </TextLink>
+                        .
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <span className="font-bold text-primary text-xl">
+                      {org?.plan?.name}
+                    </span>
+                  )}
+                </div>
+
+                {!isCancelled && (
+                  <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-xl">
+                        ${org?.plan?.price}
+                      </span>
+                      <Slash
+                        className="h-5 w-5 text-muted-foreground/40"
+                        strokeWidth={2.5}
+                      />
+                      <span className="font-semibold text-xl">month</span>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {!isCancelled && (
-                <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-xl">
-                      ${org?.plan?.price}
-                    </span>
-                    <Slash
-                      className="h-5 w-5 text-muted-foreground/40"
-                      strokeWidth={2.5}
-                    />
-                    <span className="font-semibold text-xl">month</span>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-          <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
-            <div>
-              <span>For a complete list of features, visit our </span>
-              <TextLink href="https://nhost.io/pricing" external>
-                pricing
-              </TextLink>
-              <span> You can also visit our </span>
-              <TextLink
-                href="https://docs.nhost.io/platform/cloud/billing"
-                external
-              >
-                documentation
-              </TextLink>
-              <span> for billing information</span>
-            </div>
-            <div className="flex w-full flex-row items-center justify-end gap-2">
-              <ButtonWithLoading
-                className="truncate"
-                variant="outline"
-                onClick={openCustomerPortal}
-                disabled={isFreeOrg}
-                loading={loading}
-              >
-                <span className="truncate">Stripe Customer Portal</span>
-              </ButtonWithLoading>
-              {!isCancelled && (
-                <Button disabled={loading} onClick={() => setOpen(true)}>
-                  Upgrade
-                </Button>
-              )}
+            <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
+              <div>
+                <span>For a complete list of features, visit our </span>
+                <TextLink href="https://nhost.io/pricing" external>
+                  pricing
+                </TextLink>
+                <span> You can also visit our </span>
+                <TextLink
+                  href="https://docs.nhost.io/platform/cloud/billing"
+                  external
+                >
+                  documentation
+                </TextLink>
+                <span> for billing information</span>
+              </div>
+              <div className="flex w-full flex-row items-center justify-end gap-2">
+                <ButtonWithLoading
+                  className="truncate"
+                  variant="outline"
+                  onClick={openCustomerPortal}
+                  disabled={isFreeOrg}
+                  loading={loading}
+                >
+                  <span className="truncate">Stripe Customer Portal</span>
+                </ButtonWithLoading>
+                {!isCancelled && (
+                  <Button disabled={loading} onClick={() => setOpen(true)}>
+                    Upgrade
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <Dialog open={open && !isCancelled} onOpenChange={setOpen}>
+      <Dialog
+        open={open && (!!dialogOnly || !isCancelled)}
+        onOpenChange={changeOpen}
+      >
         <DialogContent
           className={cn(
             'text-foreground sm:max-w-xl',
@@ -276,7 +300,14 @@ export default function SubscriptionPlan() {
             <DialogDescription />
           </DialogHeader>
 
-          {!stripeClientSecret && (
+          {dialogOnly && (!org || isCancelled) && (
+            <p className="text-muted-foreground text-sm">
+              {error || isCancelled
+                ? 'Plan upgrades are unavailable for this organization.'
+                : 'Loading organization…'}
+            </p>
+          )}
+          {org && !isCancelled && !stripeClientSecret && (
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -293,7 +324,7 @@ export default function SubscriptionPlan() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                           className="flex flex-col space-y-1"
                         >
                           {planOptions}
@@ -326,7 +357,7 @@ export default function SubscriptionPlan() {
                     variant="outline"
                     type="button"
                     disabled={form.formState.isSubmitting}
-                    onClick={() => setOpen(false)}
+                    onClick={() => changeOpen(false)}
                   >
                     Cancel
                   </Button>
@@ -347,7 +378,7 @@ export default function SubscriptionPlan() {
           )}
         </DialogContent>
       </Dialog>
-      <FinishUpgradeOrganizationProcess />
+      {!dialogOnly && <FinishUpgradeOrganizationProcess />}
     </>
   );
 }
