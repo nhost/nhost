@@ -41,7 +41,7 @@ describe('createApolloClient', () => {
     server.close();
   });
 
-  test('does not retry mutations that fail with a network error', async () => {
+  it('does not retry mutations that fail with a network error', async () => {
     const { client } = createApolloClient({ graphqlUrl: GRAPHQL_URL });
 
     await expect(client.mutate({ mutation: TEST_MUTATION })).rejects.toThrow();
@@ -49,7 +49,7 @@ describe('createApolloClient', () => {
     expect(requestCount).toBe(1);
   });
 
-  test('retries queries that fail with a network error', async () => {
+  it('retries queries that fail with a network error', async () => {
     const { client } = createApolloClient({ graphqlUrl: GRAPHQL_URL });
 
     await expect(

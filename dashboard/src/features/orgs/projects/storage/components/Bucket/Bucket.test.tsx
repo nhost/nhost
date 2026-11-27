@@ -1,5 +1,5 @@
 import { setupServer } from 'msw/node';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,

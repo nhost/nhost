@@ -1,40 +1,40 @@
 import { areStrArraysEqualOrdered, isEmptyValue, isJSONString } from './utils';
 
-test('returns true when the value is undefined or "undefined"', () => {
+it('returns true when the value is undefined or "undefined"', () => {
   expect(isEmptyValue(undefined)).toBe(true);
   expect(isEmptyValue('undefined')).toBe(true);
 });
 
-test('returns true when the value is null or "null"', () => {
+it('returns true when the value is null or "null"', () => {
   expect(isEmptyValue(null)).toBe(true);
   expect(isEmptyValue('null')).toBe(true);
 });
 
-test('returns true when the value is an empty string', () => {
+it('returns true when the value is an empty string', () => {
   expect(isEmptyValue('')).toBe(true);
 });
 
-test('returns true when the value is "NaN" or not a number', () => {
+it('returns true when the value is "NaN" or not a number', () => {
   expect(isEmptyValue('NaN')).toBe(true);
   expect(isEmptyValue(NaN)).toBe(true);
 });
 
-test('returns true when the value is an empty object or array', () => {
+it('returns true when the value is an empty object or array', () => {
   expect(isEmptyValue({})).toBe(true);
   expect(isEmptyValue([])).toBe(true);
 });
 
-test('returns false when the value is has at least one property or the array has at least on item in it', () => {
+it('returns false when the value is has at least one property or the array has at least on item in it', () => {
   expect(isEmptyValue({ foo: 'Bar' })).toBe(false);
   expect(isEmptyValue(['foo', 'bar'])).toBe(false);
 });
 
-test('returns false when the value is an Error', () => {
+it('returns false when the value is an Error', () => {
   expect(isEmptyValue(new Error('something went wrong'))).toBe(false);
   expect(isEmptyValue(new TypeError('fetch failed'))).toBe(false);
 });
 
-test('returns false when the value is either a number or string', () => {
+it('returns false when the value is either a number or string', () => {
   expect(isEmptyValue(1234)).toBe(false);
   expect(isEmptyValue('Hello there')).toBe(false);
 });
@@ -57,10 +57,10 @@ it('compares string arrays in order', () => {
   ).toBe(false);
 });
 
-test('returns true when the value is a valid JSON string', () => {
+it('returns true when the value is a valid JSON string', () => {
   expect(isJSONString('{"foo": "bar"}')).toBe(true);
 });
 
-test('returns false when the value is not a valid JSON string', () => {
+it('returns false when the value is not a valid JSON string', () => {
   expect(isJSONString('{"foo": "bar"')).toBe(false);
 });

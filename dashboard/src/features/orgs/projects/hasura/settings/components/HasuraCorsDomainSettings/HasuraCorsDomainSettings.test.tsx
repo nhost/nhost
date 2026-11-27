@@ -1,6 +1,6 @@
 import { graphql, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { beforeAll, expect, test, vi } from 'vitest';
+import { vi } from 'vitest';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, waitFor } from '@/tests/testUtils';
 import HasuraCorsDomainSettings from './HasuraCorsDomainSettings';
@@ -51,7 +51,7 @@ describe('HasuraCorsDomainSettings', () => {
     server.close();
   });
 
-  test('should not enable switch by default when CORS domain is set to *', async () => {
+  it('should not enable switch by default when CORS domain is set to *', async () => {
     render(<HasuraCorsDomainSettings />);
 
     expect(await screen.findByText(/configure cors/i)).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('HasuraCorsDomainSettings', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
-  test('should enable switch by default when CORS domain is set to one or more domains', async () => {
+  it('should enable switch by default when CORS domain is set to one or more domains', async () => {
     server.use(
       graphql.query('GetHasuraSettings', () =>
         HttpResponse.json({

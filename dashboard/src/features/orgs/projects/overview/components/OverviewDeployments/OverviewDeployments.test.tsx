@@ -1,6 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, beforeAll, vi } from 'vitest';
+import { vi } from 'vitest';
 import { mockApplication, mockOrganization } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
@@ -63,7 +63,7 @@ afterAll(() => {
   vi.restoreAllMocks();
 });
 
-test('should render an empty state when GitHub is not connected', async () => {
+it('should render an empty state when GitHub is not connected', async () => {
   server.use(
     http.post(
       'https://local.graphql.local.nhost.run/v1',
@@ -100,7 +100,7 @@ test('should render an empty state when GitHub is not connected', async () => {
     await screen.findByRole('button', { name: /connect to github/i }),
   ).toBeInTheDocument();
 });
-test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
+it('should render an empty state when GitHub is connected, but there are no deployments', async () => {
   server.use(
     http.post(
       'https://local.graphql.local.nhost.run/v1',
@@ -144,7 +144,7 @@ test('should render an empty state when GitHub is connected, but there are no de
   );
 });
 
-test('should render a list of deployments', async () => {
+it('should render a list of deployments', async () => {
   server.use(
     tokenQuery,
     http.post(
@@ -211,7 +211,7 @@ test('should render a list of deployments', async () => {
   ).not.toBeDisabled();
 });
 
-test('should disable redeployments if a deployment is already in progress', async () => {
+it('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
     tokenQuery,
     http.post(

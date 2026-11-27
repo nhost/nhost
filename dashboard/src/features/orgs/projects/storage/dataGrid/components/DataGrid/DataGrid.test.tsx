@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { expect, it } from 'vitest';
 import { render, screen } from '@/tests/testUtils';
 import DataGrid from './DataGrid';
 import type { UnknownDataGridRow } from './types';

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import type { CreateCronTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import buildCronTriggerDTO from './buildCronTriggerDTO';

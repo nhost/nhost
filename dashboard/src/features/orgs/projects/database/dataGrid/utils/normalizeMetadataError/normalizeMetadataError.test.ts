@@ -7,17 +7,17 @@ const baseMetadataError = {
   error: 'some-error',
 };
 
-test(`should not extract any error messages if response is an empty object`, () => {
+it(`should not extract any error messages if response is an empty object`, () => {
   expect(normalizeMetadataError({})).toBe('Unknown error occurred.');
 });
 
-test('should not extract any error messages if response is not a query error', () => {
+it('should not extract any error messages if response is not a query error', () => {
   expect(normalizeMetadataError({ errorCode: 2, status: 500 })).toBe(
     'Unknown error occurred.',
   );
 });
 
-test('should return the first internal error message if response is a metadata error', () => {
+it('should return the first internal error message if response is a metadata error', () => {
   const metadataError: MetadataError = {
     ...baseMetadataError,
     internal: [
@@ -37,7 +37,7 @@ test('should return the first internal error message if response is a metadata e
   expect(normalizeMetadataError(metadataError)).toBe('some-reason');
 });
 
-test('should not extroct any error messages if the list of internal errors is empty', () => {
+it('should not extroct any error messages if the list of internal errors is empty', () => {
   const metadataError: MetadataError = {
     ...baseMetadataError,
     internal: [],

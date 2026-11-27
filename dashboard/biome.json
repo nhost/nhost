@@ -19,6 +19,19 @@
               "@nhost/nhost-js/session": {
                 "importNames": ["Session"],
                 "message": "`Session` from @nhost/nhost-js/session is deprecated; import `StoredSession` instead."
+              },
+              "vitest": {
+                "importNames": [
+                  "describe",
+                  "it",
+                  "test",
+                  "expect",
+                  "beforeEach",
+                  "afterEach",
+                  "beforeAll",
+                  "afterAll"
+                ],
+                "message": "Vitest globals are enabled; use them without importing."
               }
             },
             "patterns": [
@@ -103,6 +116,16 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["src/**/*.test.*", "src/**/*.spec.*"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useConsistentTestIt": "error"
+          }
+        }
+      }
+    },
     {
       "includes": ["src/tests/testUtils.tsx"],
       "linter": {

@@ -99,7 +99,7 @@ async function openDialogAndSelectArrayRelationship(user: TestUserEvent) {
   return relationshipTypeSelect;
 }
 
-test('keeps the dialog open with the edited values when saving fails', async () => {
+it('keeps the dialog open with the edited values when saving fails', async () => {
   const user = new TestUserEvent();
   const relationshipTypeSelect =
     await openDialogAndSelectArrayRelationship(user);
@@ -117,7 +117,7 @@ test('keeps the dialog open with the edited values when saving fails', async () 
   expect(relationshipTypeSelect).toHaveTextContent('Array Relationship');
 });
 
-test('closes the dialog when saving succeeds', async () => {
+it('closes the dialog when saving succeeds', async () => {
   server.use(
     http.post(metadataUrl, async ({ request }) => {
       const { type } = (await request.clone().json()) as { type: string };

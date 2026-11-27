@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 import buildTestWebhookTransformDTO from './buildTestWebhookTransformDTO';

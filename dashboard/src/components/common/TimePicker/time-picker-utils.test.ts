@@ -37,7 +37,7 @@ vi.mock('@date-fns/tz', () => ({
 
 describe('time-picker-utils', () => {
   describe('validation functions', () => {
-    test('isValidHour validates hour format correctly', () => {
+    it('isValidHour validates hour format correctly', () => {
       // Valid hours
       expect(isValidHour('00')).toBe(true);
       expect(isValidHour('01')).toBe(true);
@@ -51,7 +51,7 @@ describe('time-picker-utils', () => {
       expect(isValidHour('ab')).toBe(false);
     });
 
-    test('isValid12Hour validates 12-hour format correctly', () => {
+    it('isValid12Hour validates 12-hour format correctly', () => {
       // Valid 12-hour values
       expect(isValid12Hour('01')).toBe(true);
       expect(isValid12Hour('09')).toBe(true);
@@ -64,7 +64,7 @@ describe('time-picker-utils', () => {
       expect(isValid12Hour('ab')).toBe(false);
     });
 
-    test('isValidMinuteOrSecond validates minute/second format correctly', () => {
+    it('isValidMinuteOrSecond validates minute/second format correctly', () => {
       // Valid minutes/seconds
       expect(isValidMinuteOrSecond('00')).toBe(true);
       expect(isValidMinuteOrSecond('01')).toBe(true);
@@ -80,7 +80,7 @@ describe('time-picker-utils', () => {
   });
 
   describe('number validation and correction functions', () => {
-    test('getValidNumber handles number validation correctly', () => {
+    it('getValidNumber handles number validation correctly', () => {
       // Basic validation
       expect(getValidNumber('5', { max: 10 })).toBe('05');
       expect(getValidNumber('15', { max: 10 })).toBe('10');
@@ -94,7 +94,7 @@ describe('time-picker-utils', () => {
       expect(getValidNumber('abc', { max: 10 })).toBe('00');
     });
 
-    test('getValidHour returns valid 24-hour format', () => {
+    it('getValidHour returns valid 24-hour format', () => {
       expect(getValidHour('12')).toBe('12');
       expect(getValidHour('23')).toBe('23');
       expect(getValidHour('24')).toBe('23'); // Capped at 23
@@ -102,7 +102,7 @@ describe('time-picker-utils', () => {
       expect(getValidHour('abc')).toBe('00'); // Invalid input
     });
 
-    test('getValid12Hour returns valid 12-hour format', () => {
+    it('getValid12Hour returns valid 12-hour format', () => {
       // expect(getValid12Hour('06')).toBe('06');
       // expect(getValid12Hour('12')).toBe('12');
       expect(getValid12Hour('00')).toBe('01'); // Min is 1
@@ -110,7 +110,7 @@ describe('time-picker-utils', () => {
       expect(getValid12Hour('abc')).toBe('00'); // Invalid input defaults to 00
     });
 
-    test('getValidMinuteOrSecond returns valid minute/second format', () => {
+    it('getValidMinuteOrSecond returns valid minute/second format', () => {
       expect(getValidMinuteOrSecond('30')).toBe('30');
       expect(getValidMinuteOrSecond('59')).toBe('59');
       expect(getValidMinuteOrSecond('60')).toBe('59'); // Capped at 59
@@ -120,7 +120,7 @@ describe('time-picker-utils', () => {
   });
 
   describe('arrow navigation functions', () => {
-    test('getValidArrowNumber handles arrow navigation with looping', () => {
+    it('getValidArrowNumber handles arrow navigation with looping', () => {
       // Incrementing
       expect(getValidArrowNumber('05', { min: 0, max: 10, step: 1 })).toBe(
         '06',
@@ -143,19 +143,19 @@ describe('time-picker-utils', () => {
       );
     });
 
-    test('getValidArrowHour handles hour navigation correctly', () => {
+    it('getValidArrowHour handles hour navigation correctly', () => {
       expect(getValidArrowHour('05', 1)).toBe('06');
       expect(getValidArrowHour('23', 1)).toBe('00'); // Loops to 0
       expect(getValidArrowHour('00', -1)).toBe('23'); // Loops to 23
     });
 
-    test('getValidArrow12Hour handles 12-hour navigation correctly', () => {
+    it('getValidArrow12Hour handles 12-hour navigation correctly', () => {
       expect(getValidArrow12Hour('05', 1)).toBe('06');
       expect(getValidArrow12Hour('12', 1)).toBe('01'); // Loops to 1
       expect(getValidArrow12Hour('01', -1)).toBe('12'); // Loops to 12
     });
 
-    test('getValidArrowMinuteOrSecond handles minute/second navigation correctly', () => {
+    it('getValidArrowMinuteOrSecond handles minute/second navigation correctly', () => {
       expect(getValidArrowMinuteOrSecond('30', 1)).toBe('31');
       expect(getValidArrowMinuteOrSecond('59', 1)).toBe('00'); // Loops to 0
       expect(getValidArrowMinuteOrSecond('00', -1)).toBe('59'); // Loops to 59
@@ -163,7 +163,7 @@ describe('time-picker-utils', () => {
   });
 
   describe('date manipulation functions', () => {
-    test('setMinutes sets minutes correctly on a Date object', () => {
+    it('setMinutes sets minutes correctly on a Date object', () => {
       const date = new Date(2023, 0, 1, 12, 0, 0);
       setMinutes(date, '30');
       expect(date.getMinutes()).toBe(30);
@@ -173,7 +173,7 @@ describe('time-picker-utils', () => {
       expect(date.getMinutes()).toBe(59);
     });
 
-    test('setSeconds sets seconds correctly on a Date object', () => {
+    it('setSeconds sets seconds correctly on a Date object', () => {
       const date = new Date(2023, 0, 1, 12, 30, 0);
       setSeconds(date, '45');
       expect(date.getSeconds()).toBe(45);
@@ -183,7 +183,7 @@ describe('time-picker-utils', () => {
       expect(date.getSeconds()).toBe(59);
     });
 
-    test('setHours sets hours correctly on a Date object', () => {
+    it('setHours sets hours correctly on a Date object', () => {
       const date = new Date(2023, 0, 1, 12, 30, 0);
       setHours(date, '14');
       expect(date.getHours()).toBe(14);
@@ -193,7 +193,7 @@ describe('time-picker-utils', () => {
       expect(date.getHours()).toBe(23);
     });
 
-    test('convert12HourTo24Hour converts 12-hour to 24-hour format correctly', () => {
+    it('convert12HourTo24Hour converts 12-hour to 24-hour format correctly', () => {
       // AM conversions
       expect(convert12HourTo24Hour(1, 'AM')).toBe(1);
       expect(convert12HourTo24Hour(11, 'AM')).toBe(11);
@@ -205,7 +205,7 @@ describe('time-picker-utils', () => {
       expect(convert12HourTo24Hour(12, 'PM')).toBe(12); // 12 PM is 12:00
     });
 
-    test('set12Hours sets 12-hour format correctly on a Date object', () => {
+    it('set12Hours sets 12-hour format correctly on a Date object', () => {
       const date = new Date(2023, 0, 1, 0, 0, 0);
 
       // Morning hours (AM)
@@ -225,7 +225,7 @@ describe('time-picker-utils', () => {
       expect(date.getHours()).toBe(12);
     });
 
-    test('display12HourValue converts 24-hour to 12-hour display format', () => {
+    it('display12HourValue converts 24-hour to 12-hour display format', () => {
       expect(display12HourValue(0)).toBe('12'); // 00:00 -> 12 AM
       expect(display12HourValue(1)).toBe('01'); // 01:00 -> 1 AM
       expect(display12HourValue(11)).toBe('11'); // 11:00 -> 11 AM
@@ -236,7 +236,7 @@ describe('time-picker-utils', () => {
     });
   });
   describe('integrated date manipulation functions', () => {
-    test('getDateByType returns date component according to the picker type', () => {
+    it('getDateByType returns date component according to the picker type', () => {
       const date = new Date(2023, 0, 1, 14, 30, 45);
 
       // Test hours
@@ -262,7 +262,7 @@ describe('time-picker-utils', () => {
       expect(getDateByType(date, 'invalid' as TimePickerType)).toBe('00');
     });
 
-    test('getArrowByType handles arrow navigation based on picker type', () => {
+    it('getArrowByType handles arrow navigation based on picker type', () => {
       // Test hours
       expect(getArrowByType('14', 1, 'hours')).toBe('15');
       expect(getArrowByType('23', 1, 'hours')).toBe('00'); // Loops back to 00
@@ -283,7 +283,7 @@ describe('time-picker-utils', () => {
       expect(getArrowByType('14', 1, 'invalid' as TimePickerType)).toBe('00');
     });
 
-    test('setDateByType updates date according to the picker type', () => {
+    it('setDateByType updates date according to the picker type', () => {
       const date = new Date(2023, 0, 1, 12, 30, 45);
 
       // Test updating hours

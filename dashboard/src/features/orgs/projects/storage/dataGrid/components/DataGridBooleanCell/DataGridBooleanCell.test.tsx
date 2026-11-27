@@ -1,4 +1,4 @@
-import { expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import DataGridCellProvider from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell/DataGridCellProvider';
 import { render, screen } from '@/tests/testUtils';
 import type { DataGridBooleanCellProps } from './DataGridBooleanCell';

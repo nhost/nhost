@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import getDatabaseObjectDefinitionSQL from './getDatabaseObjectDefinitionSQL';
 
 describe('getDatabaseObjectDefinitionSQL', () => {

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getOperationNamesForAction } from './operationNames';
 

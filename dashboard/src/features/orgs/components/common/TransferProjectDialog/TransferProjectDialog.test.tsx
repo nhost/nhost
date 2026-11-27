@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node';
 import { useState } from 'react';
-import { afterAll, beforeAll, vi } from 'vitest';
+import { vi } from 'vitest';
 import {
   mockMatchMediaValue,
   mockOrganization,
@@ -112,7 +112,7 @@ describe('TransferProjectDialog', () => {
     server.close();
   });
 
-  test('opens create org dialog when selecting "create new org" and closes transfer dialog', async () => {
+  it('opens create org dialog when selecting "create new org" and closes transfer dialog', async () => {
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
     const user = new TestUserEvent();
 
@@ -167,7 +167,7 @@ describe('TransferProjectDialog', () => {
     });
   });
 
-  test(`transfer dialog opens automatically when there is a session_id and selects the ${newOrg.name} from the dropdown`, async () => {
+  it(`transfer dialog opens automatically when there is a session_id and selects the ${newOrg.name} from the dropdown`, async () => {
     const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getUseRouterObject('session_id'));
     server.use(getProjectQuery);

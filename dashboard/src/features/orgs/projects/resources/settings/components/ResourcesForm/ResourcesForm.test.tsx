@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { expect, test, vi } from 'vitest';
+import { vi } from 'vitest';
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
@@ -69,14 +69,14 @@ const switchToAdvancedTab = async (user: TestUserEvent) => {
   });
 };
 
-test('shows an empty state when no resources are configured', async () => {
+it('shows an empty state when no resources are configured', async () => {
   server.use(resourcesUnavailableQuery);
   render(<ResourcesForm />);
 
   expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 });
 
-test('enabling the master switch reveals the Overview tab with presets', async () => {
+it('enabling the master switch reveals the Overview tab with presets', async () => {
   server.use(resourcesUnavailableQuery);
   const user = new TestUserEvent();
   render(<ResourcesForm />);
@@ -94,7 +94,7 @@ test('enabling the master switch reveals the Overview tab with presets', async (
   expect(screen.getByRole('button', { name: /^starter/i })).toBeInTheDocument();
 });
 
-test('toggling the master switch on then off leaves Save disabled', async () => {
+it('toggling the master switch on then off leaves Save disabled', async () => {
   server.use(resourcesUnavailableQuery);
   const user = new TestUserEvent();
   render(<ResourcesForm />);
@@ -120,7 +120,7 @@ test('toggling the master switch on then off leaves Save disabled', async () => 
   expect(saveWhenDisabled.disabled).toBe(true);
 });
 
-test('Advanced tab renders per-service steppers with initial values', async () => {
+it('Advanced tab renders per-service steppers with initial values', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 
@@ -131,7 +131,7 @@ test('Advanced tab renders per-service steppers with initial values', async () =
   expect(getHasuraCPUValue()).toHaveTextContent(/2\.00 vCPU/i);
 });
 
-test('incrementing CPU auto-derives memory in default mode', async () => {
+it('incrementing CPU auto-derives memory in default mode', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 
@@ -152,7 +152,7 @@ test('incrementing CPU auto-derives memory in default mode', async () => {
   });
 });
 
-test('picking a preset fills service values', async () => {
+it('picking a preset fills service values', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 
@@ -171,7 +171,7 @@ test('picking a preset fills service values', async () => {
   expect(getStorageCPUValue()).toHaveTextContent(/0\.25 vCPU/i);
 });
 
-test('opens the confirmation dialog when saving valid changes', async () => {
+it('opens the confirmation dialog when saving valid changes', async () => {
   const user = new TestUserEvent();
   server.use(updateConfigMutation);
   render(<ResourcesForm />);
@@ -219,7 +219,7 @@ test('opens the confirmation dialog when saving valid changes', async () => {
   ).toBeInTheDocument();
 });
 
-test('replicas are reflected in the dialog rows and recalculated cost', async () => {
+it('replicas are reflected in the dialog rows and recalculated cost', async () => {
   const user = new TestUserEvent();
   server.use(updateConfigMutation);
   render(<ResourcesForm />);
@@ -253,7 +253,7 @@ test('replicas are reflected in the dialog rows and recalculated cost', async ()
   );
 });
 
-test('disabling resources surfaces the destructive confirm dialog', async () => {
+it('disabling resources surfaces the destructive confirm dialog', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 
@@ -290,7 +290,7 @@ function pickPresetButton(label: string) {
   return btn;
 }
 
-test('Performance + HA enables Save and is detected as the active preset', async () => {
+it('Performance + HA enables Save and is detected as the active preset', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
   await screen.findByRole('tab', { name: /advanced/i });
@@ -355,7 +355,7 @@ const resourcesMatchingPerformancePreset = nhostGraphQLLink.query(
     }),
 );
 
-test('re-selecting the originally loaded preset disables Save again', async () => {
+it('re-selecting the originally loaded preset disables Save again', async () => {
   server.use(resourcesMatchingPerformancePreset);
 
   const user = new TestUserEvent();
@@ -374,7 +374,7 @@ test('re-selecting the originally loaded preset disables Save again', async () =
   expect(saveBtn.disabled).toBe(true);
 });
 
-test('reverting an Advanced edit via the originally loaded preset disables Save', async () => {
+it('reverting an Advanced edit via the originally loaded preset disables Save', async () => {
   server.use(resourcesMatchingPerformancePreset);
 
   const user = new TestUserEvent();
@@ -398,7 +398,7 @@ test('reverting an Advanced edit via the originally loaded preset disables Save'
   expect(saveBtn.disabled).toBe(true);
 });
 
-test('unlocking a service in Advanced lets memory drift and surfaces the ratio banner', async () => {
+it('unlocking a service in Advanced lets memory drift and surfaces the ratio banner', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 
@@ -421,7 +421,7 @@ test('unlocking a service in Advanced lets memory drift and surfaces the ratio b
   });
 });
 
-test('ratio mismatch disables Save with a reason, then re-enables once fixed', async () => {
+it('ratio mismatch disables Save with a reason, then re-enables once fixed', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
 

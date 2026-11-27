@@ -117,7 +117,7 @@ afterAll(() => {
   vi.unstubAllEnvs();
 });
 
-test('tracks a table with column comments using the version after table creation', async () => {
+it('tracks a table with column comments using the version after table creation', async () => {
   const user = new TestUserEvent();
   render(<CreateTableForm schema="public" redirectOnSuccess={false} />);
 

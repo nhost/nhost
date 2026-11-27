@@ -1,4 +1,3 @@
-import { test } from 'vitest';
 import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
 import type {
   CustomRootFields,
@@ -59,7 +58,7 @@ const defaultFormValues: CustomGraphQLRootFieldsFormValues = {
 };
 
 describe('prepareCustomGraphQLRootFieldsDTO', () => {
-  test('should prepare a new config with valid custom root fields', () => {
+  it('should prepare a new config with valid custom root fields', () => {
     const formValues: CustomGraphQLRootFieldsFormValues = {
       ...defaultFormValues,
       queryAndSubscription: {
@@ -98,7 +97,7 @@ describe('prepareCustomGraphQLRootFieldsDTO', () => {
     expect(dto.custom_root_fields).toEqual(expectedRootFields);
   });
 
-  test('should prepare a new config from a previous config', () => {
+  it('should prepare a new config from a previous config', () => {
     const formValues: CustomGraphQLRootFieldsFormValues = {
       ...defaultFormValues,
       queryAndSubscription: {

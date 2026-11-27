@@ -1,14 +1,13 @@
-import { describe, expect, test } from 'vitest';
 import buildFunctionSignature from './buildFunctionSignature';
 
 describe('buildFunctionSignature', () => {
-  test('should return schema-qualified name with no parameters', () => {
+  it('should return schema-qualified name with no parameters', () => {
     expect(buildFunctionSignature('public', 'my_func', [])).toBe(
       'public.my_func',
     );
   });
 
-  test('should include a single parameter type', () => {
+  it('should include a single parameter type', () => {
     expect(
       buildFunctionSignature('public', 'my_func', [
         { name: 'id', type: 'int4', displayType: 'integer', schema: null },
@@ -16,7 +15,7 @@ describe('buildFunctionSignature', () => {
     ).toBe('public.my_func(int4)');
   });
 
-  test('should include multiple parameter types', () => {
+  it('should include multiple parameter types', () => {
     expect(
       buildFunctionSignature('public', 'my_func', [
         { name: 'id', type: 'int4', displayType: 'integer', schema: null },
@@ -30,7 +29,7 @@ describe('buildFunctionSignature', () => {
     ).toBe('public.my_func(int4, text)');
   });
 
-  test('should schema-qualify parameter types when schema is present', () => {
+  it('should schema-qualify parameter types when schema is present', () => {
     expect(
       buildFunctionSignature('public', 'my_func', [
         {
@@ -43,7 +42,7 @@ describe('buildFunctionSignature', () => {
     ).toBe('public.my_func(custom.my_type)');
   });
 
-  test('should handle mixed schema-qualified and unqualified parameters', () => {
+  it('should handle mixed schema-qualified and unqualified parameters', () => {
     expect(
       buildFunctionSignature('analytics', 'process', [
         { name: 'id', type: 'int4', displayType: 'integer', schema: null },
@@ -58,7 +57,7 @@ describe('buildFunctionSignature', () => {
     ).toBe('analytics.process(int4, types.json_input, bool)');
   });
 
-  test('should escape double quotes in identifiers', () => {
+  it('should escape double quotes in identifiers', () => {
     expect(
       buildFunctionSignature('my"schema', 'my"func', [
         {

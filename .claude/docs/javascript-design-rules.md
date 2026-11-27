@@ -63,7 +63,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 - Take `ref` as a regular prop, not `forwardRef`; type Radix wrapper props as `React.ComponentProps<typeof Primitive.Root>`.
 - Avoid `React.FC`; prefer explicit prop types.
 - Arrow functions are allowed for components.
-- Use Shadcn / `ui/v3` components; MUI and `ui/v2` have been removed.
+- Use Shadcn / `ui/v3` components.
 
 ### Naming
 
@@ -120,7 +120,8 @@ When adding a new feature page, check whether it needs to be registered in each 
 
 ### Testing
 
-- **Runner:** Vitest. Globals (`describe`, `it`, `expect`, `beforeEach`, etc.) are provided — do not import them.
+- **Runner:** Vitest. Globals (`describe`, `it`, `expect`, `beforeEach`, etc.) are provided — do not import them. Biome's `noRestrictedImports` rejects these imports; importing `vi` and Vitest types is fine.
+- **Test functions:** use `it`, not `test`, both at the top level and inside `describe`. Biome's `useConsistentTestIt` enforces this in `src/**/*.test.*` and `src/**/*.spec.*`; Playwright tests in `e2e/` keep `test` from `@playwright/test`.
 - **Component testing:** React Testing Library. Use `render()` and `screen` from `@/tests/testUtils`.
 - **Interactions:** use `TestUserEvent` from `@/tests/testUtils` (user-event). Use `fireEvent` only when user events can't express the test.
 - **API mocking:** MSW (Mock Service Worker). Mock responses, not components. Mocking hooks like `useRouter` is acceptable.

@@ -29,7 +29,7 @@ function TestComponent({
   );
 }
 describe('TimePicker', () => {
-  test('Updates only the hour of the date object', async () => {
+  it('Updates only the hour of the date object', async () => {
     render(<TestComponent dateTime="2025-03-10T03:00:05" />);
     expect(await screen.getByText(/Time:/i)).toHaveTextContent(
       'Time: 03:00:05',
@@ -42,7 +42,7 @@ describe('TimePicker', () => {
     );
   });
 
-  test('only valid hours(0-23), minutes(0-59) and seconds(0-59) are allowed', async () => {
+  it('only valid hours(0-23), minutes(0-59) and seconds(0-59) are allowed', async () => {
     render(<TestComponent dateTime="2025-03-10T03:00:05" />);
     const user = new TestUserEvent();
     const hoursInput = await screen.getByLabelText('Hours');
@@ -57,7 +57,7 @@ describe('TimePicker', () => {
     );
   });
 
-  test('Updates only the minutes of the date object', async () => {
+  it('Updates only the minutes of the date object', async () => {
     render(<TestComponent dateTime="2025-03-10T03:00:05" />);
     const user = new TestUserEvent();
     const minutesInput = await screen.getByLabelText('Minutes');
@@ -67,7 +67,7 @@ describe('TimePicker', () => {
     );
   });
 
-  test('Updates only the seconds of the date object', async () => {
+  it('Updates only the seconds of the date object', async () => {
     render(<TestComponent dateTime="2025-03-10T03:00:05" />);
     const user = new TestUserEvent();
     const secondsInput = await screen.getByLabelText('Seconds');
@@ -77,7 +77,7 @@ describe('TimePicker', () => {
     );
   });
 
-  test("will preserve the date's class after changing the date", async () => {
+  it("will preserve the date's class after changing the date", async () => {
     render(<TestComponent dateTime="2025-03-10T03:00:05" withTimezone />);
     expect(await screen.getByText(/Date class:/i)).toHaveTextContent(
       'Date class: TZDate',

@@ -10,7 +10,7 @@ import {
 } from '@/tests/testUtils';
 import '@testing-library/jest-dom';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
+import { vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
 mockScrollIntoViewAndPointerCapture();
@@ -79,7 +79,7 @@ describe('ColumnAutocomplete', () => {
     vi.restoreAllMocks();
   });
 
-  test('show nested relationships', async () => {
+  it('show nested relationships', async () => {
     const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
     await waitFor(() => {

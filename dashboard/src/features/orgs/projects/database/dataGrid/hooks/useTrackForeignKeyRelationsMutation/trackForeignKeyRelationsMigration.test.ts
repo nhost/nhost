@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import trackForeignKeyRelationsMigration from './trackForeignKeyRelationsMigration';
 

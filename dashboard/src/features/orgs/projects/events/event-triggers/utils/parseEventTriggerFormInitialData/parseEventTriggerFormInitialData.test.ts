@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { BaseEventTriggerFormInitialData } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import parseEventTriggerFormInitialData from './parseEventTriggerFormInitialData';

@@ -1,5 +1,5 @@
 import { InMemoryCache } from '@apollo/client';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { useGetProjectLogsQuery } from '@/generated/graphql';

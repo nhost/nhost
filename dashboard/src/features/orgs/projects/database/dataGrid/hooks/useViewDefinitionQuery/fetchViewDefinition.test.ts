@@ -1,6 +1,5 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import fetchViewDefinition from './fetchViewDefinition';
 
 const defaultOptions = {
@@ -36,7 +35,7 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('fetchViewDefinition', () => {
-  test('should return view definition and type VIEW', async () => {
+  it('should return view definition and type VIEW', async () => {
     const result = await fetchViewDefinition(defaultOptions);
 
     expect(result).toEqual({
@@ -46,7 +45,7 @@ describe('fetchViewDefinition', () => {
     });
   });
 
-  test('should return type MATERIALIZED VIEW', async () => {
+  it('should return type MATERIALIZED VIEW', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json([
@@ -70,7 +69,7 @@ describe('fetchViewDefinition', () => {
     });
   });
 
-  test('should return error when no results found', async () => {
+  it('should return error when no results found', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json([
@@ -91,7 +90,7 @@ describe('fetchViewDefinition', () => {
     });
   });
 
-  test('should return internal error message', async () => {
+  it('should return internal error message', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json(
@@ -115,7 +114,7 @@ describe('fetchViewDefinition', () => {
     });
   });
 
-  test('should return error field message when no internal field', async () => {
+  it('should return error field message when no internal field', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
         HttpResponse.json({ error: 'permission denied' }, { status: 400 }),
@@ -131,7 +130,7 @@ describe('fetchViewDefinition', () => {
     });
   });
 
-  test('should send the correct request parameters', async () => {
+  it('should send the correct request parameters', async () => {
     await fetchViewDefinition({
       ...defaultOptions,
       dataSource: 'my_source',

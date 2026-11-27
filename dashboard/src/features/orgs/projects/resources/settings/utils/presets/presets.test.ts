@@ -25,20 +25,20 @@ function buildValuesFromPreset(preset: (typeof PRESETS)[number]) {
   };
 }
 
-test('detects each preset when values exactly match', () => {
+it('detects each preset when values exactly match', () => {
   for (const preset of PRESETS) {
     expect(detectPreset(buildValuesFromPreset(preset))).toBe(preset.id);
   }
 });
 
-test('returns "custom" when one service is off-preset', () => {
+it('returns "custom" when one service is off-preset', () => {
   const standard = PRESETS.find((p) => p.id === 'standard')!;
   const values = buildValuesFromPreset(standard);
   values.auth.memory += 128;
   expect(detectPreset(values)).toBe('custom');
 });
 
-test('returns "custom" when replicas or autoscale drift from the preset', () => {
+it('returns "custom" when replicas or autoscale drift from the preset', () => {
   const standard = PRESETS.find((p) => p.id === 'standard')!;
   const replicaDrift = buildValuesFromPreset(standard);
   replicaDrift.hasura.replicas = 2;
@@ -49,7 +49,7 @@ test('returns "custom" when replicas or autoscale drift from the preset', () => 
   expect(detectPreset(autoscaleDrift)).toBe('custom');
 });
 
-test('matches the performance-reliability preset with replicas and autoscaler', () => {
+it('matches the performance-reliability preset with replicas and autoscaler', () => {
   const preset = PRESETS.find((p) => p.id === 'performance-reliability')!;
   expect(preset.hasura.replicas).toBe(2);
   expect(preset.hasura.autoscale).toBe(true);
@@ -59,12 +59,12 @@ test('matches the performance-reliability preset with replicas and autoscaler', 
   );
 });
 
-test('getPreset returns the definition for non-custom ids', () => {
+it('getPreset returns the definition for non-custom ids', () => {
   expect(getPreset('starter')?.id).toBe('starter');
   expect(getPreset('custom')).toBeNull();
 });
 
-test('every preset has matching topology across hasura, auth, and storage', () => {
+it('every preset has matching topology across hasura, auth, and storage', () => {
   // getPresetTopologyLine reads only preset.hasura — guard against future
   // presets where the generic services disagree.
   for (const preset of PRESETS) {

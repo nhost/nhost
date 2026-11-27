@@ -103,7 +103,7 @@ describe('ImportBackupContent', () => {
     vi.restoreAllMocks();
   });
 
-  test("will display the target project's name and a select with the projects from the same region", async () => {
+  it("will display the target project's name and a select with the projects from the same region", async () => {
     const user = new TestUserEvent();
     server.use(getOrganization);
     server.use(getProjectsQuery);
@@ -133,7 +133,7 @@ describe('ImportBackupContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('warning is displayed if there is no other project in the same organization', async () => {
+  it('warning is displayed if there is no other project in the same organization', async () => {
     server.use(getOrganization);
     server.use(getEmptyProjectsQuery);
 
@@ -146,7 +146,7 @@ describe('ImportBackupContent', () => {
     );
   });
 
-  test('will schedule an import from the selected project', async () => {
+  it('will schedule an import from the selected project', async () => {
     const user = new TestUserEvent();
     mocks.restoreApplicationDatabase.mockImplementation((_, onCompleted) => {
       onCompleted?.();
@@ -264,7 +264,7 @@ describe('ImportBackupContent', () => {
     expect(screen.getByText(/to see the import logs/)).toBeInTheDocument();
   });
 
-  test('imports a logical backup from a project without PiTR', async () => {
+  it('imports a logical backup from a project without PiTR', async () => {
     const user = new TestUserEvent();
     const openWindow = vi.spyOn(window, 'open').mockImplementation(() => null);
     server.use(getOrganization);
@@ -331,7 +331,7 @@ describe('ImportBackupContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test.each([
+  it.each([
     ['an empty backup list', { app: { id: 'pitr-usa-id', backups: [] } }],
     ['a null source app', { app: null }],
     ['an undefined source app', {}],

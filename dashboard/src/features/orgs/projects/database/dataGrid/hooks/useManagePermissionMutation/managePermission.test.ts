@@ -19,7 +19,7 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-test('should throw an error if permission object is incorrectly provided', async () => {
+it('should throw an error if permission object is incorrectly provided', async () => {
   await expect(
     managePermission({
       ...defaultParameters,

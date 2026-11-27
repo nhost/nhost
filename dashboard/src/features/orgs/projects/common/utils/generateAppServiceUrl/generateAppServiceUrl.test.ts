@@ -1,4 +1,4 @@
-import { test, vi } from 'vitest';
+import { vi } from 'vitest';
 import type { ProjectFragment } from '@/generated/graphql';
 import generateAppServiceUrl, {
   defaultRemoteBackendSlugs,
@@ -39,7 +39,7 @@ const region: ProjectFragment['region'] = {
 
 const stagingRegion = { ...region, domain: 'staging.nhost.run' };
 
-test('should generate a per service subdomain in remote mode', () => {
+it('should generate a per service subdomain in remote mode', () => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
   process.env.NEXT_PUBLIC_ENV = 'production';
 
@@ -72,7 +72,7 @@ test('should generate a per service subdomain in remote mode', () => {
   );
 });
 
-test('should generate staging subdomains in staging environment', () => {
+it('should generate staging subdomains in staging environment', () => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
   process.env.NEXT_PUBLIC_ENV = 'staging';
 
@@ -105,7 +105,7 @@ test('should generate staging subdomains in staging environment', () => {
   );
 });
 
-test('should generate no slug for Hasura and Grafana neither in local mode nor in remote mode', () => {
+it('should generate no slug for Hasura and Grafana neither in local mode nor in remote mode', () => {
   process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL = 'http://localhost:8082';
   process.env.NEXT_PUBLIC_ENV = 'staging';
 
@@ -132,7 +132,7 @@ test('should generate no slug for Hasura and Grafana neither in local mode nor i
   );
 });
 
-test('should be able to override the default remote backend slugs', () => {
+it('should be able to override the default remote backend slugs', () => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
   process.env.NEXT_PUBLIC_ENV = 'production';
 
@@ -144,7 +144,7 @@ test('should be able to override the default remote backend slugs', () => {
   ).toBe('https://test.hasura.eu-west-1.nhost.run/lorem-ipsum');
 });
 
-test('should construct service URLs based on environment variables', () => {
+it('should construct service URLs based on environment variables', () => {
   process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL = 'https://localdev0.nhost.run';
 
   expect(generateAppServiceUrl('test', region, 'hasura')).toBe(

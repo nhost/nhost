@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
 
 import getEventTriggersByTable from './getEventTriggersByTable';

@@ -58,7 +58,7 @@ const server = setupServer(
 beforeAll(() => server.listen());
 afterAll(() => server.close());
 
-test('shows the metadata conflict toast and keeps the dialog open', async () => {
+it('shows the metadata conflict toast and keeps the dialog open', async () => {
   const user = new TestUserEvent();
   render(
     <CreateRelationshipDialog
