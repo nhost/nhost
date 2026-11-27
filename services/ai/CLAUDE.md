@@ -6,7 +6,7 @@ This file provides project-specific guidance for the Nhost AI service.
 
 The service is written in Go and provides two features:
 
-- **Auto-embeddings** — generates OpenAI embeddings for database rows, keeps vector columns synchronized, and deploys permission-aware search functions.
+- **Auto-embeddings** — generates provider-agnostic embeddings for database rows, keeps vector columns synchronized, and deploys permission-aware search functions.
 - **Multi-provider agents** — streams agent responses through explicitly configured OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapter instances and supports GraphQL, MCP, web search, and web fetch tools.
 
 ## Build and development commands
@@ -34,6 +34,8 @@ go test -run TestName ./...
 
 Tests that need PostgreSQL require the development environment. The full CI check runs linting, tests, and code-generation verification.
 
+Live tests share the compose stack with the running AI service. Use `internal/livetest` (`Connect`, `Lock`, `SuppressedExec`): serialize with its advisory lock, use unique names, suppress triggers on fixture inserts, and clean up with a bounded `context.WithoutCancel(t.Context())`. Never reset the `local` database or apply metadata from a test. `AI_LIVE_TEST_REQUIRED=1` (set in `project.nix` for CI) makes a missing stack fatal instead of skipped.
+
 ## Architecture
 
 ### Code generation
@@ -49,10 +51,9 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 - `agents/provider/` — strict aggregate configuration plus OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters. Each instance owns one trusted startup endpoint and header set and never supplies auto-embedding configuration.
 - `agents/tool/` — GraphQL, MCP, web search, and web fetch tools.
 - `internal/providerconfig/` — shared strict declaration parsing, endpoint/header validation, credential redaction, and no-redirect HTTP clients. Callers supply their configuration-error sentinel and adapter configuration lookup; adapter-specific URL rules remain with the adapters.
-- `autoai/` — auto-embeddings configuration and database functionality.
+- `autoai/` — auto-embeddings configuration validation, function deployment and cleanup. `Catalog` reads PostgreSQL metadata with parameterized queries.
 - `autoai/embeddings/` — background embedding synchronization.
 - `autoai/embedder/` — provider-agnostic embedding registry, plain-HTTP OpenAI-compatible/Voyage/Gemini adapters, batching, response validation and retry. Errors carry fixed messages only and an error class (configuration, input, transient, canceled).
-- `openai/` — narrow OpenAI embedding client built on `github.com/openai/openai-go`.
 - `hasura/` — generated GraphQL client plus metadata helpers.
 - `migrations/` — PostgreSQL migrations and Hasura table, relationship, and event-trigger setup.
 
@@ -60,8 +61,17 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 1. Gin serves health/version routes, agent SSE routes, and auto-embeddings webhooks.
 2. Hasura event triggers notify the service when auto-embeddings configuration changes.
-3. The background synchronization process fetches pending rows through Hasura, generates vectors through the OpenAI SDK, and writes results through the configured mutation.
+3. The background synchronization process fetches pending rows through Hasura, generates vectors through the configured embedding registry, and writes results through the configured mutation.
 4. Agent routes load agent/session/message data through Hasura and stream provider events to clients.
+
+### Auto-embeddings
+
+- `EMBEDDING_PROVIDERS` is the only source of embedding providers; only the deprecated `OPENAI_API_KEY` can add an implicit `openai`.
+- Validate before replacing anything. Deploy both functions and their `nhost-ai:auto_embeddings:<id>` ownership comments in one `run_sql`; remove rename leftovers by that tag.
+- `last_error` values starting with `deploy: ` come from a failed deploy or from the worker's validation before a run. Only a successful deploy (a configuration edit or a restart) clears them; the worker's run summaries never replace them. The worker treats catalog read failures as non-verdicts and records nothing; the deploy path records them and answers 500 so Hasura retries.
+- Search functions send only `{configuration_id, query}` and the webhook reads the row. This is deliberate: search and the worker both follow the current row, so a rejected edit fails visibly in both.
+- Keep `last_run`, `last_error`, `created_at` and `updated_at` out of the configuration event trigger's UPDATE columns, or status writes redeploy functions.
+- Quote all SQL identifiers and literals. `run_sql` errors contain the rendered SQL and the webhook secret: keep only an allowlisted error code and never log the raw error.
 
 ### Database
 

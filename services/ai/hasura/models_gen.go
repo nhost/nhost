@@ -778,11 +778,14 @@ type AiAgentsUpdates struct {
 type AiAutoEmbeddingsConfiguration struct {
 	ColumnName string     `json:"columnName"`
 	CreatedAt  time.Time  `json:"createdAt"`
+	Dimensions int64      `json:"dimensions"`
 	ID         string     `json:"id"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      string     `json:"model"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       string     `json:"name"`
+	Provider   string     `json:"provider"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName string     `json:"schemaName"`
 	TableName  string     `json:"tableName"`
@@ -797,9 +800,22 @@ type AiAutoEmbeddingsConfigurationAggregate struct {
 
 // aggregate fields of "ai.auto_embeddings_configuration"
 type AiAutoEmbeddingsConfigurationAggregateFields struct {
-	Count int64                                   `json:"count"`
-	Max   *AiAutoEmbeddingsConfigurationMaxFields `json:"max,omitempty"`
-	Min   *AiAutoEmbeddingsConfigurationMinFields `json:"min,omitempty"`
+	Avg        *AiAutoEmbeddingsConfigurationAvgFields        `json:"avg,omitempty"`
+	Count      int64                                          `json:"count"`
+	Max        *AiAutoEmbeddingsConfigurationMaxFields        `json:"max,omitempty"`
+	Min        *AiAutoEmbeddingsConfigurationMinFields        `json:"min,omitempty"`
+	Stddev     *AiAutoEmbeddingsConfigurationStddevFields     `json:"stddev,omitempty"`
+	StddevPop  *AiAutoEmbeddingsConfigurationStddevPopFields  `json:"stddev_pop,omitempty"`
+	StddevSamp *AiAutoEmbeddingsConfigurationStddevSampFields `json:"stddev_samp,omitempty"`
+	Sum        *AiAutoEmbeddingsConfigurationSumFields        `json:"sum,omitempty"`
+	VarPop     *AiAutoEmbeddingsConfigurationVarPopFields     `json:"var_pop,omitempty"`
+	VarSamp    *AiAutoEmbeddingsConfigurationVarSampFields    `json:"var_samp,omitempty"`
+	Variance   *AiAutoEmbeddingsConfigurationVarianceFields   `json:"variance,omitempty"`
+}
+
+// aggregate avg on columns
+type AiAutoEmbeddingsConfigurationAvgFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "ai.auto_embeddings_configuration". All fields are combined with a logical 'AND'.
@@ -809,26 +825,37 @@ type AiAutoEmbeddingsConfigurationBoolExp struct {
 	Or         []*AiAutoEmbeddingsConfigurationBoolExp `json:"_or,omitempty"`
 	ColumnName *StringComparisonExp                    `json:"columnName,omitempty"`
 	CreatedAt  *TimestamptzComparisonExp               `json:"createdAt,omitempty"`
+	Dimensions *IntComparisonExp                       `json:"dimensions,omitempty"`
 	ID         *UUIDComparisonExp                      `json:"id,omitempty"`
+	LastError  *StringComparisonExp                    `json:"lastError,omitempty"`
 	LastRun    *TimestamptzComparisonExp               `json:"lastRun,omitempty"`
 	Model      *StringComparisonExp                    `json:"model,omitempty"`
 	Mutation   *StringComparisonExp                    `json:"mutation,omitempty"`
 	Name       *StringComparisonExp                    `json:"name,omitempty"`
+	Provider   *StringComparisonExp                    `json:"provider,omitempty"`
 	Query      *StringComparisonExp                    `json:"query,omitempty"`
 	SchemaName *StringComparisonExp                    `json:"schemaName,omitempty"`
 	TableName  *StringComparisonExp                    `json:"tableName,omitempty"`
 	UpdatedAt  *TimestamptzComparisonExp               `json:"updatedAt,omitempty"`
 }
 
+// input type for incrementing numeric columns in table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationIncInput struct {
+	Dimensions *int64 `json:"dimensions,omitempty"`
+}
+
 // input type for inserting data into table "ai.auto_embeddings_configuration"
 type AiAutoEmbeddingsConfigurationInsertInput struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	Dimensions *int64     `json:"dimensions,omitempty"`
 	ID         *string    `json:"id,omitempty"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      *string    `json:"model,omitempty"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       *string    `json:"name,omitempty"`
+	Provider   *string    `json:"provider,omitempty"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName *string    `json:"schemaName,omitempty"`
 	TableName  *string    `json:"tableName,omitempty"`
@@ -839,11 +866,14 @@ type AiAutoEmbeddingsConfigurationInsertInput struct {
 type AiAutoEmbeddingsConfigurationMaxFields struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	Dimensions *int64     `json:"dimensions,omitempty"`
 	ID         *string    `json:"id,omitempty"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      *string    `json:"model,omitempty"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       *string    `json:"name,omitempty"`
+	Provider   *string    `json:"provider,omitempty"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName *string    `json:"schemaName,omitempty"`
 	TableName  *string    `json:"tableName,omitempty"`
@@ -854,11 +884,14 @@ type AiAutoEmbeddingsConfigurationMaxFields struct {
 type AiAutoEmbeddingsConfigurationMinFields struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	Dimensions *int64     `json:"dimensions,omitempty"`
 	ID         *string    `json:"id,omitempty"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      *string    `json:"model,omitempty"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       *string    `json:"name,omitempty"`
+	Provider   *string    `json:"provider,omitempty"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName *string    `json:"schemaName,omitempty"`
 	TableName  *string    `json:"tableName,omitempty"`
@@ -884,11 +917,14 @@ type AiAutoEmbeddingsConfigurationOnConflict struct {
 type AiAutoEmbeddingsConfigurationOrderBy struct {
 	ColumnName *OrderBy `json:"columnName,omitempty"`
 	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
+	Dimensions *OrderBy `json:"dimensions,omitempty"`
 	ID         *OrderBy `json:"id,omitempty"`
+	LastError  *OrderBy `json:"lastError,omitempty"`
 	LastRun    *OrderBy `json:"lastRun,omitempty"`
 	Model      *OrderBy `json:"model,omitempty"`
 	Mutation   *OrderBy `json:"mutation,omitempty"`
 	Name       *OrderBy `json:"name,omitempty"`
+	Provider   *OrderBy `json:"provider,omitempty"`
 	Query      *OrderBy `json:"query,omitempty"`
 	SchemaName *OrderBy `json:"schemaName,omitempty"`
 	TableName  *OrderBy `json:"tableName,omitempty"`
@@ -904,15 +940,33 @@ type AiAutoEmbeddingsConfigurationPkColumnsInput struct {
 type AiAutoEmbeddingsConfigurationSetInput struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	Dimensions *int64     `json:"dimensions,omitempty"`
 	ID         *string    `json:"id,omitempty"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      *string    `json:"model,omitempty"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       *string    `json:"name,omitempty"`
+	Provider   *string    `json:"provider,omitempty"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName *string    `json:"schemaName,omitempty"`
 	TableName  *string    `json:"tableName,omitempty"`
 	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+// aggregate stddev on columns
+type AiAutoEmbeddingsConfigurationStddevFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
+}
+
+// aggregate stddev_pop on columns
+type AiAutoEmbeddingsConfigurationStddevPopFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
+}
+
+// aggregate stddev_samp on columns
+type AiAutoEmbeddingsConfigurationStddevSampFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
 }
 
 // Streaming cursor of the table "aiAutoEmbeddingsConfiguration"
@@ -927,22 +981,47 @@ type AiAutoEmbeddingsConfigurationStreamCursorInput struct {
 type AiAutoEmbeddingsConfigurationStreamCursorValueInput struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	Dimensions *int64     `json:"dimensions,omitempty"`
 	ID         *string    `json:"id,omitempty"`
+	LastError  *string    `json:"lastError,omitempty"`
 	LastRun    *time.Time `json:"lastRun,omitempty"`
 	Model      *string    `json:"model,omitempty"`
 	Mutation   *string    `json:"mutation,omitempty"`
 	Name       *string    `json:"name,omitempty"`
+	Provider   *string    `json:"provider,omitempty"`
 	Query      *string    `json:"query,omitempty"`
 	SchemaName *string    `json:"schemaName,omitempty"`
 	TableName  *string    `json:"tableName,omitempty"`
 	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
 }
 
+// aggregate sum on columns
+type AiAutoEmbeddingsConfigurationSumFields struct {
+	Dimensions *int64 `json:"dimensions,omitempty"`
+}
+
 type AiAutoEmbeddingsConfigurationUpdates struct {
+	// increments the numeric columns with given value of the filtered values
+	Inc *AiAutoEmbeddingsConfigurationIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
 	Set *AiAutoEmbeddingsConfigurationSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
 	Where *AiAutoEmbeddingsConfigurationBoolExp `json:"where"`
+}
+
+// aggregate var_pop on columns
+type AiAutoEmbeddingsConfigurationVarPopFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
+}
+
+// aggregate var_samp on columns
+type AiAutoEmbeddingsConfigurationVarSampFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
+}
+
+// aggregate variance on columns
+type AiAutoEmbeddingsConfigurationVarianceFields struct {
+	Dimensions *float64 `json:"dimensions,omitempty"`
 }
 
 // In-flight OAuth2 authorization requests.
@@ -5427,7 +5506,11 @@ const (
 	// column name
 	AiAutoEmbeddingsConfigurationSelectColumnCreatedAt AiAutoEmbeddingsConfigurationSelectColumn = "createdAt"
 	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnDimensions AiAutoEmbeddingsConfigurationSelectColumn = "dimensions"
+	// column name
 	AiAutoEmbeddingsConfigurationSelectColumnID AiAutoEmbeddingsConfigurationSelectColumn = "id"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnLastError AiAutoEmbeddingsConfigurationSelectColumn = "lastError"
 	// column name
 	AiAutoEmbeddingsConfigurationSelectColumnLastRun AiAutoEmbeddingsConfigurationSelectColumn = "lastRun"
 	// column name
@@ -5436,6 +5519,8 @@ const (
 	AiAutoEmbeddingsConfigurationSelectColumnMutation AiAutoEmbeddingsConfigurationSelectColumn = "mutation"
 	// column name
 	AiAutoEmbeddingsConfigurationSelectColumnName AiAutoEmbeddingsConfigurationSelectColumn = "name"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnProvider AiAutoEmbeddingsConfigurationSelectColumn = "provider"
 	// column name
 	AiAutoEmbeddingsConfigurationSelectColumnQuery AiAutoEmbeddingsConfigurationSelectColumn = "query"
 	// column name
@@ -5449,11 +5534,14 @@ const (
 var AllAiAutoEmbeddingsConfigurationSelectColumn = []AiAutoEmbeddingsConfigurationSelectColumn{
 	AiAutoEmbeddingsConfigurationSelectColumnColumnName,
 	AiAutoEmbeddingsConfigurationSelectColumnCreatedAt,
+	AiAutoEmbeddingsConfigurationSelectColumnDimensions,
 	AiAutoEmbeddingsConfigurationSelectColumnID,
+	AiAutoEmbeddingsConfigurationSelectColumnLastError,
 	AiAutoEmbeddingsConfigurationSelectColumnLastRun,
 	AiAutoEmbeddingsConfigurationSelectColumnModel,
 	AiAutoEmbeddingsConfigurationSelectColumnMutation,
 	AiAutoEmbeddingsConfigurationSelectColumnName,
+	AiAutoEmbeddingsConfigurationSelectColumnProvider,
 	AiAutoEmbeddingsConfigurationSelectColumnQuery,
 	AiAutoEmbeddingsConfigurationSelectColumnSchemaName,
 	AiAutoEmbeddingsConfigurationSelectColumnTableName,
@@ -5462,7 +5550,7 @@ var AllAiAutoEmbeddingsConfigurationSelectColumn = []AiAutoEmbeddingsConfigurati
 
 func (e AiAutoEmbeddingsConfigurationSelectColumn) IsValid() bool {
 	switch e {
-	case AiAutoEmbeddingsConfigurationSelectColumnColumnName, AiAutoEmbeddingsConfigurationSelectColumnCreatedAt, AiAutoEmbeddingsConfigurationSelectColumnID, AiAutoEmbeddingsConfigurationSelectColumnLastRun, AiAutoEmbeddingsConfigurationSelectColumnModel, AiAutoEmbeddingsConfigurationSelectColumnMutation, AiAutoEmbeddingsConfigurationSelectColumnName, AiAutoEmbeddingsConfigurationSelectColumnQuery, AiAutoEmbeddingsConfigurationSelectColumnSchemaName, AiAutoEmbeddingsConfigurationSelectColumnTableName, AiAutoEmbeddingsConfigurationSelectColumnUpdatedAt:
+	case AiAutoEmbeddingsConfigurationSelectColumnColumnName, AiAutoEmbeddingsConfigurationSelectColumnCreatedAt, AiAutoEmbeddingsConfigurationSelectColumnDimensions, AiAutoEmbeddingsConfigurationSelectColumnID, AiAutoEmbeddingsConfigurationSelectColumnLastError, AiAutoEmbeddingsConfigurationSelectColumnLastRun, AiAutoEmbeddingsConfigurationSelectColumnModel, AiAutoEmbeddingsConfigurationSelectColumnMutation, AiAutoEmbeddingsConfigurationSelectColumnName, AiAutoEmbeddingsConfigurationSelectColumnProvider, AiAutoEmbeddingsConfigurationSelectColumnQuery, AiAutoEmbeddingsConfigurationSelectColumnSchemaName, AiAutoEmbeddingsConfigurationSelectColumnTableName, AiAutoEmbeddingsConfigurationSelectColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -5512,7 +5600,11 @@ const (
 	// column name
 	AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt AiAutoEmbeddingsConfigurationUpdateColumn = "createdAt"
 	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnDimensions AiAutoEmbeddingsConfigurationUpdateColumn = "dimensions"
+	// column name
 	AiAutoEmbeddingsConfigurationUpdateColumnID AiAutoEmbeddingsConfigurationUpdateColumn = "id"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnLastError AiAutoEmbeddingsConfigurationUpdateColumn = "lastError"
 	// column name
 	AiAutoEmbeddingsConfigurationUpdateColumnLastRun AiAutoEmbeddingsConfigurationUpdateColumn = "lastRun"
 	// column name
@@ -5521,6 +5613,8 @@ const (
 	AiAutoEmbeddingsConfigurationUpdateColumnMutation AiAutoEmbeddingsConfigurationUpdateColumn = "mutation"
 	// column name
 	AiAutoEmbeddingsConfigurationUpdateColumnName AiAutoEmbeddingsConfigurationUpdateColumn = "name"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnProvider AiAutoEmbeddingsConfigurationUpdateColumn = "provider"
 	// column name
 	AiAutoEmbeddingsConfigurationUpdateColumnQuery AiAutoEmbeddingsConfigurationUpdateColumn = "query"
 	// column name
@@ -5534,11 +5628,14 @@ const (
 var AllAiAutoEmbeddingsConfigurationUpdateColumn = []AiAutoEmbeddingsConfigurationUpdateColumn{
 	AiAutoEmbeddingsConfigurationUpdateColumnColumnName,
 	AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt,
+	AiAutoEmbeddingsConfigurationUpdateColumnDimensions,
 	AiAutoEmbeddingsConfigurationUpdateColumnID,
+	AiAutoEmbeddingsConfigurationUpdateColumnLastError,
 	AiAutoEmbeddingsConfigurationUpdateColumnLastRun,
 	AiAutoEmbeddingsConfigurationUpdateColumnModel,
 	AiAutoEmbeddingsConfigurationUpdateColumnMutation,
 	AiAutoEmbeddingsConfigurationUpdateColumnName,
+	AiAutoEmbeddingsConfigurationUpdateColumnProvider,
 	AiAutoEmbeddingsConfigurationUpdateColumnQuery,
 	AiAutoEmbeddingsConfigurationUpdateColumnSchemaName,
 	AiAutoEmbeddingsConfigurationUpdateColumnTableName,
@@ -5547,7 +5644,7 @@ var AllAiAutoEmbeddingsConfigurationUpdateColumn = []AiAutoEmbeddingsConfigurati
 
 func (e AiAutoEmbeddingsConfigurationUpdateColumn) IsValid() bool {
 	switch e {
-	case AiAutoEmbeddingsConfigurationUpdateColumnColumnName, AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt, AiAutoEmbeddingsConfigurationUpdateColumnID, AiAutoEmbeddingsConfigurationUpdateColumnLastRun, AiAutoEmbeddingsConfigurationUpdateColumnModel, AiAutoEmbeddingsConfigurationUpdateColumnMutation, AiAutoEmbeddingsConfigurationUpdateColumnName, AiAutoEmbeddingsConfigurationUpdateColumnQuery, AiAutoEmbeddingsConfigurationUpdateColumnSchemaName, AiAutoEmbeddingsConfigurationUpdateColumnTableName, AiAutoEmbeddingsConfigurationUpdateColumnUpdatedAt:
+	case AiAutoEmbeddingsConfigurationUpdateColumnColumnName, AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt, AiAutoEmbeddingsConfigurationUpdateColumnDimensions, AiAutoEmbeddingsConfigurationUpdateColumnID, AiAutoEmbeddingsConfigurationUpdateColumnLastError, AiAutoEmbeddingsConfigurationUpdateColumnLastRun, AiAutoEmbeddingsConfigurationUpdateColumnModel, AiAutoEmbeddingsConfigurationUpdateColumnMutation, AiAutoEmbeddingsConfigurationUpdateColumnName, AiAutoEmbeddingsConfigurationUpdateColumnProvider, AiAutoEmbeddingsConfigurationUpdateColumnQuery, AiAutoEmbeddingsConfigurationUpdateColumnSchemaName, AiAutoEmbeddingsConfigurationUpdateColumnTableName, AiAutoEmbeddingsConfigurationUpdateColumnUpdatedAt:
 		return true
 	}
 	return false

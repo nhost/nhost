@@ -28,7 +28,8 @@ type QualifiedTable struct {
 }
 
 type OperationSpec struct {
-	Columns string `json:"columns,omitempty"`
+	// Columns accepts "*" or a list of PostgreSQL column names.
+	Columns any    `json:"columns,omitempty"`
 	Payload string `json:"payload,omitempty"`
 }
 

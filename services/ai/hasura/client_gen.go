@@ -28,6 +28,9 @@ type AiAutoEmbeddingsConfigurationFragment struct {
 	Query      *string    "json:\"query,omitempty\" graphql:\"query\""
 	Mutation   *string    "json:\"mutation,omitempty\" graphql:\"mutation\""
 	LastRun    *time.Time "json:\"lastRun,omitempty\" graphql:\"lastRun\""
+	Provider   string     "json:\"provider\" graphql:\"provider\""
+	Dimensions int64      "json:\"dimensions\" graphql:\"dimensions\""
+	LastError  *string    "json:\"lastError,omitempty\" graphql:\"lastError\""
 }
 
 func (t *AiAutoEmbeddingsConfigurationFragment) GetID() string {
@@ -83,6 +86,24 @@ func (t *AiAutoEmbeddingsConfigurationFragment) GetLastRun() *time.Time {
 		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.LastRun
+}
+func (t *AiAutoEmbeddingsConfigurationFragment) GetProvider() string {
+	if t == nil {
+		t = &AiAutoEmbeddingsConfigurationFragment{}
+	}
+	return t.Provider
+}
+func (t *AiAutoEmbeddingsConfigurationFragment) GetDimensions() int64 {
+	if t == nil {
+		t = &AiAutoEmbeddingsConfigurationFragment{}
+	}
+	return t.Dimensions
+}
+func (t *AiAutoEmbeddingsConfigurationFragment) GetLastError() *string {
+	if t == nil {
+		t = &AiAutoEmbeddingsConfigurationFragment{}
+	}
+	return t.LastError
 }
 
 type GetAgent_AiAgent struct {
@@ -280,6 +301,28 @@ func (t *InsertAgentMessages_InsertAiAgentMessages) GetReturning() []*InsertAgen
 	return t.Returning
 }
 
+type SetAiAutoEmbeddingsConfigurationLastError_UpdateAiAutoEmbeddingsConfiguration struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *SetAiAutoEmbeddingsConfigurationLastError_UpdateAiAutoEmbeddingsConfiguration) GetID() string {
+	if t == nil {
+		t = &SetAiAutoEmbeddingsConfigurationLastError_UpdateAiAutoEmbeddingsConfiguration{}
+	}
+	return t.ID
+}
+
+type SetAiAutoEmbeddingsConfigurationRunStatus_UpdateAiAutoEmbeddingsConfiguration struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *SetAiAutoEmbeddingsConfigurationRunStatus_UpdateAiAutoEmbeddingsConfiguration) GetID() string {
+	if t == nil {
+		t = &SetAiAutoEmbeddingsConfigurationRunStatus_UpdateAiAutoEmbeddingsConfiguration{}
+	}
+	return t.ID
+}
+
 type GetAiAutoEmbeddingsConfigurations struct {
 	AiAutoEmbeddingsConfigurations []*AiAutoEmbeddingsConfigurationFragment "json:\"aiAutoEmbeddingsConfigurations\" graphql:\"aiAutoEmbeddingsConfigurations\""
 }
@@ -346,6 +389,28 @@ func (t *InsertAgentMessages) GetInsertAiAgentMessages() *InsertAgentMessages_In
 	return t.InsertAiAgentMessages
 }
 
+type SetAiAutoEmbeddingsConfigurationLastError struct {
+	UpdateAiAutoEmbeddingsConfiguration *SetAiAutoEmbeddingsConfigurationLastError_UpdateAiAutoEmbeddingsConfiguration "json:\"updateAiAutoEmbeddingsConfiguration,omitempty\" graphql:\"updateAiAutoEmbeddingsConfiguration\""
+}
+
+func (t *SetAiAutoEmbeddingsConfigurationLastError) GetUpdateAiAutoEmbeddingsConfiguration() *SetAiAutoEmbeddingsConfigurationLastError_UpdateAiAutoEmbeddingsConfiguration {
+	if t == nil {
+		t = &SetAiAutoEmbeddingsConfigurationLastError{}
+	}
+	return t.UpdateAiAutoEmbeddingsConfiguration
+}
+
+type SetAiAutoEmbeddingsConfigurationRunStatus struct {
+	UpdateAiAutoEmbeddingsConfiguration *SetAiAutoEmbeddingsConfigurationRunStatus_UpdateAiAutoEmbeddingsConfiguration "json:\"updateAiAutoEmbeddingsConfiguration,omitempty\" graphql:\"updateAiAutoEmbeddingsConfiguration\""
+}
+
+func (t *SetAiAutoEmbeddingsConfigurationRunStatus) GetUpdateAiAutoEmbeddingsConfiguration() *SetAiAutoEmbeddingsConfigurationRunStatus_UpdateAiAutoEmbeddingsConfiguration {
+	if t == nil {
+		t = &SetAiAutoEmbeddingsConfigurationRunStatus{}
+	}
+	return t.UpdateAiAutoEmbeddingsConfiguration
+}
+
 const GetAiAutoEmbeddingsConfigurationsDocument = `query GetAiAutoEmbeddingsConfigurations ($where: aiAutoEmbeddingsConfiguration_bool_exp) {
 	aiAutoEmbeddingsConfigurations(where: $where) {
 		... AiAutoEmbeddingsConfigurationFragment
@@ -361,6 +426,9 @@ fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration 
 	query
 	mutation
 	lastRun
+	provider
+	dimensions
+	lastError
 }
 `
 
@@ -396,6 +464,9 @@ fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration 
 	query
 	mutation
 	lastRun
+	provider
+	dimensions
+	lastError
 }
 `
 
@@ -534,11 +605,64 @@ func (c *Client) InsertAgentMessages(ctx context.Context, objects []*AiAgentMess
 	return &res, nil
 }
 
+const SetAiAutoEmbeddingsConfigurationLastErrorDocument = `mutation SetAiAutoEmbeddingsConfigurationLastError ($id: uuid!, $lastError: String) {
+	updateAiAutoEmbeddingsConfiguration(pk_columns: {id:$id}, _set: {lastError:$lastError}) {
+		id
+	}
+}
+`
+
+func (c *Client) SetAiAutoEmbeddingsConfigurationLastError(ctx context.Context, id string, lastError *string, interceptors ...clientv2.RequestInterceptor) (*SetAiAutoEmbeddingsConfigurationLastError, error) {
+	vars := map[string]any{
+		"id":        id,
+		"lastError": lastError,
+	}
+
+	var res SetAiAutoEmbeddingsConfigurationLastError
+	if err := c.Client.Post(ctx, "SetAiAutoEmbeddingsConfigurationLastError", SetAiAutoEmbeddingsConfigurationLastErrorDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const SetAiAutoEmbeddingsConfigurationRunStatusDocument = `mutation SetAiAutoEmbeddingsConfigurationRunStatus ($id: uuid!, $lastRun: timestamptz!, $lastError: String) {
+	updateAiAutoEmbeddingsConfiguration(pk_columns: {id:$id}, _set: {lastRun:$lastRun,lastError:$lastError}) {
+		id
+	}
+}
+`
+
+func (c *Client) SetAiAutoEmbeddingsConfigurationRunStatus(ctx context.Context, id string, lastRun time.Time, lastError *string, interceptors ...clientv2.RequestInterceptor) (*SetAiAutoEmbeddingsConfigurationRunStatus, error) {
+	vars := map[string]any{
+		"id":        id,
+		"lastRun":   lastRun,
+		"lastError": lastError,
+	}
+
+	var res SetAiAutoEmbeddingsConfigurationRunStatus
+	if err := c.Client.Post(ctx, "SetAiAutoEmbeddingsConfigurationRunStatus", SetAiAutoEmbeddingsConfigurationRunStatusDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 var DocumentOperationNames = map[string]string{
-	GetAiAutoEmbeddingsConfigurationsDocument: "GetAiAutoEmbeddingsConfigurations",
-	GetAiAutoEmbeddingsConfigurationDocument:  "GetAiAutoEmbeddingsConfiguration",
-	GetAgentDocument:                          "GetAgent",
-	GetAgentSessionDocument:                   "GetAgentSession",
-	GetAgentMessagesDocument:                  "GetAgentMessages",
-	InsertAgentMessagesDocument:               "InsertAgentMessages",
+	GetAiAutoEmbeddingsConfigurationsDocument:         "GetAiAutoEmbeddingsConfigurations",
+	GetAiAutoEmbeddingsConfigurationDocument:          "GetAiAutoEmbeddingsConfiguration",
+	GetAgentDocument:                                  "GetAgent",
+	GetAgentSessionDocument:                           "GetAgentSession",
+	GetAgentMessagesDocument:                          "GetAgentMessages",
+	InsertAgentMessagesDocument:                       "InsertAgentMessages",
+	SetAiAutoEmbeddingsConfigurationLastErrorDocument: "SetAiAutoEmbeddingsConfigurationLastError",
+	SetAiAutoEmbeddingsConfigurationRunStatusDocument: "SetAiAutoEmbeddingsConfigurationRunStatus",
 }

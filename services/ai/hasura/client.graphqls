@@ -8,6 +8,9 @@ fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration 
     query
     mutation
     lastRun
+    provider
+    dimensions
+    lastError
 }
 
 query GetAiAutoEmbeddingsConfigurations(
@@ -67,5 +70,17 @@ mutation InsertAgentMessages($objects: [aiAgentMessages_insert_input!]!) {
         returning {
             id
         }
+    }
+}
+
+mutation SetAiAutoEmbeddingsConfigurationLastError($id: uuid!, $lastError: String) {
+    updateAiAutoEmbeddingsConfiguration(pk_columns: {id: $id}, _set: {lastError: $lastError}) {
+        id
+    }
+}
+
+mutation SetAiAutoEmbeddingsConfigurationRunStatus($id: uuid!, $lastRun: timestamptz!, $lastError: String) {
+    updateAiAutoEmbeddingsConfiguration(pk_columns: {id: $id}, _set: {lastRun: $lastRun, lastError: $lastError}) {
+        id
     }
 }

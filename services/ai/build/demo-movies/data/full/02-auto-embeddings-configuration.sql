@@ -9,6 +9,8 @@ INSERT INTO ai.auto_embeddings_configuration (
   last_run,
   query,
   mutation,
+  provider,
+  dimensions,
   model
 ) VALUES (
   'e2879b3c-2fa0-465b-ae6a-27a1c0606394',
@@ -21,6 +23,8 @@ INSERT INTO ai.auto_embeddings_configuration (
   NULL,
   $graphql$query GetOutdatedMovies {   movies(where: {     _or: [       {embeddings: {_is_null: true}},       {outdated: {_eq: true}},     ]}) {     id     name     genre     overview     crew   } }$graphql$,
   $graphql$mutation UpdateEmbeddingsMovie(   $id: uuid!,   $embeddings: vector, ) {   updateMovie(     pk_columns: {id: $id},     _set: {       embeddings: $embeddings,     }) {     __typename   } }$graphql$,
+  'openai',
+  1536,
   'text-embedding-ada-002'
 )
 ON CONFLICT (name) DO UPDATE SET
@@ -31,4 +35,6 @@ ON CONFLICT (name) DO UPDATE SET
   last_run = EXCLUDED.last_run,
   query = EXCLUDED.query,
   mutation = EXCLUDED.mutation,
+  provider = EXCLUDED.provider,
+  dimensions = EXCLUDED.dimensions,
   model = EXCLUDED.model;

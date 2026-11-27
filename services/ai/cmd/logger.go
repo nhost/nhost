@@ -68,7 +68,7 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 
 func isSensitiveFlag(name string) bool {
 	name = strings.ToLower(name)
-	if name == flagAgentProviders {
+	if name == flagAgentProviders || name == flagEmbeddingProviders {
 		return true
 	}
 
