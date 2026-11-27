@@ -7,7 +7,7 @@ import {
   Webhook,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import SidebarNoticeRow from '@/components/layout/SidebarNoticeRow/SidebarNoticeRow';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -97,6 +97,12 @@ export default function SqlJobs() {
   const [extensionDialog, setExtensionDialog] = useState<
     'install' | 'preload' | null
   >(null);
+  const [paneScrolled, setPaneScrolled] = useState(false);
+  // A new job opens at the top, so its header starts flat again.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on navigation
+  useEffect(() => {
+    setPaneScrolled(false);
+  }, [router.asPath]);
   const [form, setForm] = useState<{
     job?: SqlJob;
     initialValues?: Partial<SqlJobValues>;
@@ -549,7 +555,14 @@ export default function SqlJobs() {
           </Tabs>
         )}
       </FeatureSidebar>
-      <div className="min-w-0 flex-1 overflow-auto" key={router.asPath}>
+      {/* `data-scrolled` lifts the job header (shadow and glowing edge)
+          once the pane scrolls under it. */}
+      <div
+        className="group/pane min-w-0 flex-1 overflow-auto"
+        key={router.asPath}
+        data-scrolled={paneScrolled}
+        onScroll={(event) => setPaneScrolled(event.currentTarget.scrollTop > 8)}
+      >
         {renderPane()}
       </div>
       {extensionDialog === 'install' && extension && (

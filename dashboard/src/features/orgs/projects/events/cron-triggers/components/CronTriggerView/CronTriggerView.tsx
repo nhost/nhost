@@ -151,10 +151,7 @@ export default function CronTriggerView() {
         <TabsContent value="overview" className="p-6">
           <CronTriggerOverview cronTrigger={cronTrigger} />
         </TabsContent>
-        <TabsContent
-          className="mt-0 flex-1 overflow-auto"
-          value="pending-processed-events"
-        >
+        <TabsContent className="mt-0 flex-1" value="pending-processed-events">
           <CronTriggerEventsDataTable
             triggerName={cronTrigger.name}
             eventLogsSection={eventLogsSection}

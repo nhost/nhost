@@ -1,4 +1,4 @@
-import { Pause } from 'lucide-react';
+import { Clock, Pause } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -38,8 +38,9 @@ export default function CronJobListItem({
           )}
         >
           <span className="truncate font-medium text-sm+">{name}</span>
-          <span className="truncate text-muted-foreground text-xs">
-            {schedule}
+          <span className="flex min-w-0 items-center gap-1 text-muted-foreground text-xs">
+            <Clock aria-hidden className="size-3 shrink-0" />
+            <span className="truncate">{schedule}</span>
           </span>
         </span>
         {paused && (
