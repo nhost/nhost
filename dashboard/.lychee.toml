@@ -24,9 +24,6 @@ exclude = [
   '^https://my-config-server\.com',
   '^https://acme\.com',
 
-  # Fake Zendesk URL used in API route tests
-  '^https://nhost-test\.zendesk\.com',
-
   # Fake domains used in analytics storage domain-matching tests
   '^https://notnhost\.io',
   '^https://nhost\.io\.example\.com',
