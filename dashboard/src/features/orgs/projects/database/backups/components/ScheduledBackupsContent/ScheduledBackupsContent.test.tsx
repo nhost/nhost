@@ -96,11 +96,14 @@ describe('ScheduledBackupsContent', () => {
       }),
     );
     expect(
-      await screen.findByText('Your backup has been restored successfully.'),
+      await screen.findByText(
+        'Your backup restore has been scheduled successfully and will start shortly.',
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('link', { name: 'Logs page' }),
-    ).not.toBeInTheDocument();
+      await screen.findByRole('link', { name: 'Logs page' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/to see the restore logs/)).toBeInTheDocument();
   });
 
   test('downloads a scheduled backup from the current project', async () => {
