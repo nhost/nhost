@@ -1,10 +1,10 @@
-## [@nhost/nhost-js@5.0.0] - 2026-11-27
+## [@nhost/nhost-js@4.10.0] - 2026-11-27
 
 ### 🚀 Features
 
-- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using TOTP (#4612)
-- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using email OTP (#4665)
-- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using SMS OTP (#4831)
+- *(auth)* Elevate sessions using TOTP (#4612)
+- *(auth)* Elevate sessions using email OTP (#4665)
+- *(auth)* Elevate sessions using SMS OTP (#4831)
 - *(auth)* Type JWTs by purpose and add audience, sid and jti claims (#5240)
 
 
