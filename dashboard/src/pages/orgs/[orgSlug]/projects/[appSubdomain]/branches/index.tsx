@@ -8,13 +8,10 @@ import {
   AreaSidebarNav,
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
-import { Button } from '@/components/ui/v3/button';
 import { NavigationSearch } from '@/features/command-palette/CommandPaletteProvider';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
-import { useDummyBranches } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
-import { triggerToast } from '@/utils/toast';
 
 // DUMMY PROTOTYPE: client-only, the fake branches live in localStorage.
 const AllBranches = dynamic(
@@ -43,25 +40,16 @@ function BranchesSidebar() {
   const router = useRouter();
   const orgSlug = getSingleQueryParam(router.query.orgSlug);
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-  const {
-    resetDemo,
-    githubConnected,
-    setGithubConnected,
-    demoClosePullRequest,
-  } = useDummyBranches();
   const path = `/orgs/${orgSlug}/projects/${appSubdomain}/branches`;
 
   return (
     <AreaSidebarRoot className="flex flex-col bg-background md:border-r">
-      <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
-        Branches
-      </div>
       <div className="hidden px-2 pt-2 md:block">
         <NavigationSearch />
       </div>
       <AreaSidebarNav
         ariaLabel="Branches navigation"
-        className="h-auto min-h-0 flex-1 pt-2 md:overflow-auto"
+        className="h-auto min-h-0 flex-1 pt-2 md:overflow-auto md:pt-4"
       >
         <AreaSidebarGroup label="Manage">
           <AreaSidebarLink
@@ -82,40 +70,6 @@ function BranchesSidebar() {
           </AreaSidebarLink>
         </AreaSidebarGroup>
       </AreaSidebarNav>
-      {/* DUMMY PROTOTYPE: remove before staging. */}
-      <div className="hidden shrink-0 gap-1 border-t p-3 md:grid">
-        <Button
-          variant="ghost"
-          size="xs"
-          className="w-full text-muted-foreground"
-          onClick={() => setGithubConnected(!githubConnected)}
-        >
-          {githubConnected ? 'Demo without GitHub' : 'Demo with GitHub'}
-        </Button>
-        <Button
-          variant="ghost"
-          size="xs"
-          className="w-full text-muted-foreground"
-          onClick={() => {
-            const closed = demoClosePullRequest();
-            if (closed) {
-              triggerToast(
-                `#${closed.pullRequest} merged, ${closed.name} removed`,
-              );
-            }
-          }}
-        >
-          Demo a merged pull request
-        </Button>
-        <Button
-          variant="ghost"
-          size="xs"
-          className="w-full text-muted-foreground"
-          onClick={resetDemo}
-        >
-          Reset demo data
-        </Button>
-      </div>
     </AreaSidebarRoot>
   );
 }

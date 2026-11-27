@@ -219,7 +219,8 @@ export default function AllBranches() {
             {isCurrent && !branch.isProduction && <CurrentBadge />}
           </div>
           {/* What the branch is for: its pull request title, linked to
-              GitHub. Production shows the git branch it follows. */}
+              GitHub. Otherwise the git branch it follows, only when its
+              name differs, so "main" isn't shown twice. */}
           {branch.pullRequest ? (
             <a
               href={`https://github.com/${repository}/pull/${branch.pullRequest}`}
@@ -234,10 +235,12 @@ export default function AllBranches() {
               </span>
             </a>
           ) : (
-            <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
-              <SiGithub className="size-3 shrink-0" />
-              <span className="font-mono">{branch.gitBranch}</span>
-            </p>
+            branch.gitBranch !== branch.name && (
+              <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
+                <SiGithub className="size-3 shrink-0" />
+                <span className="font-mono">{branch.gitBranch}</span>
+              </p>
+            )
           )}
         </div>
 
@@ -314,8 +317,8 @@ export default function AllBranches() {
         </ul>
       </section>
 
-      <section className="grid gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <section className="grid gap-2">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
             Branches (
             {automaticBranching
