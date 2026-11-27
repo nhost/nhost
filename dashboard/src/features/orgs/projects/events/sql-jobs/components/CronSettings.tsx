@@ -306,17 +306,9 @@ export default function CronSettings({
   retentionJobHref,
 }: CronSettingsProps) {
   const settingsDisabled = useSettingsDisabled();
-  const isPlatform = useIsPlatform();
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
-      <div>
-        <h1 className="font-semibold text-xl">Scheduler settings</h1>
-        <p className="text-muted-foreground text-sm">
-          {isPlatform
-            ? 'Changes run directly against your database.'
-            : 'Job and extension changes create Hasura migrations in your project.'}
-        </p>
-      </div>
+      <h1 className="font-semibold text-xl">SQL scheduler settings</h1>
       <GitHubConnectedNotice />
       {settingsDisabled ? (
         <Alert>

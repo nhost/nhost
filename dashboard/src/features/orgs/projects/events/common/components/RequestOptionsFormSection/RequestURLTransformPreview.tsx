@@ -70,10 +70,8 @@ export default function RequestURLTransformPreview() {
     errorMessage = argsError.message;
   } else if (error) {
     errorMessage = error.message || 'Validation failed';
-  } else if (isEmptyValue(formValues.webhook)) {
-    errorMessage =
-      'Please configure your webhook handler to generate request URL transform';
   }
+  const missingWebhook = !errorMessage && isEmptyValue(formValues.webhook);
 
   return (
     <div className="flex flex-col gap-2">
@@ -81,9 +79,15 @@ export default function RequestURLTransformPreview() {
         URL transform preview
         {showLoading ? ' (loading...)' : ''}
       </h3>
-      <div className="relative max-w-lg">
+      <div className="relative">
         <p className="rounded-md bg-muted-foreground/10 p-2 font-mono text-muted-foreground text-sm dark:bg-muted">
-          {url || '\u00A0'}
+          {missingWebhook ? (
+            <span className="font-sans">
+              Add a webhook URL in General to see the preview.
+            </span>
+          ) : (
+            url || '\u00A0'
+          )}
         </p>
         {showLoading && (
           <Skeleton className="pointer-events-none absolute inset-px h-full w-full rounded-[5px] opacity-50" />

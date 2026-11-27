@@ -322,7 +322,7 @@ describe('SQL Jobs', () => {
     const dialog = within(await screen.findByRole('dialog'));
     await user.click(dialog.getByRole('textbox', { name: 'SQL command' }));
     await user.keyboard('{Tab}');
-    expect(dialog.getByLabelText('Database role')).toHaveFocus();
+    expect(dialog.getByRole('switch', { name: 'Enabled' })).toHaveFocus();
   });
 
   it('highlights cron fields as the cursor moves by keyboard and selection', async () => {
@@ -712,7 +712,7 @@ describe('SQL Jobs', () => {
       },
     });
     expect(
-      await screen.findByRole('button', { name: 'Scheduler settings' }),
+      await screen.findByRole('button', { name: 'SQL scheduler settings' }),
     ).toBeInTheDocument();
   });
 

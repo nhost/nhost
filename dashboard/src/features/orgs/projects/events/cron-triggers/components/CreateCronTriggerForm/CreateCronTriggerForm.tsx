@@ -27,7 +27,17 @@ const renderCreateCronTriggerButton = ({
   </Button>
 );
 
-export default function CreateCronTriggerForm() {
+const renderEmptyStateButton = ({ open }: BaseCronTriggerFormTriggerProps) => (
+  <Button className="mt-3" onClick={open}>
+    Create webhook job
+  </Button>
+);
+
+export default function CreateCronTriggerForm({
+  emptyState = false,
+}: {
+  emptyState?: boolean;
+}) {
   const { mutateAsync: createCronTrigger } = useCreateCronTriggerMutation();
   const track = useTrackEvent();
   const router = useRouter();
@@ -56,7 +66,9 @@ export default function CreateCronTriggerForm() {
 
   return (
     <BaseCronTriggerForm
-      trigger={renderCreateCronTriggerButton}
+      trigger={
+        emptyState ? renderEmptyStateButton : renderCreateCronTriggerButton
+      }
       onSubmit={handleSubmit}
       titleText="Create webhook job"
       descriptionText="Enter the details to create your webhook job. Click Create when you're done."

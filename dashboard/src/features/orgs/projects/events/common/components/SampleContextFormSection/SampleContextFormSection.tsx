@@ -19,7 +19,7 @@ export default function SampleContextFormSection() {
   });
 
   return (
-    <div className="flex max-w-lg flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center gap-2">
           <h3 className="font-medium text-foreground text-sm">
@@ -35,13 +35,13 @@ export default function SampleContextFormSection() {
         </div>
         <Button
           type="button"
-          variant="subtle"
-          size="sm"
-          className="px-4"
+          variant="outline"
+          size="xs"
           onClick={() => append({ key: '', value: '' })}
           data-testid="add-sample-context-button"
         >
-          <Plus className="size-5" />
+          <Plus />
+          Add variable
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -85,11 +85,12 @@ export default function SampleContextFormSection() {
               <Button
                 type="button"
                 variant="subtle"
-                size="sm"
-                className="px-4"
+                size="icon-sm"
+                aria-label="Remove"
+                className="hover:text-destructive dark:hover:text-destructive"
                 onClick={() => remove(index)}
               >
-                <Trash className="size-4" />
+                <Trash />
               </Button>
             </div>
           </div>

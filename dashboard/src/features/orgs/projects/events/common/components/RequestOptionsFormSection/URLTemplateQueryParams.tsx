@@ -23,7 +23,7 @@ export default function URLTemplateQueryParams() {
               placeholder={`You can also use Kriti Template here to customise the query parameter string.
 
 e.g. {{concat(["userId=", $session_variables["x-hasura-user-id"]])}}`}
-              className="min-h-[120px] max-w-lg text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+              className="min-h-[120px] text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
             />
           </FormControl>
           <FormMessage />

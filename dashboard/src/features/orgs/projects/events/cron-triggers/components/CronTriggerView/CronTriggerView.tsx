@@ -1,17 +1,16 @@
 import { Pencil } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/v3/tabs';
+import { Tabs, TabsContent } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/common/hooks/useGetScheduledEventLogsQuery';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
+import {
+  CronJobPaneTab,
+  CronJobPaneTabs,
+} from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneTabs';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
 import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
@@ -141,10 +140,12 @@ export default function CronTriggerView() {
           }
         >
           <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
-            </TabsList>
+            <CronJobPaneTabs aria-label="Job details">
+              <CronJobPaneTab value="overview">Overview</CronJobPaneTab>
+              <CronJobPaneTab value="pending-processed-events">
+                Events
+              </CronJobPaneTab>
+            </CronJobPaneTabs>
           </div>
         </CronJobPaneHeader>
         <TabsContent value="overview" className="p-6">

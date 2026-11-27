@@ -5,9 +5,15 @@ import * as Yup from 'yup';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormCodeEditor } from '@/components/form/FormCodeEditor';
 import { FormInput } from '@/components/form/FormInput';
-import { FormSwitch } from '@/components/form/FormSwitch';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
 import {
   Form,
   FormControl,
@@ -16,15 +22,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Separator } from '@/components/ui/v3/separator';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/v3/sheet';
+import { Switch } from '@/components/ui/v3/switch';
 import { CronScheduleInput } from '@/features/orgs/projects/events/common/components/CronScheduleInput';
 import {
   createSqlJobChange,
@@ -123,117 +121,123 @@ export default function SqlJobForm({
 
   return (
     <>
-      <Sheet open onOpenChange={(open) => !open && close()}>
-        <SheetContent
-          showOverlay
-          className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
+      <Dialog open onOpenChange={(open) => !open && close()}>
+        <DialogContent
+          disableOutsideClick
+          className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0 text-foreground"
         >
-          <SheetHeader className="p-6">
-            <SheetTitle className="text-lg">
-              {job ? 'Edit SQL job' : 'Create SQL job'}
-            </SheetTitle>
-            <SheetDescription>
-              Schedule SQL commands with pg_cron. Commands execute with the
-              permissions of the selected database role.
-            </SheetDescription>
-          </SheetHeader>
-          <Separator />
           <Form {...form}>
             <form
               id="sql-job-form"
               onSubmit={form.handleSubmit(submit)}
-              className="flex flex-auto flex-col gap-5 overflow-y-auto p-6"
+              className="flex min-h-0 flex-1 flex-col"
             >
-              <fieldset disabled={mutation.isPending} className="space-y-5">
-                <FormInput
-                  control={form.control}
-                  name="jobname"
-                  label="Job name"
-                  placeholder="refresh-materialized-view"
-                  disabled={Boolean(job)}
-                  autoFocus
-                />
-                {job && (
-                  <p className="text-muted-foreground text-sm">
-                    A job cannot be renamed. Create a new job to use another
-                    name.
-                  </p>
-                )}
-                <FormField
-                  control={form.control}
-                  name="schedule"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <CronScheduleInput
-                          scheduler="pg_cron"
-                          {...field}
-                          timezone={timezone}
-                          disabled={mutation.isPending}
+              <DialogHeader className="px-8 pt-8 pb-4">
+                <DialogTitle className="text-xl">
+                  {job ? 'Edit SQL job' : 'Create SQL job'}
+                </DialogTitle>
+                <DialogDescription>
+                  Runs a SQL command in your database on a schedule, with the
+                  permissions of the database role.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="min-h-0 flex-1 overflow-y-auto px-8 py-4">
+                <fieldset disabled={mutation.isPending} className="space-y-6">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <FormInput
+                      control={form.control}
+                      name="jobname"
+                      label="Job name"
+                      placeholder="refresh-materialized-view"
+                      disabled={Boolean(job)}
+                      helperText={job ? 'A job cannot be renamed.' : undefined}
+                      autoFocus
+                    />
+                    <FormInput
+                      control={form.control}
+                      name="username"
+                      label="Database role"
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="schedule"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <CronScheduleInput
+                            scheduler="pg_cron"
+                            {...field}
+                            timezone={timezone}
+                            disabled={mutation.isPending}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormCodeEditor
+                    control={form.control}
+                    name="command"
+                    label="SQL command"
+                    aria-label="SQL command"
+                    extensions={SQL_EDITOR_EXTENSIONS}
+                    basicSetup={SQL_EDITOR_SETUP}
+                    indentWithTab={false}
+                    readOnly={mutation.isPending}
+                    className="[&_.cm-content]:min-h-40 [&_.cm-scroller]:max-h-72"
+                  >
+                    <FormDescription>
+                      Saving schedules this SQL. It does not run it right away.
+                    </FormDescription>
+                  </FormCodeEditor>
+                  <FormField
+                    control={form.control}
+                    name="active"
+                    render={({ field }) => (
+                      <div className="flex items-start justify-between gap-4 rounded-lg border p-6">
+                        <div className="space-y-1">
+                          <p className="font-medium text-base">Enabled</p>
+                          <p className="text-muted-foreground text-sm">
+                            Paused jobs keep their settings but don&apos;t run
+                            on schedule.
+                          </p>
+                        </div>
+                        <Switch
+                          type="button"
+                          aria-label="Enabled"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormCodeEditor
-                  control={form.control}
-                  name="command"
-                  label="SQL command"
-                  aria-label="SQL command"
-                  extensions={SQL_EDITOR_EXTENSIONS}
-                  basicSetup={SQL_EDITOR_SETUP}
-                  indentWithTab={false}
-                  readOnly={mutation.isPending}
-                  className="[&_.cm-content]:min-h-40 [&_.cm-scroller]:max-h-72"
+                      </div>
+                    )}
+                  />
+                </fieldset>
+                {mutation.error && (
+                  <Alert variant="destructive" className="mt-6">
+                    <AlertDescription className="whitespace-pre-wrap">
+                      {mutation.error.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 border-t px-8 py-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={close}
+                  disabled={mutation.isPending}
                 >
-                  <FormDescription>
-                    Saving schedules this SQL; it does not execute it
-                    immediately.
-                  </FormDescription>
-                </FormCodeEditor>
-                <FormInput
-                  control={form.control}
-                  name="username"
-                  label="Database role"
-                />
-                <FormSwitch
-                  control={form.control}
-                  name="active"
-                  label="Enabled"
-                  helperText="Disabled jobs keep their configuration but do not run on schedule."
-                />
-              </fieldset>
-              {mutation.error && (
-                <Alert variant="destructive">
-                  <AlertDescription className="whitespace-pre-wrap">
-                    {mutation.error.message}
-                  </AlertDescription>
-                </Alert>
-              )}
+                  Cancel
+                </Button>
+                <ButtonWithLoading type="submit" loading={mutation.isPending}>
+                  {job ? 'Save changes' : 'Create job'}
+                </ButtonWithLoading>
+              </div>
             </form>
           </Form>
-          <SheetFooter className="flex-shrink-0 border-t p-2">
-            <div className="flex flex-1 flex-row items-start justify-between gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={close}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <ButtonWithLoading
-                type="submit"
-                form="sql-job-form"
-                loading={mutation.isPending}
-              >
-                {job ? 'Save changes' : 'Create job'}
-              </ButtonWithLoading>
-            </div>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
       <DiscardChangesDialog
         open={discardOpen}
         onOpenChange={setDiscardOpen}

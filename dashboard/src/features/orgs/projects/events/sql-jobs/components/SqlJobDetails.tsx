@@ -32,17 +32,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/v3/tabs';
+import { Tabs, TabsContent } from '@/components/ui/v3/tabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
 import ScheduleFields from '@/features/orgs/projects/events/common/components/ScheduleFields';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
+import {
+  CronJobPaneTab,
+  CronJobPaneTabs,
+} from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneTabs';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
 import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import type { SqlJobRunFilter } from '@/features/orgs/projects/events/sql-jobs/sql';
@@ -141,10 +140,10 @@ export default function SqlJobDetails({
         }
       >
         {hasRuns && (
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="runs">Run history</TabsTrigger>
-          </TabsList>
+          <CronJobPaneTabs aria-label="Job details">
+            <CronJobPaneTab value="overview">Overview</CronJobPaneTab>
+            <CronJobPaneTab value="runs">Run history</CronJobPaneTab>
+          </CronJobPaneTabs>
         )}
       </CronJobPaneHeader>
       <TabsContent value="overview" className="space-y-4 p-6">

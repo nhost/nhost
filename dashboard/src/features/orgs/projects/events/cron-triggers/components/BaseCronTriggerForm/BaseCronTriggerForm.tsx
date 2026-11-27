@@ -1,28 +1,25 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusIcon, TrashIcon } from 'lucide-react';
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Form } from '@/components/ui/v3/form';
-import { Separator } from '@/components/ui/v3/separator';
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/v3/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
+import { Form } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/v3/tabs';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
 import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
@@ -30,7 +27,6 @@ import { RequestOptionsFormSection } from '@/features/orgs/projects/events/commo
 import { RetryConfigurationFormSection } from '@/features/orgs/projects/events/common/components/RetryConfigurationFormSection';
 import { CronScheduleInput } from '@/features/orgs/projects/events/cron-triggers/components/CronScheduleInput';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
-import { cn } from '@/lib/utils';
 import {
   type BaseCronTriggerFormInitialData,
   type BaseCronTriggerFormValues,
@@ -40,12 +36,16 @@ import {
   validationSchema,
 } from './BaseCronTriggerFormTypes';
 
-const ACCORDION_SECTION_VALUES = [
-  'retry-configuration',
-  'transformation-configuration',
-] as const;
+type FormTab = 'general' | 'delivery' | 'request' | 'payload';
 
-type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
+const GENERAL_FIELDS = [
+  'triggerName',
+  'comment',
+  'webhook',
+  'schedule',
+  'payload',
+];
+const DELIVERY_FIELDS = ['retryConf', 'headers'];
 
 export interface BaseCronTriggerFormTriggerProps {
   open: () => void;
@@ -73,9 +73,7 @@ export default function BaseCronTriggerForm({
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
     useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [openAccordionSections, setOpenAccordionSections] = useState<
-    AccordionSectionValue[]
-  >([]);
+  const [tab, setTab] = useState<FormTab>('general');
   const [isRequestOptionsSectionOpen, setIsRequestOptionsSectionOpen] =
     useState(Boolean(initialData?.requestOptionsTransform));
   const [isPayloadSectionOpen, setIsPayloadSectionOpen] = useState(
@@ -90,8 +88,6 @@ export default function BaseCronTriggerForm({
   const { watch, reset, setValue } = form;
   const { isDirty } = form.formState;
 
-  const sheetContentRef = useRef<HTMLDivElement | null>(null);
-
   const resetFormValues = useCallback(() => {
     reset(initialData ?? defaultFormValues);
     setIsRequestOptionsSectionOpen(
@@ -104,7 +100,7 @@ export default function BaseCronTriggerForm({
     resetFormValues();
     setShowUnsavedChangesDialog(false);
     setIsSheetOpen(true);
-    setOpenAccordionSections([]);
+    setTab('general');
   }, [resetFormValues]);
 
   const closeForm = useCallback(
@@ -114,7 +110,6 @@ export default function BaseCronTriggerForm({
       }
       setIsSheetOpen(false);
       setShowUnsavedChangesDialog(false);
-      setOpenAccordionSections([]);
     },
     [resetFormValues],
   );
@@ -140,8 +135,17 @@ export default function BaseCronTriggerForm({
       await onSubmit(values);
       closeForm();
     },
-    () => {
-      setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
+    (errors) => {
+      const fields = Object.keys(errors);
+      if (fields.some((field) => GENERAL_FIELDS.includes(field))) {
+        setTab('general');
+      } else if (fields.some((field) => DELIVERY_FIELDS.includes(field))) {
+        setTab('delivery');
+      } else if (fields.includes('requestOptionsTransform')) {
+        setTab('request');
+      } else {
+        setTab('payload');
+      }
     },
   );
 
@@ -198,241 +202,197 @@ export default function BaseCronTriggerForm({
 
   const triggerNode = trigger?.({ open: openForm }) ?? null;
 
-  const handleAccordionValueChange = useCallback((value: string[]) => {
-    setOpenAccordionSections(value as AccordionSectionValue[]);
-  }, []);
-
   return (
     <>
       {triggerNode}
-      <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
-        <SheetContent
-          ref={sheetContentRef}
-          showOverlay
-          className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
+      <Dialog open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
+        <DialogContent
+          disableOutsideClick
+          className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0 text-foreground"
         >
-          <SheetHeader className="p-6">
-            <SheetTitle className="text-lg">{titleText}</SheetTitle>
-            <SheetDescription>{descriptionText}</SheetDescription>
-          </SheetHeader>
-          <Separator />
           <Form {...form}>
             <form
               id="cron-trigger-form"
               onSubmit={handleFormSubmit}
-              className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4"
+              className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="flex flex-auto flex-col">
-                <div className="flex flex-col gap-6 p-6 text-foreground">
-                  <FormInput
-                    control={form.control}
-                    name="triggerName"
-                    label="Name"
-                    placeholder="cron_trigger_name"
-                    autoFocus
-                    disabled={isEditing}
-                    className="max-w-lg"
-                    autoComplete="off"
-                  />
-                  <FormInput
-                    control={form.control}
-                    name="comment"
-                    label="Description"
-                    placeholder="Describe what this webhook job does"
-                    className="max-w-lg"
-                    autoComplete="off"
-                  />
-                  <Separator />
-                  <FormInput
-                    control={form.control}
-                    name="webhook"
-                    placeholder="{{NHOST_FUNCTIONS_URL}}/handler or https://httpbin.org/post"
-                    label={
-                      <div className="flex flex-row items-center gap-2">
-                        Webhook URL or template{' '}
-                        <InfoTooltip>
-                          Environment variables and secrets are available using
-                          the {'{{VARIABLE}}'} tag.
-                        </InfoTooltip>
-                      </div>
-                    }
-                    className="max-w-lg text-foreground"
-                  />
-                  <CronScheduleInput
-                    control={form.control}
-                    name="schedule"
-                    label="Schedule (Cron Expression)"
-                    placeholder="* * * * *"
-                    containerClassName="w-full max-w-lg"
-                    className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                  />
-                  <FormTextarea
-                    control={form.control}
-                    name="payload"
-                    placeholder={`{
+              <Tabs
+                value={tab}
+                onValueChange={(value) => setTab(value as FormTab)}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <div className="flex flex-col gap-6 px-8 pt-8 pb-4">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl">{titleText}</DialogTitle>
+                    <DialogDescription>{descriptionText}</DialogDescription>
+                  </DialogHeader>
+                  <TabsList className="self-start">
+                    <TabsTrigger value="general">General</TabsTrigger>
+                    <TabsTrigger value="delivery">Delivery</TabsTrigger>
+                    <TabsTrigger value="request">Request</TabsTrigger>
+                    <TabsTrigger value="payload">Payload</TabsTrigger>
+                  </TabsList>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-8 py-4">
+                  <TabsContent value="general" className="mt-0 space-y-6">
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <FormInput
+                        control={form.control}
+                        name="triggerName"
+                        label="Name"
+                        placeholder="cron_trigger_name"
+                        autoFocus
+                        disabled={isEditing}
+                        autoComplete="off"
+                      />
+                      <FormInput
+                        control={form.control}
+                        name="comment"
+                        label="Description"
+                        placeholder="What this job does"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <FormInput
+                      control={form.control}
+                      name="webhook"
+                      placeholder="{{NHOST_FUNCTIONS_URL}}/handler or https://httpbin.org/post"
+                      label={
+                        <div className="flex flex-row items-center gap-2">
+                          Webhook URL or template{' '}
+                          <InfoTooltip>
+                            Environment variables and secrets are available
+                            using the {'{{VARIABLE}}'} tag.
+                          </InfoTooltip>
+                        </div>
+                      }
+                    />
+                    <CronScheduleInput
+                      control={form.control}
+                      name="schedule"
+                      label="Schedule"
+                      placeholder="* * * * *"
+                      containerClassName="w-full"
+                      className="w-full aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                    />
+                    <FormTextarea
+                      control={form.control}
+                      name="payload"
+                      placeholder={`{
   "name": "John Doe",
   "company": "Acme"
 }`}
-                    label={
-                      <div className="flex flex-row items-center gap-2">
-                        Payload{' '}
-                        <InfoTooltip>
-                          The request payload for the webhook job, should be a
-                          valid JSON
-                        </InfoTooltip>
-                      </div>
-                    }
-                    className="min-h-[250px] max-w-lg font-mono text-foreground"
-                  />
-                </div>
-                <Separator />
-                <Accordion
-                  type="multiple"
-                  value={openAccordionSections}
-                  onValueChange={handleAccordionValueChange}
-                >
-                  <AccordionItem value="retry-configuration" className="px-6">
-                    <AccordionTrigger className="text-base text-foreground">
-                      Retry and Headers Settings
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="flex flex-col gap-8 border-l">
-                        <RetryConfigurationFormSection showToleranceSec />
-                        <Separator />
-                        <HeadersFormSection />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem
-                    value="transformation-configuration"
-                    className="px-6"
-                  >
-                    <AccordionTrigger className="text-base text-foreground">
-                      Request Options
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="flex flex-col gap-8 border-l">
-                        <div className="flex flex-col gap-6 pl-4">
-                          <div className="flex items-end justify-between gap-2">
-                            <div className="space-y-1">
-                              <h3 className="font-medium text-foreground text-sm">
-                                Request Options Transform
-                              </h3>
-                              <p className="text-muted-foreground text-xs">
-                                Configuration to transform the request before
-                                sending it to the webhook
-                              </p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                'flex flex-row items-center gap-2 text-foreground',
-                                {
-                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                    isRequestOptionsSectionOpen,
-                                },
-                              )}
-                              onClick={toggleRequestOptionsSectionOpen}
-                            >
-                              {isRequestOptionsSectionOpen ? (
-                                <>
-                                  <TrashIcon className="size-4" />
-                                  <span>Remove Options Transform</span>
-                                </>
-                              ) : (
-                                <>
-                                  <PlusIcon className="size-4" />
-                                  <span>Add Options Transform</span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          {isRequestOptionsSectionOpen &&
-                            isRequestOptionsTransformEnabled && (
-                              <RequestOptionsFormSection />
-                            )}
-                          {isRequestOptionsSectionOpen &&
-                            isPayloadSectionOpen && <Separator />}
-                          <div className="flex items-end justify-between gap-2">
-                            <div className="space-y-1">
-                              <h3 className="font-medium text-foreground">
-                                Payload Transform
-                              </h3>
-                              <p className="text-muted-foreground text-sm">
-                                Adjust the request body.
-                              </p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                'flex flex-row items-center gap-2 text-foreground',
-                                {
-                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                    isPayloadSectionOpen,
-                                },
-                              )}
-                              onClick={togglePayloadSectionOpen}
-                            >
-                              {isPayloadSectionOpen ? (
-                                <>
-                                  <TrashIcon className="size-4" />
-                                  <span>Remove Payload Transform</span>
-                                </>
-                              ) : (
-                                <>
-                                  <PlusIcon className="size-4" />
-                                  <span>Add Payload Transform</span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          {isPayloadSectionOpen &&
-                            isPayloadTransformEnabled && (
-                              <PayloadTransformFormSection
-                                onResetSampleInput={handleResetSampleInput}
-                              />
-                            )}
+                      label={
+                        <div className="flex flex-row items-center gap-2">
+                          Payload{' '}
+                          <InfoTooltip>
+                            The JSON sent to the webhook on every run.
+                          </InfoTooltip>
                         </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-            </form>
-          </Form>
-          <SheetFooter className="flex-shrink-0 border-t p-2">
-            <div className="flex flex-1 flex-row items-start justify-between gap-2">
-              <SheetClose asChild>
+                      }
+                      className="min-h-40 font-mono"
+                    />
+                  </TabsContent>
+                  <TabsContent value="delivery" className="mt-0 space-y-4">
+                    <div className="rounded-lg border p-6">
+                      <RetryConfigurationFormSection
+                        showToleranceSec
+                        className="pl-0"
+                      />
+                    </div>
+                    <div className="rounded-lg border p-6">
+                      <HeadersFormSection className="pl-0" />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="request" className="mt-0">
+                    <TransformToggle
+                      title="Transform request options"
+                      description="Change the method, URL or query parameters before the request is sent."
+                      checked={isRequestOptionsSectionOpen}
+                      onCheckedChange={toggleRequestOptionsSectionOpen}
+                    >
+                      {isRequestOptionsTransformEnabled && (
+                        <RequestOptionsFormSection className="pl-0" />
+                      )}
+                    </TransformToggle>
+                  </TabsContent>
+                  <TabsContent value="payload" className="mt-0">
+                    <TransformToggle
+                      title="Transform payload"
+                      description="Change the request body before it is sent."
+                      checked={isPayloadSectionOpen}
+                      onCheckedChange={togglePayloadSectionOpen}
+                    >
+                      {isPayloadTransformEnabled && (
+                        <PayloadTransformFormSection
+                          className="pl-0"
+                          onResetSampleInput={handleResetSampleInput}
+                        />
+                      )}
+                    </TransformToggle>
+                  </TabsContent>
+                </div>
+              </Tabs>
+              <div className="flex justify-end gap-2 border-t px-8 py-4">
                 <Button
+                  type="button"
                   variant="outline"
                   disabled={form.formState.isSubmitting}
+                  onClick={() => handleSheetOpenChange(false)}
                 >
                   Cancel
                 </Button>
-              </SheetClose>
-              <ButtonWithLoading
-                type="submit"
-                form="cron-trigger-form"
-                loading={form.formState.isSubmitting}
-                disabled={
-                  form.formState.isSubmitting || !form.formState.isDirty
-                }
-              >
-                {submitButtonText}
-              </ButtonWithLoading>
-            </div>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+                <ButtonWithLoading
+                  type="submit"
+                  loading={form.formState.isSubmitting}
+                  disabled={
+                    form.formState.isSubmitting || !form.formState.isDirty
+                  }
+                >
+                  {submitButtonText}
+                </ButtonWithLoading>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
       <DiscardChangesDialog
         open={showUnsavedChangesDialog}
         onOpenChange={setShowUnsavedChangesDialog}
         onDiscardChanges={handleDiscardChanges}
       />
     </>
+  );
+}
+
+function TransformToggle({
+  title,
+  description,
+  checked,
+  onCheckedChange,
+  children,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: VoidFunction;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border">
+      <div className="flex items-start justify-between gap-4 p-6">
+        <div className="space-y-1">
+          <h3 className="font-medium text-base">{title}</h3>
+          <p className="text-muted-foreground text-sm">{description}</p>
+        </div>
+        <Switch
+          type="button"
+          aria-label={title}
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
+      </div>
+      {checked && <div className="border-t p-6">{children}</div>}
+    </section>
   );
 }

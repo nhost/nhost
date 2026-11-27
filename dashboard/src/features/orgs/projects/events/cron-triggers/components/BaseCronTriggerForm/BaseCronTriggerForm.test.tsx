@@ -42,7 +42,7 @@ async function openForm(isEditing = false) {
   await user.click(screen.getByRole('button', { name: 'Open cron form' }));
   const dialog = within(await screen.findByRole('dialog'));
   const schedule = dialog.getByRole('textbox', {
-    name: 'Schedule (Cron Expression)',
+    name: 'Schedule',
   });
   return { user, onSubmit, dialog, schedule };
 }

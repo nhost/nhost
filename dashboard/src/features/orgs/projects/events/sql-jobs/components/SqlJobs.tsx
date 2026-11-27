@@ -1,15 +1,15 @@
 import {
   CircleOff,
-  Database,
   Plus,
   Settings,
+  SquareTerminal,
   TriangleAlert,
+  Webhook,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import SidebarNoticeRow from '@/components/layout/SidebarNoticeRow/SidebarNoticeRow';
-import SidebarSetupCard from '@/components/layout/SidebarSetupCard/SidebarSetupCard';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
@@ -113,7 +113,11 @@ export default function SqlJobs() {
   const timezone =
     state.data?.settings.find(({ name }) => name === 'cron.timezone')
       ?.setting ?? 'GMT';
-  const sqlError = catalog.error ?? state.error ?? running.error ?? jobs.error;
+  const sqlError =
+    catalog.error ??
+    state.error ??
+    running.error ??
+    (installed ? jobs.error : null);
   const sqlLoading =
     catalog.isLoading ||
     state.isLoading ||
@@ -203,6 +207,36 @@ export default function SqlJobs() {
         <RetryableErrorBoundary key={cronTriggerSlug}>
           <CronTriggerView />
         </RetryableErrorBoundary>
+      );
+    }
+    if (
+      kind === 'sql' &&
+      !sqlLoading &&
+      !sqlError &&
+      extension &&
+      !installed &&
+      !wrongDatabase
+    ) {
+      return (
+        <section className="grid min-h-full place-content-center justify-items-center gap-3 p-6 text-center">
+          <SquareTerminal
+            aria-hidden
+            className="size-12 text-muted-foreground"
+          />
+          <h2 className="font-medium text-2xl tracking-tight">
+            Turn on pg_cron
+          </h2>
+          <p className="max-w-sm text-muted-foreground">
+            SQL jobs run inside your database with the pg_cron extension. Turn
+            it on to start scheduling SQL.
+          </p>
+          <Button
+            className="mt-3"
+            onClick={() => setExtensionDialog('install')}
+          >
+            Enable pg_cron
+          </Button>
+        </section>
       );
     }
     if (settingsSelected || jobId || notice) {
@@ -303,6 +337,44 @@ export default function SqlJobs() {
         );
       }
     }
+    const webhookLanding = kind === 'webhook' && webhook.isSuccess;
+    const hasWebhooks = Boolean(webhook.data?.length);
+    const sqlLanding =
+      kind === 'sql' && installed && !wrongDatabase && jobs.isSuccess;
+    const hasSqlJobs = Boolean(jobs.data?.length);
+    if (webhookLanding || sqlLanding) {
+      const Icon = webhookLanding ? Webhook : SquareTerminal;
+      const hasJobs = webhookLanding ? hasWebhooks : hasSqlJobs;
+      const noun = webhookLanding ? 'webhook' : 'SQL';
+      return (
+        <section className="grid min-h-full place-content-center justify-items-center gap-3 p-6 text-center">
+          <Icon aria-hidden className="size-12 text-muted-foreground" />
+          <h2 className="font-medium text-2xl tracking-tight">
+            {hasJobs
+              ? `${noun === 'SQL' ? 'SQL' : 'Webhook'} jobs`
+              : `No ${noun} jobs yet`}
+          </h2>
+          <p className="max-w-sm text-muted-foreground">
+            {hasJobs
+              ? `Select a ${noun} job from the sidebar or create a new one.`
+              : webhookLanding
+                ? 'Create your first job to call a webhook URL on a schedule.'
+                : 'Create your first job to run a SQL command on a schedule.'}
+          </p>
+          {webhookLanding ? (
+            <CreateCronTriggerForm emptyState />
+          ) : (
+            <Button
+              className="mt-3"
+              disabled={!canCreateJob}
+              onClick={() => setForm({})}
+            >
+              Create SQL job
+            </Button>
+          )}
+        </section>
+      );
+    }
     return (
       <EventsEmptyState
         title="Cron jobs"
@@ -329,19 +401,21 @@ export default function SqlJobs() {
               <TabsList aria-label="Job type" className="h-9 w-full">
                 <TabsTrigger value="webhook" className="flex-1 gap-1.5 py-1">
                   Webhook
-                  {webhook.data && (
+                  {Boolean(webhook.data?.length) && (
                     <span className="font-normal text-muted-foreground text-xs">
-                      {webhook.data.length}
+                      {webhook.data?.length}
                     </span>
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="sql" className="flex-1 gap-1.5 py-1">
                   SQL
-                  {installed && !wrongDatabase && jobs.data && (
-                    <span className="font-normal text-muted-foreground text-xs">
-                      {jobs.data.length}
-                    </span>
-                  )}
+                  {installed &&
+                    !wrongDatabase &&
+                    Boolean(jobs.data?.length) && (
+                      <span className="font-normal text-muted-foreground text-xs">
+                        {jobs.data?.length}
+                      </span>
+                    )}
                 </TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-1 pt-1 empty:hidden">
@@ -370,7 +444,7 @@ export default function SqlJobs() {
                             <Button
                               variant="subtle"
                               size="icon-sm"
-                              aria-label="Scheduler settings"
+                              aria-label="SQL scheduler settings"
                               aria-current={
                                 settingsSelected ? 'page' : undefined
                               }
@@ -383,7 +457,9 @@ export default function SqlJobs() {
                               <Settings />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Scheduler settings</TooltipContent>
+                          <TooltipContent>
+                            SQL scheduler settings
+                          </TooltipContent>
                         </Tooltip>
                       )}
                     </>
@@ -435,48 +511,39 @@ export default function SqlJobs() {
                     ? 'Different database'
                     : 'pg_cron not available'}
                 </SidebarNoticeRow>
-              ) : !installed ? (
-                <SidebarSetupCard
-                  icon={<Database />}
-                  title="Turn on pg_cron"
-                  description="SQL jobs run inside your database with the pg_cron extension. Turn it on to start scheduling SQL."
-                  actionLabel="Enable pg_cron"
-                  onAction={() => {
-                    collapse();
-                    setExtensionDialog('install');
-                  }}
-                />
               ) : (
-                <>
-                  {notPreloaded && (
-                    <SidebarNoticeRow
-                      icon={<TriangleAlert />}
-                      tone="warning"
-                      onClick={() => {
-                        collapse();
-                        setExtensionDialog('preload');
-                      }}
-                    >
-                      Configure preload
-                    </SidebarNoticeRow>
-                  )}
-                  {jobs.data?.map((job) => (
-                    <CronJobListItem
-                      key={job.jobid}
-                      href={`${basePath}/sql/${job.jobid}`}
-                      name={job.jobname ?? `Job ${job.jobid}`}
-                      selected={job.jobid === jobId}
-                      schedule={describeCronSchedule(job.schedule)}
-                      paused={!job.active}
-                      onNavigate={collapse}
-                    />
-                  ))}
-                  {!jobs.data?.length && (
-                    <p className="p-2.5 text-muted-foreground text-sm">
-                      No SQL jobs yet
-                    </p>
-                  )}
-                </>
+                installed && (
+                  <>
+                    {notPreloaded && (
+                      <SidebarNoticeRow
+                        icon={<TriangleAlert />}
+                        tone="warning"
+                        onClick={() => {
+                          collapse();
+                          setExtensionDialog('preload');
+                        }}
+                      >
+                        Configure preload
+                      </SidebarNoticeRow>
+                    )}
+                    {jobs.data?.map((job) => (
+                      <CronJobListItem
+                        key={job.jobid}
+                        href={`${basePath}/sql/${job.jobid}`}
+                        name={job.jobname ?? `Job ${job.jobid}`}
+                        selected={job.jobid === jobId}
+                        schedule={describeCronSchedule(job.schedule)}
+                        paused={!job.active}
+                        onNavigate={collapse}
+                      />
+                    ))}
+                    {!jobs.data?.length && (
+                      <p className="p-2.5 text-muted-foreground text-sm">
+                        No SQL jobs yet
+                      </p>
+                    )}
+                  </>
+                )
               )}
             </TabsContent>
           </Tabs>
@@ -543,7 +610,7 @@ export default function SqlJobs() {
                   changeJob(confirmation.change, () => {
                     setConfirmation(null);
                     if (confirmation.returnToList) {
-                      router.push(basePath);
+                      router.push(`${basePath}?tab=sql`);
                     }
                   })
                 }

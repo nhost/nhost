@@ -19,12 +19,12 @@ export default function KeyValueQueryParams() {
         </h4>
         <Button
           type="button"
-          variant="subtle"
-          size="sm"
-          className="px-4"
+          variant="outline"
+          size="xs"
           onClick={() => append({ key: '', value: '' })}
         >
-          <Plus className="size-5" />
+          <Plus />
+          Add parameter
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -68,11 +68,12 @@ export default function KeyValueQueryParams() {
               <Button
                 type="button"
                 variant="subtle"
-                size="sm"
-                className="px-4"
+                size="icon-sm"
+                aria-label="Remove"
+                className="hover:text-destructive dark:hover:text-destructive"
                 onClick={() => remove(index)}
               >
-                <Trash className="size-4" />
+                <Trash />
               </Button>
             </div>
           </div>
