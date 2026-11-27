@@ -71,6 +71,7 @@ type ConfigAIUpdateInput struct {
 }
 
 type ConfigAuth struct {
+	Audience           *string                       `json:"audience,omitempty"`
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethod             `json:"method,omitempty"`
 	Misc               *ConfigAuthMisc               `json:"misc,omitempty"`
@@ -458,6 +459,7 @@ type ConfigAuthTotpUpdateInput struct {
 }
 
 type ConfigAuthUpdateInput struct {
+	Audience           *string                                  `json:"audience,omitempty"`
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethodUpdateInput             `json:"method,omitempty"`
 	Misc               *ConfigAuthMiscUpdateInput               `json:"misc,omitempty"`
