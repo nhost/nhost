@@ -18,6 +18,20 @@ interface SeverityPlanHelpProps {
   disabled?: boolean;
 }
 
+const TABBABLE_SELECTOR =
+  'a[href], button, input:not([type="hidden"]), select, textarea, [tabindex], [contenteditable="true"]';
+
+function tabbableElements(root: ParentNode) {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(TABBABLE_SELECTOR),
+  ).filter(
+    (element) =>
+      element.tabIndex >= 0 &&
+      !element.matches(':disabled') &&
+      !element.closest('[hidden], [inert]'),
+  );
+}
+
 // Use an interactive popover for this hover card so the billing link remains
 // reachable with Tab and the same information can be opened on touch screens.
 export default function SeverityPlanHelp({
@@ -113,6 +127,33 @@ export default function SeverityPlanHelp({
           event.preventDefault();
           button.current?.focus();
           setOpen(false);
+        }}
+        onKeyDown={(event) => {
+          // The content is portaled and Radix loops Tab inside it, so leaving
+          // its first or last tabbable element continues from the trigger.
+          if (event.key !== 'Tab') {
+            return;
+          }
+          const inside = tabbableElements(event.currentTarget);
+          const edge = event.shiftKey ? inside[0] : inside.at(-1);
+          if (event.target !== edge || !button.current) {
+            return;
+          }
+          event.preventDefault();
+          if (event.shiftKey) {
+            button.current.focus();
+            return;
+          }
+          const from = button.current;
+          const next = tabbableElements(document).find(
+            (element) =>
+              !!(
+                from.compareDocumentPosition(element) &
+                Node.DOCUMENT_POSITION_FOLLOWING
+              ) && !event.currentTarget.contains(element),
+          );
+          setOpen(false);
+          (next ?? from).focus();
         }}
         onPointerEnter={cancelClose}
         onPointerLeave={closeLater}

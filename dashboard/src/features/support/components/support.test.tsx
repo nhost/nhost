@@ -1044,6 +1044,37 @@ describe('native dashboard support', () => {
     expect(screen.queryByText('Unlock with')).not.toBeInTheDocument();
   });
 
+  it('lets keyboard users tab past the plan availability popover', async () => {
+    organizationSeverities = ['low'];
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    const help = screen.getByRole('button', {
+      name: 'Normal plan availability',
+    });
+    await user.pointer({ target: help });
+    const popup = await screen.findByRole('dialog', {
+      name: 'Normal plan availability',
+    });
+    const link = within(popup).getByRole('link', { name: 'See plans' });
+    act(() => help.focus());
+    await user.keyboard('{Tab}');
+    expect(link).toHaveFocus();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(help).toHaveFocus();
+    await user.keyboard('{Tab}');
+    expect(link).toHaveFocus();
+    await user.keyboard('{Tab}');
+    expect(
+      screen.getByRole('button', { name: 'High plan availability' }),
+    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Normal plan availability' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
   it('opens billing in a new tab to upgrade a Starter organization', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
