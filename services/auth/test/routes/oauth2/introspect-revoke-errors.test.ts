@@ -318,6 +318,9 @@ describe('introspect-revoke-errors', () => {
       iat: expect.any(Number),
       iss: issuer,
       token_type: 'access_token',
+      aud: ['https://local.nhost.run'],
+      sid: jose.decodeJwt(tokenResp.access_token).sid,
+      jti: jose.decodeJwt(tokenResp.access_token).jti,
     });
   });
 });

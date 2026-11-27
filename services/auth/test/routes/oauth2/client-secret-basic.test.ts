@@ -190,6 +190,7 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       client_id: clientId,
       scope: 'openid profile email',
       token_type: 'refresh_token',
+      sid: jose.decodeJwt(tokens.access_token).sid,
       exp: expect.any(Number),
       iat: expect.any(Number),
       iss: issuer,

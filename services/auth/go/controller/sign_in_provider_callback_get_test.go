@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"errors"
+	"net/url"
 	"testing"
 	"time"
 
@@ -96,6 +97,68 @@ func getStateWithFlowAndPKCE(
 	return state
 }
 
+func TestProviderCallbackStateAudience(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name, stateAudience, wantError string
+	}{
+		{"correct", "https://local.nhost.run", "oauth-provider-error"},
+		{"missing legacy audience", "", "oauth-provider-error"},
+		{"wrong audience", "https://other.example", "invalid-state"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			newDB := func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			}
+			_, signer := getController(
+				t, gomock.NewController(t), getConfig, newDB, withAudience(tc.stateAudience),
+			)
+			callback, _ := getController(
+				t, gomock.NewController(t), getConfig, newDB,
+				withAudience("https://local.nhost.run"),
+			)
+
+			resp, err := callback.SignInProviderCallbackGet(
+				t.Context(), api.SignInProviderCallbackGetRequestObject{
+					Provider: "fake",
+					Params: api.SignInProviderCallbackGetParams{
+						State: getState(t, signer, nil, api.SignUpOptions{}),
+						Error: new("upstream-denied"),
+					},
+				},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			redirect, ok := resp.(controller.ErrorRedirectResponse)
+			if !ok {
+				t.Fatalf("expected callback error redirect, got %T", resp)
+			}
+
+			location, err := url.Parse(redirect.Headers.Location)
+			if err != nil {
+				t.Fatalf("parsing callback redirect: %v", err)
+			}
+
+			if got := location.Query().Get("error"); got != tc.wantError {
+				t.Errorf("callback error = %q, want %q", got, tc.wantError)
+			}
+
+			if tc.wantError == "oauth-provider-error" {
+				if got := location.Query().Get("state"); got != "some-random-state" {
+					t.Errorf("decoded callback state = %q", got)
+				}
+			}
+		})
+	}
+}
+
 func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
@@ -106,6 +169,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		controller.ElevationConfig{},
 		nil,
 		"hasura-auth",
+		"",
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)
@@ -1292,6 +1356,29 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			getControllerOpts: nil,
 		},
 
+		{
+			name:   "connect - rejects session with wrong audience",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, new(signTestToken(
+						t, jwtGetter, userIDConnect, tokenpurpose.Session,
+						map[string]any{"aud": "another-project"},
+					)), api.SignUpOptions{RedirectTo: new("http://localhost:3000/connect-success")}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+			getControllerOpts: []getControllerOptsFunc{withAudience("project")},
+		},
 		{
 			name:   "connect - user not found",
 			config: getConfig,

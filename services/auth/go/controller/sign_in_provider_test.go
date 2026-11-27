@@ -10,6 +10,50 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestSignInProviderStateAudience(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name, audience, expected string
+	}{
+		{"configured", "https://local.nhost.run", "https://local.nhost.run/auth/provider-callback"},
+		{
+			"trailing slash",
+			"https://local.nhost.run/",
+			"https://local.nhost.run/auth/provider-callback",
+		},
+		{"unset", "", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c, getter := getController(
+				t, gomock.NewController(t), getConfig,
+				func(ctrl *gomock.Controller) controller.DBClient {
+					return mock.NewMockDBClient(ctrl)
+				},
+				withAudience(tc.audience),
+			)
+
+			resp, err := c.SignInProvider(t.Context(), api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{}, Provider: "fake",
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			redirect, ok := resp.(api.SignInProvider302Response)
+			if !ok {
+				t.Fatalf("expected provider redirect, got %T", resp)
+			}
+
+			assertProviderStateRedirectAudience(t, redirect.Headers.Location, getter, tc.expected)
+		})
+	}
+}
+
 func TestSignInProvider(t *testing.T) {
 	t.Parallel()
 

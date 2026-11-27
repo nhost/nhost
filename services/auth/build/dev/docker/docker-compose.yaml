@@ -25,6 +25,7 @@ services:
       AUTH_ENCRYPTION_KEY: 5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba
       AUTH_PORT: 4000
       AUTH_SERVER_URL: http://127.0.0.2:4000
+      AUTH_JWT_AUDIENCE: https://local.nhost.run
       AUTH_USER_DEFAULT_ALLOWED_ROLES: "me,user,editor"
       AUTH_SMTP_AUTH_METHOD: PLAIN
       AUTH_SMTP_HOST: mailhog

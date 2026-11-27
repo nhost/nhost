@@ -278,13 +278,57 @@ The table below compares their headers and claims. `typ` is a JWT header field; 
 |-------|---------------------------|---------------------|---------------|----------------------|
 | `typ` (header) | `nhost-session+jwt` | `at+jwt` | `JWT` | `nhost-provider-state+jwt` |
 | `sub` | User ID | User ID | User ID | — |
-| `aud` | — | OAuth2 client ID | OAuth2 client ID | — |
+| `aud` | Project audience when configured; otherwise omitted | Project audience when configured; otherwise OAuth2 client ID | OAuth2 client ID | Project audience with the `/auth/provider-callback` suffix when configured; otherwise omitted |
+| `client_id` | — | OAuth2 client ID | — | — |
+| `sid` | Session refresh-token record ID | OAuth2 refresh-token record ID | — | — |
+| `jti` | Unique access-token ID | Unique access-token ID | — | — |
 | `exp` | `iat` plus `auth.session.accessToken.expiresIn` | `iat` plus `auth.oauth2Provider.accessToken.expiresIn` | Same as the OAuth2 access token | `iat` plus one minute |
 | `scope` | — | Granted scopes as a space-separated string | — | — |
 | `https://hasura.io/jwt/claims` (default namespace) | User ID, allowed and default roles, anonymous status, custom claims, and `x-hasura-auth-elevated` after elevation | Included for `graphql` or `graphql:role:…`; roles follow the granted scopes | — | — |
 | Other claims | — | — | Identity claims; see [ID Token](/products/auth/oauth2-provider/tokens-and-scopes#id-token) | Internal sign-in state, not meant to be read by your code |
 
 Refresh tokens and personal access tokens (PATs) are opaque credentials with no JWT headers or claims. Signing in with a PAT creates a first-party session token.
+
+## Session Access Token Claims
+
+Auth-issued session access tokens include a payload like this (timestamps and IDs are illustrative):
+
+```json
+{
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "aud": "https://your-project.nhost.run",
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user", "me"],
+    "x-hasura-user-is-anonymous": "false"
+  }
+}
+```
+
+The JWT header has `typ: nhost-session+jwt`. The `sid` is the ID of the session's refresh-token record (`auth.refresh_tokens.id`); it stays the same when the session is refreshed. The `jti` is a new random UUID for **each** access token, including each refreshed token. Neither is the refresh token value itself. `aud` is a single project-audience string when configured, and is **omitted** when unset. See [OAuth2 tokens](/products/auth/oauth2-provider/tokens-and-scopes#access-token) for the different access-token audience and session ID used by OAuth2 clients.
+
+### Configuring the Audience
+
+With an Auth release that supports `AUTH_JWT_AUDIENCE`, set the audience in `nhost.toml` using a CLI release that supports `[auth].audience`:
+
+```toml
+[auth]
+audience = "https://your-project.nhost.run"
+```
+
+:::caution
+Before enabling an audience, align any `audience` in your Hasura JWT-secret configuration with the Auth audience; otherwise Hasura may reject newly issued tokens. Auth uses its own audience setting and does not derive it from Hasura's JWT secret.
+:::
+
+Enabling an audience also affects tokens issued before it was configured. During the upgrade transition, Auth accepts tokens without `aud`, older OAuth2 access tokens without `client_id`, and OAuth2 access tokens whose sole audience is their own `client_id`. This keeps existing tokens usable until their normal expiry while newly issued tokens receive the configured audience. Signature, issuer, expiry, and token-purpose checks still apply.
+
+Tokens carrying a different project audience are rejected unless they meet one of those compatibility exceptions. Clients can refresh to obtain tokens for the configured audience. Resource servers that enforce audience themselves may reject legacy tokens during the transition.
 
 ## Verify a JWT
 
