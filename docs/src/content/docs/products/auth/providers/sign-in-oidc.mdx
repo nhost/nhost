@@ -1,0 +1,212 @@
+---
+title: Sign In with OpenID Connect
+description: Configure a custom OpenID Connect provider for browser sign-in with PKCE or native sign-in with ID tokens.
+keywords: ["OpenID Connect", "OIDC", "identity provider", "Authentik", "PKCE", "account linking"]
+sidebar:
+  label: OpenID Connect (OIDC)
+---
+
+Use a custom OpenID Connect (OIDC) provider to let users sign in to your app with an existing identity provider (IdP) account. Nhost Auth verifies the identity and issues a Nhost session.
+
+Use an Auth build with generic OIDC support. To configure providers in `nhost.toml`, your CLI or hosted project must support `auth.method.oidc`. The JavaScript examples require an SDK build with the custom OIDC methods.
+
+## Register a client with your IdP
+
+1. Create a confidential client and copy its client ID and secret. Use the authorization code flow with `S256` PKCE and a GET callback in query response mode.
+2. Configure asymmetric ID token signing, such as `RS256`, with public signing keys available through JWKS. Auth supports `client_secret_basic` and `client_secret_post` for token exchange. It uses `client_secret_basic` when the discovery document lists both methods or omits the list.
+3. Make the IdP endpoints reachable from Auth over HTTPS. Auth requires public IP addresses for server-side requests to the discovery, token, JWKS, and UserInfo endpoints by default.
+4. Provide the user's `email` claim when they register. Return `email_verified` as `true` only after verifying that address. In the browser flow, if the ID token omits `email` and discovery advertises a UserInfo endpoint, Auth can read both email claims from a UserInfo response with the same subject (`sub`).
+
+### Register the Auth callback URL
+
+Choose a unique provider slug such as `example-idp`. Append `/signin/oidc/<slug>/callback` to the HTTPS base URL of your Auth service, including its `/v1` prefix. Register the resulting URL exactly with your IdP.
+
+| Auth service | Example callback URL |
+| --- | --- |
+| Nhost project | `https://<subdomain>.auth.<region>.nhost.run/v1/signin/oidc/example-idp/callback` |
+| Local development | `https://local.auth.local.nhost.run/v1/signin/oidc/example-idp/callback` |
+
+If your Auth URL uses a custom domain or port, include it in the registered callback. For local development with the CLI, use its HTTPS proxy. See [local development](/platform/cli/local-development).
+
+The IdP sends the user back to the Auth callback URL. Auth then redirects the browser to the `redirectTo` URL in your app, such as `https://app.example.com/auth/callback`. Add that URL to your project's redirect allowlist. See [Client and redirect URLs](/products/auth/client_and_redirect_urls).
+
+## Configure `nhost.toml`
+
+Add one `[[auth.method.oidc]]` block per provider in `nhost/nhost.toml`. The slug in the block must match the slug in the callback registered with your IdP.
+
+```toml title="nhost/nhost.toml"
+[[auth.method.oidc]]
+slug = "example-idp"
+issuer = "https://id.example.com/tenant"
+clientId = "my-project"
+clientSecret = "{{ secrets.OIDC_CLIENT_SECRET }}"
+```
+
+For local development, store the client secret as `OIDC_CLIENT_SECRET` in the `.secrets` file at your project root. Keep that file out of version control.
+
+```dotenv title=".secrets"
+OIDC_CLIENT_SECRET = 'replace-with-your-client-secret'
+```
+
+For local development, run `nhost config validate --subdomain local` and restart the local stack to load the provider.
+
+For a hosted project, add `OIDC_CLIENT_SECRET` to the project's secrets before deploying `nhost.toml`. See [Project secrets](/platform/cloud/secrets) and [Deployments](/platform/cloud/deployments).
+
+### Configuration options
+
+| Option | Required | Behavior |
+| --- | --- | --- |
+| `slug` | Yes | Unique identifier, 2–40 characters. Use lowercase ASCII letters, digits, and hyphens. Start and end with a letter or digit. |
+| `issuer` | Yes | HTTPS issuer URL without a query or fragment. Copy the exact `issuer` value from discovery, including any trailing slash. |
+| `clientId` | Yes | Client ID issued by the IdP. Browser ID tokens must target this client ID. |
+| `clientSecret` | Yes | Client secret issued by the IdP. Reference a project secret. |
+| `discoveryUrl` | No | Override the HTTPS discovery endpoint. By default, Auth appends `/.well-known/openid-configuration` to the issuer after removing a trailing slash. The document must still report the exact configured `issuer`. |
+| `scopes` | No | Defaults to `["openid", "email", "profile"]` when omitted or empty. A custom list must include `openid`. Request the scope that supplies `email` for registration. |
+| `audiences` | No | Additional allowed audiences for direct ID-token sign-in and sign-up. Auth always allows `clientId`. |
+| `disableNonce` | No | Defaults to `false`. Setting it to `true` disables nonce checks for browser and direct ID-token flows and reduces replay protection. Keep the default when your IdP supports nonces. |
+
+## Configure standalone Auth
+
+If you run Auth directly, set `AUTH_SERVER_URL` to your browser-facing HTTPS Auth URL, including `/v1` with the default API prefix. Set `AUTH_PROVIDER_OIDC` to a JSON object keyed by provider slug. Supply the value through your deployment's secret store with the IdP's client secret.
+
+```json title="AUTH_PROVIDER_OIDC"
+{
+  "example-idp": {
+    "issuer": "https://id.example.com/tenant",
+    "clientId": "my-project",
+    "clientSecret": "replace-with-your-client-secret"
+  }
+}
+```
+
+For a trusted IdP on a private network, a standalone Auth operator can set `AUTH_PROVIDER_OIDC_ALLOW_PRIVATE_IPS=true` to allow RFC 1918 and IPv6 unique-local addresses. Auth still requires HTTPS for those requests.
+
+## Browser sign-in
+
+Navigate to the URL returned by `nhost.auth.signInOidcURL()`. The URL starts the flow at `GET /v1/signin/oidc/<slug>` with a PKCE `codeChallenge` for your app. Auth runs a separate PKCE exchange with the IdP and returns a short-lived Auth `code` to your app. Use `nhost.auth.tokenExchange()` to send that code and your original verifier to `POST /v1/token/exchange`. See [PKCE and verification redirects](/products/auth/pkce).
+
+The example assumes `./nhost` exports a browser client created with `createClient()`. Call `startOidcSignIn()` from your sign-in button and `finishOidcSignIn()` on the `/auth/callback` page. The example stores one pending verifier per app origin. Complete the flow in the same browser and on the same origin.
+
+```js title="oidc.js"
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+import { nhost } from './nhost';
+
+const verifierKey = 'nhost_oidc_verifier';
+
+export async function startOidcSignIn() {
+  const { verifier, challenge } = await generatePKCEPair();
+  const redirectTo = new URL('/auth/callback', window.location.origin).href;
+  const url = nhost.auth.signInOidcURL('example-idp', {
+    codeChallenge: challenge,
+    redirectTo,
+  });
+
+  localStorage.setItem(verifierKey, verifier);
+  window.location.assign(url);
+}
+
+export async function finishOidcSignIn() {
+  const callback = new URL(window.location.href);
+  if (callback.searchParams.has('error')) {
+    localStorage.removeItem(verifierKey);
+    throw new Error('OpenID Connect sign-in failed. Start again.');
+  }
+
+  const code = callback.searchParams.get('code');
+  if (!code) {
+    return false;
+  }
+
+  const codeVerifier = localStorage.getItem(verifierKey);
+  if (!codeVerifier) {
+    throw new Error('Restart sign-in in this browser.');
+  }
+
+  localStorage.removeItem(verifierKey);
+  callback.searchParams.delete('code');
+  window.history.replaceState(null, '', callback);
+  await nhost.auth.tokenExchange({ code, codeVerifier });
+  return true;
+}
+```
+
+After `finishOidcSignIn()` returns `true`, the browser client has the Nhost session. If Auth sends a new user to the app while email verification is pending, the callback has no code. Keep the verifier and ask the user to open the verification link in the same browser. That link can complete the PKCE flow.
+
+For explicit registration, pass the same PKCE challenge and redirect URL to `nhost.auth.signUpOidcURL()`. This starts `GET /v1/signup/oidc/<slug>` and uses the same IdP callback as sign-in. Use this route when automatic sign-up is disabled and your project allows sign-up. See [controlling user creation](/products/auth/controlling-user-creation).
+
+## Native sign-in with ID tokens
+
+If your app obtains an ID token from the IdP, it can send the signed token to Nhost Auth directly. The token must target an allowed audience. Auth always allows the configured `clientId`. Add any separate native client IDs to `audiences`. A token with multiple audiences must list only allowed values and name one of them as its authorized party (`azp`).
+
+When nonce checks are enabled, generate a fresh random nonce for each request. Send its SHA-256 digest as a lowercase hexadecimal string in the IdP's `nonce` parameter. Pass the original nonce to Auth with the resulting ID token.
+
+Request the `email` scope and configure the IdP to put `email` in the ID token for new identities. Auth returns `oidc-email-required` if a new identity's token has no email claim. Auth can identify a returning user through an existing identity link.
+
+Call `signInOidcIdToken()` to send the token to `POST /v1/signin/oidc/<slug>/idtoken`.
+
+```js
+const { body } = await nhost.auth.signInOidcIdToken('example-idp', {
+  idToken,
+  nonce: originalNonce,
+});
+const session = body.session;
+```
+
+For explicit registration, use `signUpOidcIdToken()`, which sends the token to `POST /v1/signup/oidc/<slug>/idtoken`. When Turnstile is enabled, pass its response in the `x-cf-turnstile-response` request header. See [Bot protection](/products/auth/bot-protection).
+
+```js
+const { body } = await nhost.auth.signUpOidcIdToken(
+  'example-idp',
+  { idToken, nonce: originalNonce },
+  { headers: { 'x-cf-turnstile-response': turnstileResponse } },
+);
+const session = body.session;
+```
+
+Auth omits `body.session` when a new user is pending email verification or admin approval.
+
+## Account linking
+
+Auth looks up a linked identity by its provider slug, issuer (`iss`), and subject (`sub`). To use a custom OIDC identity with an existing Nhost account, sign in with the original method and link the identity explicitly, even when the email addresses match.
+
+Pass the signed-in user's Nhost access token as `connect` to `signInOidcURL()`. Supply an elevated access token if your project's policy requires it for `/link/idtoken`. See [elevated permissions](/products/auth/elevated-permissions).
+
+```js
+const session = nhost.getUserSession();
+if (!session) {
+  throw new Error('Sign in before linking an identity.');
+}
+
+const redirectTo = new URL('/settings/connections', window.location.origin).href;
+window.location.assign(
+  nhost.auth.signInOidcURL('example-idp', {
+    connect: session.accessToken,
+    redirectTo,
+  }),
+);
+```
+
+Allow the linking page in your project's redirect settings. When Auth redirects to it, check the `error` query parameter and continue using the existing session. The generated linking URL contains an access token. Navigate to it directly and keep it out of logs, analytics, and error reports.
+
+Keep the slug, issuer, and IdP subject identifiers stable for linked users. To move to a different issuer, configure a new slug and have users link it from their existing accounts.
+
+## Authentik example
+
+1. Create an Authentik application with the slug `nhost` and an OAuth2/OpenID provider with client type **Confidential**. Register the exact Auth callback for `example-idp`, and select an RSA signing key. See [creating an Authentik OAuth2 provider](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/create-oauth2-provider/).
+2. Use Authentik's per-provider issuer mode. For an instance at `https://sso.example.com`, set `issuer` in `nhost.toml` to `https://sso.example.com/application/o/nhost/`, including the final slash. Leave `discoveryUrl` unset so Auth uses `/application/o/nhost/.well-known/openid-configuration` on that host. See [Authentik issuer modes](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/#issuer-mode).
+3. Assign the `openid`, `email`, and `profile` scope mappings and enable **Include claims in id_token** so the email claim is available to native clients. Copy the provider's client ID into `clientId` and store its client secret in `OIDC_CLIENT_SECRET`. See [Authentik scope mappings](https://docs.goauthentik.io/add-secure-apps/providers/property-mappings/#scope-mappings-with-oauth2).
+4. Starting with Authentik 2025.10, the default email mapping returns `email_verified: false`. Use Nhost's email verification flow when your project requires it, or configure Authentik to assert verification based on verified addresses. See [verifying email addresses in Authentik](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/verify-email-address/).
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| Auth reports `disabled-endpoint` | Check that the slug matches `nhost.toml` and that the running Auth build has loaded the provider. |
+| The IdP rejects the callback URL | Compare the scheme, host, port, and path with the registered Auth callback. Check that your app's separate `redirectTo` URL is allowed in Nhost. |
+| Auth cannot start authorization or exchange the IdP code | Check the client credentials, HTTPS reachability from Auth, exact discovery issuer, and the IdP's signing key and token endpoint authentication method. Make sure the IdP returns the requested nonce. |
+| Auth returns `invalid-state` | Restart sign-in and complete it before the short-lived flow expires. Check that the browser accepts Auth's secure cookie and that sign-in and the IdP callback use the same Auth host. |
+| The app receives no code after registration | Check whether email verification or admin approval is pending. |
+| Auth returns `oidc-email-required` | Check that the requested scopes supply `email`. For native requests, check that the claim is in the ID token. |
+| The email is already in use | Sign in with the user's existing method and link the OIDC identity from that session. |
+| Auth reports that the slug is registered to a different issuer | Restore the original issuer for that slug or use a new slug for the new issuer. |
+| The app cannot exchange the Auth code | Check that the original verifier is available on the callback page's origin. Start a new sign-in if the code has expired or was already used. |

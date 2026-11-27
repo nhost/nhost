@@ -419,6 +419,7 @@ export default defineConfig({
                       items: [
                         { slug: 'products/auth/providers' },
                         { slug: 'products/auth/providers/sign-in-provider' },
+                        { slug: 'products/auth/providers/sign-in-oidc' },
                         { slug: 'products/auth/providers/tokens' },
                         { slug: 'products/auth/providers/connect' },
                         { slug: 'products/auth/providers/idtokens' },
