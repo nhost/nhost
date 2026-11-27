@@ -24,6 +24,9 @@ export default function GraphQLRouteTabs() {
       <RouteTabLink href={`${projectPath}/graphql`} exact>
         Playground
       </RouteTabLink>
+      <RouteTabLink href={`${projectPath}/graphql/schema`} exact>
+        Schema
+      </RouteTabLink>
       <RouteTabLink href={`${projectPath}/graphql/remote-schemas`}>
         Remote Schemas
       </RouteTabLink>
