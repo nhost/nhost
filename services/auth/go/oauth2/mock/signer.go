@@ -17,6 +17,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/google/uuid"
+	tokenpurpose "github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -105,31 +106,31 @@ func (mr *MockSignerMockRecorder) RawGraphQLClaims(ctx, userID, isAnonymous, all
 }
 
 // SignTokenWithClaims mocks base method.
-func (m *MockSigner) SignTokenWithClaims(claims jwt.MapClaims, exp time.Time) (string, error) {
+func (m *MockSigner) SignTokenWithClaims(claims jwt.MapClaims, exp time.Time, purpose tokenpurpose.Purpose) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignTokenWithClaims", claims, exp)
+	ret := m.ctrl.Call(m, "SignTokenWithClaims", claims, exp, purpose)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignTokenWithClaims indicates an expected call of SignTokenWithClaims.
-func (mr *MockSignerMockRecorder) SignTokenWithClaims(claims, exp any) *gomock.Call {
+func (mr *MockSignerMockRecorder) SignTokenWithClaims(claims, exp, purpose any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTokenWithClaims", reflect.TypeOf((*MockSigner)(nil).SignTokenWithClaims), claims, exp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTokenWithClaims", reflect.TypeOf((*MockSigner)(nil).SignTokenWithClaims), claims, exp, purpose)
 }
 
 // Validate mocks base method.
-func (m *MockSigner) Validate(token string) (*jwt.Token, error) {
+func (m *MockSigner) Validate(token string, purpose tokenpurpose.Purpose) (*jwt.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Validate", token)
+	ret := m.ctrl.Call(m, "Validate", token, purpose)
 	ret0, _ := ret[0].(*jwt.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Validate indicates an expected call of Validate.
-func (mr *MockSignerMockRecorder) Validate(token any) *gomock.Call {
+func (mr *MockSignerMockRecorder) Validate(token, purpose any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockSigner)(nil).Validate), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockSigner)(nil).Validate), token, purpose)
 }

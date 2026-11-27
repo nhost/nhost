@@ -11,6 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 func (ctrl *Controller) getSigninProviderValidateRequest(
@@ -81,6 +82,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 			"codeChallenge": req.Params.CodeChallenge,
 		},
 		time.Now().Add(time.Minute),
+		tokenpurpose.ProviderState,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error signing state token", logError(err))

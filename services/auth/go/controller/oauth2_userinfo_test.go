@@ -26,7 +26,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 			Method: jwt.SigningMethodHS256,
 			Header: map[string]any{
 				"alg": "HS256",
-				"typ": "JWT",
+				"typ": "at+jwt",
 			},
 			Claims: jwt.MapClaims{
 				"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
@@ -122,7 +122,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "at+jwt",
 					},
 					Claims: jwt.MapClaims{
 						"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
@@ -176,7 +176,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "at+jwt",
 					},
 					Claims: jwt.MapClaims{
 						"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
@@ -245,7 +245,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 			Method: jwt.SigningMethodHS256,
 			Header: map[string]any{
 				"alg": "HS256",
-				"typ": "JWT",
+				"typ": "at+jwt",
 			},
 			Claims: jwt.MapClaims{
 				"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
@@ -341,7 +341,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "at+jwt",
 					},
 					Claims: jwt.MapClaims{
 						"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
@@ -395,7 +395,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "at+jwt",
 					},
 					Claims: jwt.MapClaims{
 						"exp":   float64(time.Now().Add(900 * time.Second).Unix()),
