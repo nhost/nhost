@@ -62,14 +62,19 @@ import {
 } from '@/generated/graphql';
 
 const SUGGESTION_LIMIT = 8;
+const PLACE_SUGGESTION_LIMIT = 3;
 
 function ticketSuggestions(
   rows: DashboardSupportTicketsQuery['supportTickets'],
+  query: string,
 ): InputSuggestion[] {
   const tickets = rows.map((ticket) => ({
     label: ticket.title,
     value: `#${ticket.number}`,
   }));
+  // Rows also match on their title or number, so only offer the organization
+  // and project names that contain the query, and leave room for tickets.
+  const normalizedQuery = query.toLowerCase();
   const places = [
     ...new Set(
       rows.flatMap((ticket) =>
@@ -78,7 +83,10 @@ function ticketSuggestions(
           : [ticket.organizationName],
       ),
     ),
-  ].map((name) => ({ label: name, value: name }));
+  ]
+    .filter((name) => name.toLowerCase().includes(normalizedQuery))
+    .slice(0, PLACE_SUGGESTION_LIMIT)
+    .map((name) => ({ label: name, value: name }));
   return [...places, ...tickets].slice(0, SUGGESTION_LIMIT);
 }
 
@@ -337,7 +345,7 @@ export default function TicketList() {
               value={query}
               maxLength={200}
               onChange={setQuery}
-              suggestions={ticketSuggestions(suggestionRows)}
+              suggestions={ticketSuggestions(suggestionRows, suggestionQuery)}
               filterSuggestions={false}
               onSuggestionSelect={(value) => {
                 const ticket = suggestionRows.find(

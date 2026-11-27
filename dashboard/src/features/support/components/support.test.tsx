@@ -739,6 +739,71 @@ describe('native dashboard support', () => {
     rerender(<TicketList />);
     await waitFor(() => expect(suggestionRequests(true)).not.toHaveLength(0));
   });
+  describe('search suggestions', () => {
+    const organizations = ['Acme', 'Globex', 'Initech', 'Hooli'];
+    const matches = organizations.map((organizationName, index) => ({
+      ...ticket,
+      id: `ticket-${organizationName.toLowerCase()}`,
+      number: 100 + index,
+      title: `Function timeout in ${organizationName}`,
+      organizationName,
+      projectName: `${organizationName} production`,
+    }));
+    const optionTexts = () =>
+      screen.queryAllByRole('option').map((option) => option.textContent);
+    beforeEach(() => {
+      makeAgent();
+      server.use(
+        nhostGraphQLLink.query('dashboardSupportTickets', () =>
+          HttpResponse.json({ data: { supportTickets: matches } }),
+        ),
+      );
+    });
+
+    it('lists matching tickets, not the names of their organizations and projects', async () => {
+      const user = new TestUserEvent();
+      render(<TicketList />);
+      await screen.findByRole('link', { name: /Function timeout in Acme/ });
+      await user.type(
+        screen.getByRole('combobox', { name: 'Search tickets' }),
+        'timeout',
+      );
+      await waitFor(() =>
+        expect(optionTexts()).toEqual(
+          matches.map(({ title, number }) => `${title}#${number}`),
+        ),
+      );
+      await user.click(
+        screen.getByRole('option', { name: /Function timeout in Globex/ }),
+      );
+      expect(push).toHaveBeenCalledWith('/support/tickets/ticket-globex');
+    });
+
+    it('offers organization and project names that contain the search', async () => {
+      const user = new TestUserEvent();
+      render(<TicketList />);
+      await screen.findByRole('link', { name: /Function timeout in Acme/ });
+      await user.type(
+        screen.getByRole('combobox', { name: 'Search tickets' }),
+        'globex',
+      );
+      await waitFor(() =>
+        expect(optionTexts().slice(0, 3)).toEqual([
+          'Globex',
+          'Globex production',
+          'Function timeout in Acme#100',
+        ]),
+      );
+      await user.click(screen.getByRole('option', { name: 'Globex' }));
+      expect(replace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ q: 'Globex', organization: '' }),
+        }),
+        undefined,
+        { shallow: true },
+      );
+    });
+  });
   it('loads the customer queue using the native user role and opens tickets in-app', async () => {
     render(<TicketList />);
     const link = await screen.findByRole(
