@@ -74,8 +74,7 @@ const fn = {
   updatedAt: '2026-04-02T00:00:00Z',
 };
 
-const PAYWALL_TITLE =
-  'To unlock Function Metrics, transfer this project to a Pro or Team organization.';
+const PAYWALL_TITLE = 'Unlock this feature with Nhost Pro';
 
 // All metrics series empty → MetricsTab reaches its data branch and every
 // chart/table shows "No data available." without mounting Recharts.

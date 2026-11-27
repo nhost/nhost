@@ -1,6 +1,8 @@
+import { UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -226,11 +228,7 @@ function SMTPSettingsTab() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeToProBanner
-          section="settings-smtp"
-          title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="settings-smtp" icon={UserIcon} />
       </div>
     );
   }
@@ -378,13 +376,7 @@ function AuthCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />;
   }
 
   if (error) {
@@ -454,7 +446,8 @@ function AuthSettingsSidebar() {
             OAuth2 Provider
           </AreaSidebarLink>
           <AreaSidebarLink href={`${settingsPath}?tab=smtp`} exact shallow>
-            SMTP
+            <span>SMTP</span>
+            <ProTag />
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Users and access">
@@ -482,7 +475,8 @@ function AuthSettingsSidebar() {
             exact
             shallow
           >
-            Custom Domain
+            <span>Custom Domain</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${settingsPath}?tab=rate-limiting`}

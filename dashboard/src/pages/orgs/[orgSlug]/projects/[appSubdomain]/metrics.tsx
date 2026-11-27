@@ -1,8 +1,11 @@
-import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
+import {
+  ExternalLink as ArrowSquareOutIcon,
+  ChartLineIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
@@ -50,11 +53,7 @@ function MetricsPageContent() {
         className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="metrics"
-          title="To unlock Grafana Metrics & Alerts, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="metrics" icon={ChartLineIcon} />
       </Container>
     );
   }

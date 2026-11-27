@@ -1,6 +1,8 @@
+import { CodeIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -41,13 +43,7 @@ function FunctionsCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />;
   }
 
   if (error) {
@@ -116,7 +112,8 @@ function FunctionsSettingsSidebar() {
             shallow
             scroll={false}
           >
-            Custom Domain
+            <span>Custom Domain</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${settingsPath}?tab=rate-limiting`}

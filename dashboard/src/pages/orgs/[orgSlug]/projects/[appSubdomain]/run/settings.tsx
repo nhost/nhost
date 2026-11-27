@@ -1,6 +1,8 @@
+import { SiDocker } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -64,13 +66,7 @@ function RunCustomDomainSettings() {
   const { services, loading, error } = useAllRunServices();
 
   if (isPlatform && org?.plan?.isFree) {
-    return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={SiDocker} />;
   }
 
   if (loadingProject || !project?.id || loading) {
@@ -174,7 +170,8 @@ function RunSettingsSidebar() {
             shallow
             scroll={false}
           >
-            Custom Domain
+            <span>Custom Domain</span>
+            <ProTag />
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${settingsPath}?tab=rate-limiting`}

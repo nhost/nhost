@@ -1,8 +1,9 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { Clock, Code, FileCode, History } from 'lucide-react';
+import { Clock, CodeIcon, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import {
@@ -94,7 +95,7 @@ export default function FunctionDetailsPanel({
         <div className="pb-4">
           <div className="flex items-start gap-3">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-              <Code className="h-6 w-6 text-foreground" />
+              <CodeIcon className="h-6 w-6 text-foreground" />
             </div>
             <div className="min-w-0">
               <h1 className="mb-1 font-semibold text-foreground text-xl">
@@ -151,7 +152,8 @@ export default function FunctionDetailsPanel({
             <TabsTrigger value="execute">Execute</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
             <TabsTrigger value="metrics" disabled={!isPlatform}>
-              Metrics
+              <span>Metrics</span>
+              <ProTag />
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -185,10 +187,9 @@ export default function FunctionDetailsPanel({
               className="grid grid-flow-row gap-6 bg-transparent"
               rootClassName="bg-transparent"
             >
-              <UpgradeToProBanner
+              <UpgradeBanner
                 section="serverless-functions-metrics"
-                title="To unlock Function Metrics, transfer this project to a Pro or Team organization."
-                description=""
+                icon={CodeIcon}
               />
             </Container>
           ) : (

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { ProTag } from '@/components/common/ProTag';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -21,7 +22,7 @@ export default function DatabaseSettingsNavigation() {
   const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/database/settings`;
 
   return (
-    <AreaSidebarRoot>
+    <AreaSidebarRoot data-wide-sidebar className="md:w-72">
       <AreaSidebarNav ariaLabel="Database settings navigation">
         <AreaSidebarGroup label="Engine">
           <AreaSidebarLink href={`${settingsPath}?tab=version`} exact shallow>
@@ -30,7 +31,8 @@ export default function DatabaseSettingsNavigation() {
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Storage">
           <AreaSidebarLink href={`${settingsPath}?tab=capacity`} exact shallow>
-            Capacity
+            <span>Capacity</span>
+            <ProTag />
           </AreaSidebarLink>
           {isPlatform && (
             <AreaSidebarLink
@@ -38,7 +40,8 @@ export default function DatabaseSettingsNavigation() {
               exact
               shallow
             >
-              Point-in-Time Recovery
+              <span>Point-in-Time Recovery</span>
+              <ProTag />
             </AreaSidebarLink>
           )}
         </AreaSidebarGroup>
@@ -57,7 +60,8 @@ export default function DatabaseSettingsNavigation() {
                 exact
                 shallow
               >
-                Custom Domain
+                <span>Custom Domain</span>
+                <ProTag />
               </AreaSidebarLink>
             </AreaSidebarGroup>
             <AreaSidebarGroup label="Security">

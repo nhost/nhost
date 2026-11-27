@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -73,7 +74,8 @@ function ProjectSettingsSidebar() {
             shallow
             scroll={false}
           >
-            Compute Resources
+            <span>Compute Resources</span>
+            <ProTag />
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Configuration">

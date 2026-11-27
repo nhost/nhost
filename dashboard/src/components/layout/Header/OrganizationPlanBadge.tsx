@@ -3,7 +3,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { Organization_Status_Enum } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
 
-const PLAN_TONES: Record<string, string> = {
+export const PLAN_TONES: Record<string, string> = {
   Starter: 'border-foreground/15 bg-foreground/[0.06] text-foreground/80',
   Pro: 'border-primary/20 bg-primary/[0.07] text-primary',
   Team: 'border-brand-violet/20 bg-brand-violet/[0.08] text-brand-violet',

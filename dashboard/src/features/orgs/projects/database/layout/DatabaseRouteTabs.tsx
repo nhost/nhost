@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { ProTag } from '@/components/common/ProTag';
 import {
   RouteTabLink,
   RouteTabSeparator,
@@ -42,7 +43,8 @@ export default function DatabaseRouteTabs() {
         href={`${projectPath}/database/backups`}
         disabled={!isPlatform}
       >
-        Backups
+        <span>Backups</span>
+        <ProTag />
       </RouteTabLink>
       <RouteTabSeparator />
       <RouteTabLink

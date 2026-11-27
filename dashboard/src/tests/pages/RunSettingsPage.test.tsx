@@ -84,8 +84,7 @@ const server = setupServer(
 const SETTINGS_ROUTE = '/orgs/[orgSlug]/projects/[appSubdomain]/run/settings';
 const PROJECT_PATH = '/orgs/xyz/projects/test-project';
 const LOCAL_PROJECT_PATH = '/orgs/local/projects/local';
-const UPGRADE_TEXT =
-  'To unlock Custom Domains, transfer this project to a Pro or Team organization.';
+const UPGRADE_TEXT = 'Unlock this feature with Nhost Pro';
 
 interface SetTabOptions {
   isReady?: boolean;

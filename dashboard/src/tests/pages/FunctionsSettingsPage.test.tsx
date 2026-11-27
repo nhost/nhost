@@ -235,9 +235,7 @@ describe('FunctionsSettingsPage content', () => {
     render(FunctionsSettingsPage.getLayout(<FunctionsSettingsPage />));
 
     expect(
-      await screen.findByText(
-        'To unlock Custom Domains, transfer this project to a Pro or Team organization.',
-      ),
+      await screen.findByText('Unlock this feature with Nhost Pro'),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
@@ -256,9 +254,7 @@ describe('FunctionsSettingsPage content', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(
-        'To unlock Custom Domains, transfer this project to a Pro or Team organization.',
-      ),
+      screen.queryByText('Unlock this feature with Nhost Pro'),
     ).not.toBeInTheDocument();
   });
 

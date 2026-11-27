@@ -15,6 +15,7 @@ import {
   UserIcon,
   ZapIcon,
 } from 'lucide-react';
+import { ProTag } from '@/components/common/ProTag';
 import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
 import { NavigationList } from '@/components/layout/NavigationList';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -76,6 +77,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="AI"
+          tag={<ProTag />}
           href={`${baseHref}/ai/assistants`}
           icon={<SparklesIcon className={iconClassName} />}
           activePath={`${baseHref}/ai`}
@@ -92,6 +94,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="Run"
+          tag={<ProTag />}
           href={`${baseHref}/run`}
           icon={<ServicesIcon className={iconClassName} />}
         />
@@ -117,6 +120,7 @@ export default function ProjectNavigation() {
         />
         <NavigationList.Item
           label="Metrics"
+          tag={<ProTag />}
           href={
             isPlatform ? `${baseHref}/metrics` : `${baseHref}/metrics/settings`
           }
