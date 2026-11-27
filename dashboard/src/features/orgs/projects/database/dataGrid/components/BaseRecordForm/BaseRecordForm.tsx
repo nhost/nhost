@@ -7,7 +7,12 @@ import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/data
 import type {
   ColumnInsertOptions,
   DataBrowserColumnMetadata,
+  ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  getPickerRelations,
+  requiresRecordValue,
+} from '@/features/orgs/projects/database/dataGrid/utils/foreignKeyPicker';
 import { getColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -17,6 +22,7 @@ export interface BaseRecordFormProps extends DialogFormProps {
    * The columns of the table.
    */
   columns: DataBrowserColumnMetadata[];
+  foreignKeyRelations?: ForeignKeyRelation[];
   /**
    * Function to be called when the form is submitted.
    */
@@ -41,6 +47,7 @@ export interface BaseRecordFormProps extends DialogFormProps {
 
 export default function BaseRecordForm({
   columns,
+  foreignKeyRelations = [],
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
@@ -49,6 +56,17 @@ export default function BaseRecordForm({
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const generatedColumnsCount = columns.filter((c) => c.isGenerated).length;
+  const pickerRelations = getPickerRelations(columns, foreignKeyRelations);
+  const requiredRelationColumns = new Set(
+    pickerRelations
+      .filter((relation) =>
+        columns.some(
+          (column) =>
+            relation.columns.includes(column.id) && requiresRecordValue(column),
+        ),
+      )
+      .flatMap((relation) => relation.columns),
+  );
 
   const { requiredColumns, optionalColumns } = columns.reduce<{
     requiredColumns: DataBrowserColumnMetadata[];
@@ -60,8 +78,8 @@ export default function BaseRecordForm({
       }
 
       if (
-        column.isPrimary ||
-        (!column.isNullable && !column.defaultValue && !column.isIdentity)
+        requiresRecordValue(column) ||
+        requiredRelationColumns.has(column.id)
       ) {
         return {
           ...accumulator,
@@ -139,6 +157,7 @@ export default function BaseRecordForm({
         {requiredColumns.length > 0 && (
           <DatabaseRecordInputGroup
             columns={requiredColumns}
+            pickerRelations={pickerRelations}
             className="px-6"
             autoFocusFirstInput
           />
@@ -149,6 +168,7 @@ export default function BaseRecordForm({
             title="Optional columns"
             description="These columns are nullable and don't require a value."
             columns={optionalColumns}
+            pickerRelations={pickerRelations}
             autoFocusFirstInput={requiredColumns.length === 0}
             className={cn(
               'px-6 pt-3',

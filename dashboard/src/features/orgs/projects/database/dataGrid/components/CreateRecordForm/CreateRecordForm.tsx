@@ -15,7 +15,10 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { triggerToast } from '@/utils/toast';
 
 export interface CreateRecordFormProps
-  extends Pick<BaseRecordFormProps, 'columns' | 'onCancel' | 'location'> {
+  extends Pick<
+    BaseRecordFormProps,
+    'columns' | 'onCancel' | 'location' | 'foreignKeyRelations'
+  > {
   /**
    * Function to be called when the form is submitted.
    */
