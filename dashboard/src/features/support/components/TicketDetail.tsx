@@ -292,6 +292,7 @@ export default function TicketDetail() {
                     <span className="flex min-w-0 items-center gap-2 text-sm">
                       <Avatar
                         className="h-6 w-6 text-[0.625rem]"
+                        name={ticket.assigneeName}
                         fallback={supportInitials(ticket.assigneeName)}
                       />
                       <span className="truncate">

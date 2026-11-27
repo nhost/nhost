@@ -1490,6 +1490,19 @@ describe('native dashboard support', () => {
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
   });
+  it('uses the same initials and avatar color for the same person in the conversation and assignee panel', async () => {
+    ticket.assigneeName = ticket.requesterName;
+    render(<TicketDetail />);
+    const conversation = within(
+      await screen.findByRole('region', { name: 'Conversation' }),
+    );
+    const author = within(conversation.getByRole('list')).getByText('CA');
+    const assignee = within(
+      screen.getByRole('region', { name: 'Assignee' }),
+    ).getByText('CA');
+    expect(author).not.toHaveClass('bg-grey-500');
+    expect(author.className).toBe(assignee.className);
+  });
   it('shows the organization slug, project slug, and plan in Details', async () => {
     render(<TicketDetail />);
     const details = within(

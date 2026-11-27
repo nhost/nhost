@@ -25,4 +25,26 @@ describe('Avatar', () => {
 
     expect(screen.getByText('JD')).toBeInTheDocument();
   });
+
+  it('picks a stable color from the full name, not just the initials', () => {
+    render(
+      <>
+        <Avatar name="Jane Doe" fallback="JD" />
+        <Avatar name=" jane doe " fallback="JD" />
+        <Avatar name="John Doe" fallback="JD" />
+      </>,
+    );
+
+    const [jane, sameJane, john] = screen.getAllByText('JD');
+    expect(jane).not.toHaveClass('bg-grey-500');
+    expect(jane).not.toHaveClass('dark:bg-muted');
+    expect(jane.className).toBe(sameJane.className);
+    expect(jane.className).not.toBe(john.className);
+  });
+
+  it('keeps the neutral background when no name is available', () => {
+    render(<Avatar fallback="?" />);
+
+    expect(screen.getByText('?')).toHaveClass('bg-grey-500', 'dark:bg-muted');
+  });
 });

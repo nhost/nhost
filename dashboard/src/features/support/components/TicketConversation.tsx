@@ -70,6 +70,7 @@ export default function TicketConversation({
   disabled,
 }: TicketConversationProps) {
   const { user, isAgent, role, queryKey, request } = useSupportSession();
+  const replyAuthorName = user?.displayName || 'You';
   const attachmentScope = useMemo(() => ({ ticketId }), [ticketId]);
   const [attachmentPanel, setAttachmentPanel] = useState<HTMLDivElement | null>(
     null,
@@ -217,6 +218,7 @@ export default function TicketConversation({
                       ) : (
                         <Avatar
                           className="h-9 w-9"
+                          name={message.authorName}
                           fallback={supportInitials(message.authorName)}
                         />
                       )}
@@ -289,7 +291,8 @@ export default function TicketConversation({
                   ) : (
                     <Avatar
                       className="h-9 w-9"
-                      fallback={supportInitials(user?.displayName || 'You')}
+                      name={replyAuthorName}
+                      fallback={supportInitials(replyAuthorName)}
                     />
                   )}
                 </div>
