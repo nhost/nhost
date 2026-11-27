@@ -24,6 +24,31 @@ const nextConfig = {
       },
     ]
   },
+  // POC: landing is the front door for nhost.com/{dashboard,docs} (nhost/projects#277).
+  async rewrites() {
+    return [
+      // The dashboard is built with basePath '/dashboard', so keep the prefix.
+      {
+        source: '/dashboard',
+        destination:
+          'https://dashboard-staging-4ue5d8cd6-nhost.vercel.app/dashboard',
+      },
+      {
+        source: '/dashboard/:path*',
+        destination:
+          'https://dashboard-staging-4ue5d8cd6-nhost.vercel.app/dashboard/:path*',
+      },
+      // On Vercel the docs build is served at the root, so strip '/docs'.
+      {
+        source: '/docs',
+        destination: 'https://docs-3zow0fvov-nhost.vercel.app/',
+      },
+      {
+        source: '/docs/:path*',
+        destination: 'https://docs-3zow0fvov-nhost.vercel.app/:path*',
+      },
+    ]
+  },
   async redirects() {
     return [
       // Page 1 of a blog listing lives at its base path.

@@ -92,6 +92,9 @@ const legacyProjectRedirects = [
   permanent: true,
 }));
 
+// POC: serve the dashboard under nhost.com/dashboard (nhost/projects#277).
+const basePath = '/dashboard';
+
 module.exports = withBundleAnalyzer({
   turbopack: {},
   experimental: {
@@ -99,6 +102,10 @@ module.exports = withBundleAnalyzer({
     // bootstrap into the HTML, which our CSP (no 'unsafe-inline') blocks.
     turbopackSharedRuntime: false,
   },
+  basePath,
+  // Exposes basePath to code that must prefix public/ paths itself, such as
+  // _document.tsx, where useRouter() is not available.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   reactStrictMode: false,
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../'),
