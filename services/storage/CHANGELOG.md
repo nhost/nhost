@@ -1,3 +1,9 @@
+## [storage@0.17.1] - 2026-11-27
+
+### ⚙️ Miscellaneous Tasks
+
+- *(storage)* Fix clamd image build (#5439)
+
 ## [storage@0.17.0] - 2026-11-23
 
 ### 🚀 Features
