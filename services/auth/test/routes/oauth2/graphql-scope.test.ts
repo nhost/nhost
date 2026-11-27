@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'bun:test';
+import { beforeAll, describe, expect, it } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
-import * as jose from 'jose';
 import { randomBytes } from 'crypto';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -48,7 +48,9 @@ async function getTokens(
   });
 
   const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
-  const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+  const requestId = new URL(authResp.headers.get('location')!).searchParams.get(
+    'request_id',
+  )!;
 
   const { body: loginResp } = await nhost.auth.oauth2LoginPost(
     { requestId },
@@ -80,7 +82,7 @@ describe('oauth2-scope-claims', () => {
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       AUTH_OAUTH2_PROVIDER_ENABLED: true,
-      AUTH_JWT_CUSTOM_CLAIMS: JSON.stringify({"displayName": "displayName"}),
+      AUTH_JWT_CUSTOM_CLAIMS: JSON.stringify({ displayName: 'displayName' }),
     });
 
     try {
@@ -109,7 +111,9 @@ describe('oauth2-scope-claims', () => {
     clientSecret = generateSecret();
     const secretHash = await hashSecret(clientSecret);
 
-    const { body: { data } } = await nhost.graphql.request<{
+    const {
+      body: { data },
+    } = await nhost.graphql.request<{
       insertAuthOauth2Client: { clientId: string };
     }>(
       {
@@ -135,7 +139,12 @@ describe('oauth2-scope-claims', () => {
   // --- Access token: graphql scope controls Hasura claims ---
 
   it('access token should contain Hasura claims when graphql scope is present', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid graphql');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid graphql',
+    );
     const payload = jose.decodeJwt(tokenResp.access_token);
 
     expect(payload).toEqual({
@@ -159,7 +168,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('access token should omit Hasura claims when graphql scope is absent', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile email');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile email',
+    );
     const payload = jose.decodeJwt(tokenResp.access_token);
 
     expect(payload).toEqual({
@@ -194,7 +208,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('id token should contain email claims with email scope', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid email');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid email',
+    );
     const idToken = tokenResp.id_token!;
     const payload = jose.decodeJwt(idToken);
 
@@ -212,7 +231,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('id token should contain profile claims with profile scope', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile',
+    );
     const idToken = tokenResp.id_token!;
     const payload = jose.decodeJwt(idToken);
 
@@ -231,7 +255,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('id token should omit phone claims when user has no phone number', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid phone');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid phone',
+    );
     const idToken = tokenResp.id_token!;
     const payload = jose.decodeJwt(idToken);
 
@@ -247,7 +276,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('id token should contain both profile and email claims when both scopes present', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile email');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile email',
+    );
     const idToken = tokenResp.id_token!;
     const payload = jose.decodeJwt(idToken);
 
@@ -270,7 +304,12 @@ describe('oauth2-scope-claims', () => {
   // --- Combined: graphql + OIDC scopes ---
 
   it('graphql scope should not affect id token claims', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile email graphql');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile email graphql',
+    );
 
     // ID token should have profile + email, but no Hasura claims
     const idPayload = jose.decodeJwt(tokenResp.id_token!);
@@ -303,7 +342,12 @@ describe('oauth2-scope-claims', () => {
   // --- Userinfo: graphql scope includes Hasura claims ---
 
   it('userinfo should contain Hasura claims when graphql scope is present', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile graphql');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile graphql',
+    );
 
     const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
       headers: { Authorization: `Bearer ${tokenResp.access_token}` },
@@ -325,7 +369,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('userinfo should omit Hasura claims when graphql scope is absent', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile',
+    );
 
     const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
       headers: { Authorization: `Bearer ${tokenResp.access_token}` },
@@ -344,7 +393,12 @@ describe('oauth2-scope-claims', () => {
   // --- Refresh token preserves scope behavior ---
 
   it('refresh should preserve Hasura claims when graphql scope was in original request', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid graphql');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid graphql',
+    );
 
     const { body: refreshResp } = await nhost.auth.oauth2Token({
       grant_type: 'refresh_token',
@@ -364,7 +418,12 @@ describe('oauth2-scope-claims', () => {
   });
 
   it('refresh should omit Hasura claims when graphql scope was not in original request', async () => {
-    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile email');
+    const tokenResp = await getTokens(
+      jwt,
+      clientId,
+      clientSecret,
+      'openid profile email',
+    );
 
     const { body: refreshResp } = await nhost.auth.oauth2Token({
       grant_type: 'refresh_token',
@@ -387,7 +446,9 @@ describe('oauth2-scope-claims', () => {
       roleClientSecret = generateSecret();
       const secretHash = await hashSecret(roleClientSecret);
 
-      const { body: { data } } = await nhost.graphql.request<{
+      const {
+        body: { data },
+      } = await nhost.graphql.request<{
         insertAuthOauth2Client: { clientId: string };
       }>(
         {
@@ -411,7 +472,12 @@ describe('oauth2-scope-claims', () => {
     });
 
     it('access token should contain narrowed Hasura claims with graphql:role:user', async () => {
-      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid graphql:role:user');
+      const tokenResp = await getTokens(
+        jwt,
+        roleClientId,
+        roleClientSecret,
+        'openid graphql:role:user',
+      );
       const payload = jose.decodeJwt(tokenResp.access_token);
 
       expect(payload['https://hasura.io/jwt/claims']).toEqual({
@@ -426,7 +492,12 @@ describe('oauth2-scope-claims', () => {
     });
 
     it('userinfo should contain narrowed Hasura claims with graphql:role:user', async () => {
-      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid profile graphql:role:user');
+      const tokenResp = await getTokens(
+        jwt,
+        roleClientId,
+        roleClientSecret,
+        'openid profile graphql:role:user',
+      );
 
       const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
         headers: { Authorization: `Bearer ${tokenResp.access_token}` },
@@ -448,7 +519,12 @@ describe('oauth2-scope-claims', () => {
     });
 
     it('refresh should preserve narrowed Hasura claims from graphql:role scope', async () => {
-      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid graphql:role:user');
+      const tokenResp = await getTokens(
+        jwt,
+        roleClientId,
+        roleClientSecret,
+        'openid graphql:role:user',
+      );
 
       const { body: refreshResp } = await nhost.auth.oauth2Token({
         grant_type: 'refresh_token',
@@ -469,7 +545,12 @@ describe('oauth2-scope-claims', () => {
 
     it('graphql:role scope should be implicitly allowed when client has graphql scope', async () => {
       // The outer client has 'graphql' but not 'graphql:role:user' — should still work
-      const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid graphql:role:user');
+      const tokenResp = await getTokens(
+        jwt,
+        clientId,
+        clientSecret,
+        'openid graphql:role:user',
+      );
       const payload = jose.decodeJwt(tokenResp.access_token);
 
       expect(payload.scope).toBe('openid graphql:role:user');
@@ -520,7 +601,9 @@ describe('oauth2-scope-claims', () => {
       const mixedSecret = generateSecret();
       const mixedHash = await hashSecret(mixedSecret);
 
-      const { body: { data } } = await nhost.graphql.request<{
+      const {
+        body: { data },
+      } = await nhost.graphql.request<{
         insertAuthOauth2Client: { clientId: string };
       }>(
         {
@@ -562,7 +645,9 @@ describe('oauth2-scope-claims', () => {
       const adminSecret = generateSecret();
       const adminHash = await hashSecret(adminSecret);
 
-      const { body: { data } } = await nhost.graphql.request<{
+      const {
+        body: { data },
+      } = await nhost.graphql.request<{
         insertAuthOauth2Client: { clientId: string };
       }>(
         {
@@ -594,7 +679,9 @@ describe('oauth2-scope-claims', () => {
       });
 
       const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
-      const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+      const requestId = new URL(
+        authResp.headers.get('location')!,
+      ).searchParams.get('request_id')!;
 
       const { body: loginResp } = await nhost.auth.oauth2LoginPost(
         { requestId },
@@ -631,7 +718,9 @@ describe('oauth2-scope-claims', () => {
       limitedClientSecret = generateSecret();
       const secretHash = await hashSecret(limitedClientSecret);
 
-      const { body: { data } } = await nhost.graphql.request<{
+      const {
+        body: { data },
+      } = await nhost.graphql.request<{
         insertAuthOauth2Client: { clientId: string };
       }>(
         {
@@ -655,7 +744,12 @@ describe('oauth2-scope-claims', () => {
     });
 
     it('should allow requesting a subset of registered scopes', async () => {
-      const tokenResp = await getTokens(jwt, limitedClientId, limitedClientSecret, 'openid email');
+      const tokenResp = await getTokens(
+        jwt,
+        limitedClientId,
+        limitedClientSecret,
+        'openid email',
+      );
 
       expect(tokenResp).toEqual({
         access_token: expect.any(String),
@@ -681,7 +775,12 @@ describe('oauth2-scope-claims', () => {
     });
 
     it('should allow requesting only openid when client has openid+email', async () => {
-      const tokenResp = await getTokens(jwt, limitedClientId, limitedClientSecret, 'openid');
+      const tokenResp = await getTokens(
+        jwt,
+        limitedClientId,
+        limitedClientSecret,
+        'openid',
+      );
 
       expect(tokenResp).toEqual({
         access_token: expect.any(String),
