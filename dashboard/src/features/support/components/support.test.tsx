@@ -449,6 +449,28 @@ describe('native dashboard support', () => {
     expect(screen.queryByText('← Support')).not.toBeInTheDocument();
   });
 
+  it('shows the breadcrumb on the ticket queue', async () => {
+    render(<TicketList />);
+    await screen.findByRole('link', { name: /Storage upload fails/ });
+    const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(
+      within(nav)
+        .getAllByRole('listitem')
+        .filter((item) => item.getAttribute('aria-hidden') !== 'true'),
+    ).toHaveLength(2);
+    expect(within(nav).getByRole('link', { name: 'Support' })).toHaveAttribute(
+      'href',
+      '/support',
+    );
+    expect(
+      within(nav).queryByRole('link', { name: 'All tickets' }),
+    ).not.toBeInTheDocument();
+    expect(within(nav).getByText('All tickets')).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
   it.each([false, true])(
     'keeps filters and hides pagination for an empty queue (agent=%s)',
     async (agent) => {
@@ -485,9 +507,6 @@ describe('native dashboard support', () => {
           name: 'Create ticket',
         }) !== null,
       ).toBe(agent);
-      expect(
-        screen.queryByRole('navigation', { name: 'Breadcrumb' }),
-      ).not.toBeInTheDocument();
       const box = screen.getByRole('heading', {
         name: agent ? 'No tickets in this queue' : 'No tickets yet',
       }).parentElement!;

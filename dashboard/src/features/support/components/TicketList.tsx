@@ -229,14 +229,10 @@ export default function TicketList() {
 
   return (
     <div className="flex grow flex-col gap-6 p-5 sm:p-8">
-      {router.pathname === '/support/tickets' && (
-        <SupportBreadcrumb currentPage="All tickets" isTicketList />
-      )}
+      <SupportBreadcrumb currentPage="All tickets" isTicketList />
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-2xl">
-            {router.pathname === '/support' ? 'Support' : 'Tickets'}
-          </h1>
+          <h1 className="font-semibold text-2xl">Tickets</h1>
           {isAgent && <Badge variant="outline">Agent</Badge>}
         </div>
         {(isAgent || (!loadingTickets && !emptyQueue)) && (
