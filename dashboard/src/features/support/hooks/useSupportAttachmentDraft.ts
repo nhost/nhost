@@ -331,7 +331,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
     draftID?: string;
     ticketID?: string;
   }> {
-    if (action.status === 'loading') {
+    if (action.isPending) {
       throw new Error(
         'Wait for attachment changes to finish before creating the ticket.',
       );
@@ -368,7 +368,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
   const completedIDs = new Set(data?.attachments.map((item) => item.id));
   const unfinished =
     data?.uploads.filter((item) => !completedIDs.has(item.id)) ?? [];
-  const busy = action.status === 'loading';
+  const busy = action.isPending;
   const hasFiles = !!identity || uploads.length > 0;
   const ready = !busy && !(identity && (query.isLoading || query.isError));
   // While an attachment action runs the draft is mid-change, so it is only

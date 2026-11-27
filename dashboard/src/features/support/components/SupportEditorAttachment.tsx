@@ -114,7 +114,7 @@ export default function SupportEditorAttachment({
     },
   });
   function startDownload() {
-    if (!file || download.isLoading) {
+    if (!file || download.isPending) {
       return;
     }
     void execPromiseWithErrorToast(() => download.mutateAsync(), {
@@ -207,7 +207,7 @@ export default function SupportEditorAttachment({
                       ? `View ${filename} full size`
                       : `Download ${filename}`
                   }
-                  disabled={!image && download.isLoading}
+                  disabled={!image && download.isPending}
                   className={cn(
                     cardActionClass,
                     'hover:bg-accent hover:text-foreground',
@@ -261,7 +261,7 @@ export default function SupportEditorAttachment({
           scope={scope}
           requestRole={requestRole}
           onDownload={startDownload}
-          downloading={download.isLoading}
+          downloading={download.isPending}
         />
       )}
     </span>

@@ -149,7 +149,7 @@ export default function TicketDetail() {
     },
     onSettled: invalidate,
   });
-  const isPending = update.status === 'loading';
+  const { isPending } = update;
   async function changeTicket(changes: SupportTickets_Set_Input) {
     await execPromiseWithErrorToast(() => update.mutateAsync(changes), {
       loadingMessage: 'Updating ticket…',

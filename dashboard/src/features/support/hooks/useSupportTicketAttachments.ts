@@ -160,7 +160,7 @@ export function useSupportTicketAttachments(
       saveSupportAttachment(blob, name);
     },
   });
-  const uploading = upload.status === 'loading';
+  const uploading = upload.isPending;
   return {
     attachments,
     uploads,
