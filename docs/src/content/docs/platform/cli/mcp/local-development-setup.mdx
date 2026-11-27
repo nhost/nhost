@@ -1,19 +1,21 @@
 ---
-title: Development Setup
+title: Local Development Setup
 description: >-
   Connect an AI assistant to your local Nhost project with the CLI MCP server so
   it can read your schema, run queries, and manage metadata and migrations.
 keywords: ["MCP setup", "local development", "AI assistant", "Cursor", "Claude Code", "nhost mcp start", "install-mcp.md"]
 head:
   - tag: title
-    content: "Set Up the Nhost MCP Server for Development | Nhost Docs"
+    content: "Set Up the Nhost MCP Server for Local Development | Nhost Docs"
 sidebar:
-  label: Development Setup
+  label: Local Development Setup
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 import { CopyText } from '@components';
 
 This guide sets up the Nhost CLI's MCP server against your **local** project so an AI assistant can read your GraphQL schema, run queries and mutations, and manage Hasura metadata and migrations while you develop.
+
+For a project on Nhost Cloud, see [Cloud Setup](/platform/cli/mcp/cloud-setup) instead.
 
 ## Prerequisites
 
@@ -100,7 +102,7 @@ codex mcp add nhost -- nhost mcp start
 </TabItem>
 <TabItem label="Gemini CLI">
 ```bash Terminal
-gemini mcp add nhost nhost mcp start
+gemini mcp add -s user nhost nhost mcp start
 ```
 </TabItem>
 <TabItem label="Cursor">
@@ -120,8 +122,6 @@ Add the following to your `mcpServers` configuration:
 </TabItem>
 </Tabs>
 
-For per-client configuration details, see [MCP Clients](/platform/cli/mcp/clients).
-
 ## 3. Verify
 
 Your client should now list the `nhost` server and its tools: `graphql-query`, `get-schema`, `manage-graphql`, and `search`. Ask the assistant to fetch your schema, or confirm the server responds directly:
@@ -135,5 +135,5 @@ If something is not working, see [Troubleshooting](/platform/cli/mcp/troubleshoo
 ## Next steps
 
 - [Configuration](/platform/cli/mcp/configuration) — scope which queries and mutations the assistant can run.
-- [MCP Clients](/platform/cli/mcp/clients) — per-client configuration details.
+- [Cloud Setup](/platform/cli/mcp/cloud-setup): point the same server at a project on Nhost Cloud.
 - [Overview](/platform/cli/mcp) — the full list of tools and resources the server exposes.
