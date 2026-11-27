@@ -5,7 +5,11 @@ set -euo pipefail
 echo "⚒️⚒️⚒️ Checking for broken links..."
 
 # linkinator serves dist/client/ from its own local server and validates every
-# <a>/<link>/<script>/<img> URL it finds, external links included.
+# <a>/<link>/<script>/<img> URL it finds, external links included. Broken
+# internal links fail the check, and so do external links that answer 404 or
+# 410. Any other external failure (5xx, 429, 403, timeouts) says more about the
+# remote site or its bot protection than about these docs, so it is reported as
+# a warning instead.
 #
 SKIP=(
   # Generated reference docs & build artifacts (not authored content)
@@ -95,13 +99,49 @@ if ! jq -e . "$results" >/dev/null 2>&1; then
   exit "${linkinator_status:-1}"
 fi
 
+# Broken links that fail the check ($failing == true) or only warn (false).
+# Internal links are local paths or http://localhost:<port>/ URLs. $failing is
+# a jq variable, so the filter stays single-quoted.
+# shellcheck disable=SC2016
+broken_links='
+  def external:
+    ((.url // "") | test("^https?://"))
+    and ((.url // "") | test("^https?://(localhost|127\\.0\\.0\\.1)([:/]|$)") | not);
+  def gone: .status == 404 or .status == 410;
+  [.links[]
+    | select(.state == "BROKEN")
+    | select(((external | not) or gone) == $failing)]
+'
+
+count_links() {
+  jq --argjson failing "$1" "${broken_links} | length" "$results"
+}
+
+# For each source page, list the broken target URLs with their status code.
+list_links() {
+  jq -r --argjson failing "$1" "${broken_links}"'
+    | group_by(.parent)[]
+    | "📄 \(.[0].parent // "(unknown source)")",
+      (.[] | "     [\(.status // 0)] \(.url)")
+  ' "$results"
+}
+
 total="$(jq '.links | length' "$results")"
-broken="$(jq '[.links[] | select(.state == "BROKEN")] | length' "$results")"
+broken="$(count_links true)"
+unverified="$(count_links false)"
 
 echo
 echo "Checked ${total} links."
 
+if [[ "$unverified" -gt 0 ]]; then
+  echo
+  echo "⚠️ ${unverified} external link(s) could not be verified, which does not fail the check:"
+  echo
+  list_links false
+fi
+
 if [[ "$broken" -eq 0 ]]; then
+  echo
   echo "✅ No broken links found."
   exit 0
 fi
@@ -109,12 +149,6 @@ fi
 echo
 echo "❌ ${broken} broken link(s), grouped by the page they appear on:"
 echo
-# For each source page, list the broken target URLs with their status code.
-jq -r '
-  [.links[] | select(.state == "BROKEN")]
-  | group_by(.parent)[]
-  | "📄 \(.[0].parent // "(unknown source)")",
-    (.[] | "     [\(.status // 0)] \(.url)")
-' "$results"
+list_links true
 
 exit 1
