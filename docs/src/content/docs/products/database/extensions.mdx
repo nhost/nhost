@@ -317,6 +317,16 @@ pg_cron is a simple cron-based job scheduler for PostgreSQL (10 or higher) that 
 
 Preload `pg_cron` via `postgres.settings.sharedPreloadLibraries` to run scheduled jobs.
 
+### Dashboard
+
+Open **Events** → **SQL Jobs** to enable or disable pg_cron, create and edit SQL jobs, pause schedules, and inspect run history. You can also follow **Manage SQL jobs** from the pg_cron card or row in **Database** → **Extensions** for the default database.
+
+SQL jobs run in the scheduler's configured timezone, unlike [Cron Triggers](/products/events/cron-triggers), which use UTC. The **Settings** tab manages the scheduler timezone, concurrency, and run logging. Use **Create retention job** to open an editable example that removes run-history entries older than seven days, scheduled daily at 05:00 in the scheduler's timezone.
+
+The dashboard saves job and extension changes as Hasura migrations when using the Nhost CLI and runs SQL directly on hosted projects.
+
+Scheduler settings are stored in the project configuration (`[postgres.settings.extensions.cron]` in `nhost.toml`), not in migrations. On hosted projects, saving these settings restarts PostgreSQL and causes a short period of database downtime. With the Nhost CLI, run `nhost up` to restart PostgreSQL and apply the settings. See [Configuring Postgres](/products/database/configuring-postgres) for setting defaults and operational notes.
+
 ### Managing
 
 To install the extension you can create a migration with the following contents:

@@ -120,7 +120,7 @@ export default function BillingUsageTimeRangeFilter({
           className="justify-start font-normal"
           data-testid="billingUsageTimeRangeTrigger"
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="h-4 w-4" />
           <span className="tabular-nums">
             {formatTriggerLabel(value, bounds, timeZone, zone)}
           </span>

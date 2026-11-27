@@ -327,9 +327,9 @@ export default function AssistantForm({
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {assistantId ? (
-              <RefreshCwIcon className="mr-2 h-4 w-4" />
+              <RefreshCwIcon className="h-4 w-4" />
             ) : (
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
             )}
             {assistantId ? 'Update' : 'Create'}
           </Button>

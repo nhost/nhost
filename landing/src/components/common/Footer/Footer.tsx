@@ -1,6 +1,6 @@
-import { openCookieSettings } from '@/components/analytics/useCookieConsent';
 import Image from 'next/image';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
+import { openCookieSettings } from '@/components/analytics/useCookieConsent';
 import { Container } from '../Container';
 import { Link } from '../Link';
 

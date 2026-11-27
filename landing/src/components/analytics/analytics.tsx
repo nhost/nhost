@@ -1,6 +1,6 @@
-import { analytics, loadAnalytics } from '@/lib/segment';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { analytics, loadAnalytics } from '@/lib/segment';
 import CookieConsent from './CookieConsent';
 import {
   OPEN_COOKIE_SETTINGS_EVENT,
@@ -25,7 +25,10 @@ export default function Analytics() {
 
     // Shallow route changes include the blog search syncing each keystroke
     // into `?q=`; tracking those would stream the search term to Segment.
-    const handleRouteChange = (_url: string, { shallow }: { shallow: boolean }) => {
+    const handleRouteChange = (
+      _url: string,
+      { shallow }: { shallow: boolean },
+    ) => {
       if (!shallow) {
         analytics.page();
       }
@@ -42,7 +45,8 @@ export default function Analytics() {
     const openSettings = () => setSettingsOpen(true);
     window.addEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings);
 
-    return () => window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings);
+    return () =>
+      window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings);
   }, []);
 
   // `undefined` until the choice is read on the client.

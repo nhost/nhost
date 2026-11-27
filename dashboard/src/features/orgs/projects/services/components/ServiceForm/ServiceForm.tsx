@@ -370,9 +370,9 @@ export default function ServiceForm({
           <div className="grid grid-cols-2 gap-2">
             <Button type="submit" disabled={isSubmitting}>
               {serviceID ? (
-                <RefreshCwIcon className="mr-2 h-4 w-4" />
+                <RefreshCwIcon className="h-4 w-4" />
               ) : (
-                <PlusIcon className="mr-2 h-4 w-4" />
+                <PlusIcon className="h-4 w-4" />
               )}
               {serviceID ? 'Update' : 'Create'}
             </Button>
@@ -382,7 +382,7 @@ export default function ServiceForm({
               disabled={isSubmitting}
               onClick={copyConfig}
             >
-              <CopyIcon className="mr-2 h-4 w-4" />
+              <CopyIcon className="h-4 w-4" />
               Copy one-click install link
             </Button>
           </div>

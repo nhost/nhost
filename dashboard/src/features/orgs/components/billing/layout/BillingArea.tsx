@@ -45,11 +45,7 @@ function InvoicesButton() {
       disabled={loading}
     >
       Invoices
-      <ExternalLinkIcon
-        className="ml-1.5 size-3.5"
-        aria-hidden
-        focusable={false}
-      />
+      <ExternalLinkIcon className="size-3.5" aria-hidden focusable={false} />
     </Button>
   );
 }

@@ -158,7 +158,7 @@ export default function SecretsSettings() {
           }
           actions={
             <Button type="button" variant="outline" onClick={handleOpenCreator}>
-              <PlusIcon className="mr-2" />
+              <PlusIcon />
               Create secret
             </Button>
           }

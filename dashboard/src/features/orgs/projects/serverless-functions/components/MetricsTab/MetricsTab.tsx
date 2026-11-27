@@ -116,7 +116,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
           loading={loading}
           data-testid="metricsRefreshButton"
         >
-          {!loading && <RefreshCw className="mr-2 h-4 w-4" />}
+          {!loading && <RefreshCw className="h-4 w-4" />}
           Refresh
         </ButtonWithLoading>
       </div>
@@ -158,10 +158,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                   className="self-start text-foreground"
                 >
                   <RefreshCw
-                    className={cn(
-                      'mr-2 h-3.5 w-3.5',
-                      loading && 'animate-spin',
-                    )}
+                    className={cn('h-3.5 w-3.5', loading && 'animate-spin')}
                   />
                   Try again
                 </Button>

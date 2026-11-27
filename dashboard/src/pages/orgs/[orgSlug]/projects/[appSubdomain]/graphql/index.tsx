@@ -213,7 +213,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
               aria-label="Execute GraphQL query"
               className="col-span-1 py-2 md:col-auto"
             >
-              <PlayIcon className="mr-2 h-5 w-5" />
+              <PlayIcon className="h-5 w-5" />
               Run
             </Button>
           </TooltipTrigger>

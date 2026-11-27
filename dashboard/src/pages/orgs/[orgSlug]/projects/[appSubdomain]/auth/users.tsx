@@ -179,7 +179,7 @@ function UsersPageContent() {
             size="sm"
             className="w-full sm:w-auto"
           >
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Create User
           </Button>
         </div>
@@ -226,7 +226,7 @@ function UsersPageContent() {
           size="sm"
           className="w-full sm:w-auto"
         >
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           Create User
         </Button>
       </div>
@@ -243,7 +243,7 @@ function UsersPageContent() {
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-56">
             <Button className="w-full" onClick={openCreateUserDialog}>
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Create User
             </Button>
           </div>

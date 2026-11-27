@@ -1,9 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
 import * as jose from 'jose';
 import { Client } from 'pg';
-
-import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
+import { ENV } from '../../src/env';
 import { isValidAccessToken } from '../../utils';
 
 describe('token', () => {

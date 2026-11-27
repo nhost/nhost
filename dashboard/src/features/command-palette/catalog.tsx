@@ -159,9 +159,9 @@ const projectEventsPages = definePages([
     route: 'events/event-triggers',
   },
   {
-    name: 'Cron Triggers',
-    slug: 'cron-triggers',
-    route: 'events/cron-triggers',
+    name: 'Cron Jobs',
+    slug: 'cron-jobs',
+    route: 'events/cron-jobs',
   },
   {
     name: 'One-Off Scheduled Events',

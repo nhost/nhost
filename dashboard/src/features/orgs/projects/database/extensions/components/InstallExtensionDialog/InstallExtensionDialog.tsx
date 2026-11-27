@@ -71,10 +71,10 @@ export default function InstallExtensionDialog({
       <DialogContent
         disableOutsideClick
         onCloseAutoFocus={onCloseAutoFocus}
-        className="flex max-h-[90vh] max-w-2xl flex-col overflow-y-auto"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto p-6 text-left text-foreground sm:p-12"
       >
         <DialogHeader>
-          <DialogTitle>Install {displayName}</DialogTitle>
+          <DialogTitle className="text-xl">Install {displayName}</DialogTitle>
           <DialogDescription>
             {preload
               ? `${displayName} needs Postgres to preload its library before it can be installed.`
@@ -112,7 +112,7 @@ export default function InstallExtensionDialog({
           installFields
         )}
 
-        <DialogFooter>
+        <DialogFooter className="mt-6 gap-2 sm:space-x-0">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

@@ -5,8 +5,15 @@ import type * as React from 'react';
 import { controlHeight } from '@/components/ui/v3/control';
 import { cn } from '@/lib/utils';
 
+// Light icons: these few lucide icons draw only about 65% of their box,
+// while most icons (pencil, trash, play...) fill it. Inside a button they
+// render one step bigger (zoom 1.25, so 16px becomes 20px) to look the same
+// size as their neighbors. The list lives here and in the Storybook.
+const lightIcons =
+  '[&_svg:is(.lucide-plus,.lucide-minus,.lucide-x,.lucide-check,.lucide-arrow-up,.lucide-arrow-down,.lucide-arrow-left,.lucide-arrow-right)]:[zoom:1.25]';
+
 const baseButtonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  `${lightIcons} inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0`,
   {
     variants: {
       variant: {
@@ -127,9 +134,7 @@ const ButtonWithLoading = ({
       ref={ref}
       {...props}
     >
-      {loading && (
-        <Loader2 className={cn('mr-2 animate-spin', loaderClassName)} />
-      )}
+      {loading && <Loader2 className={cn('animate-spin', loaderClassName)} />}
       {children}
     </Button>
   );

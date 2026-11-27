@@ -1,0 +1,25 @@
+mutation UpdateCronSettings(
+  $appId: uuid!
+  $timezone: String!
+  $maxRunningJobs: ConfigInt32!
+  $logRun: String!
+) {
+  updateConfig(
+    appID: $appId
+    config: {
+      postgres: {
+        settings: {
+          extensions: {
+            cron: {
+              timezone: $timezone
+              maxRunningJobs: $maxRunningJobs
+              logRun: $logRun
+            }
+          }
+        }
+      }
+    }
+  ) {
+    __typename
+  }
+}

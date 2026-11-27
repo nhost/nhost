@@ -175,7 +175,7 @@ export default function SocialProvidersSettings() {
           >
             <DialogTrigger asChild>
               <Button variant="outline" disabled={deletingGitHubUserProvider}>
-                <Unlink className="mr-2 h-4 w-4" />
+                <Unlink className="h-4 w-4" />
                 Disconnect GitHub
               </Button>
             </DialogTrigger>

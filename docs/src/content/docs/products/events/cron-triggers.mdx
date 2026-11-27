@@ -14,6 +14,10 @@ import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Cron triggers call a webhook on a recurring schedule defined by a cron expression. Use them for periodic background jobs — cleanup tasks, report generation, digest emails, or data checks.
 
+:::note
+To run SQL commands inside PostgreSQL instead of calling a webhook, open **Events** → **SQL Jobs**. See [pg_cron](/products/database/extensions#pg_cron) for details.
+:::
+
 ## Cron Expression Syntax
 
 Expressions follow the format `minute hour day-of-month month day-of-week` and run in **UTC**.
@@ -27,7 +31,7 @@ Expressions follow the format `minute hour day-of-month month day-of-week` and r
 | `0 0 * * *`    | Daily at midnight        |
 | `0 9 * * 1-5`  | Weekdays at 9:00 AM      |
 
-The dashboard provides preset suggestions matching these common patterns.
+The dashboard schedule editor highlights the cron field at your cursor and provides syntax help and example schedules. Cron Triggers use five-field expressions in UTC; pg_cron shortcuts and seconds-based intervals apply only to SQL Jobs.
 
 ## Creating a Cron Trigger
 
@@ -42,7 +46,7 @@ Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 | **Cron Trigger Name**                      | Unique identifier (e.g. `stale_todos_check`)                                                                          |
 | **Comment**                                | Optional description of what the trigger does                                                                         |
 | **Webhook URL or template**                | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/stale-todos`)                       |
-| **Schedule (Cron Expression)**             | Cron expression with preset suggestions dropdown                                                                      |
+| **Schedule (Cron Expression)**             | Five-field cron expression with field highlighting, syntax help, and example schedules                                                                      |
 | **Payload**                                | JSON object sent in the webhook body                                                                                  |
 | **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
 | **Request Options** (accordion)            | Reshape the request with [Kriti templates](/reference/kriti) (see [Transformations](/products/events/transformations)) |

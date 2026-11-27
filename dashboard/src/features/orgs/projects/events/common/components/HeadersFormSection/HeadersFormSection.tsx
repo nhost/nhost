@@ -5,6 +5,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { cn } from '@/lib/utils';
 
 interface HeadersFormValues {
   headers: Array<{
@@ -19,7 +20,11 @@ export const HEADER_TYPES = [
   { label: 'Env Var', value: 'fromEnv' },
 ] as const;
 
-export default function HeadersFormSection() {
+export default function HeadersFormSection({
+  className,
+}: {
+  className?: string;
+}) {
   const form = useFormContext<HeadersFormValues>();
   const { watch } = form;
   const { fields, append, remove } = useFieldArray({
@@ -30,7 +35,7 @@ export default function HeadersFormSection() {
   const types = watch('headers').map((header) => header.type);
 
   return (
-    <div className="flex flex-col gap-6 pl-4">
+    <div className={cn('flex flex-col gap-6 pl-4', className)}>
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center gap-2">
           <h3 className="font-medium text-base text-foreground">
@@ -44,13 +49,13 @@ export default function HeadersFormSection() {
         </div>
         <Button
           type="button"
-          variant="subtle"
-          size="sm"
-          className="px-4"
+          variant="outline"
+          size="xs"
           onClick={() => append({ name: '', type: 'fromValue', value: '' })}
           data-testid="add-header-button"
         >
-          <Plus className="size-5" />
+          <Plus />
+          Add header
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -113,11 +118,12 @@ export default function HeadersFormSection() {
               <Button
                 type="button"
                 variant="subtle"
-                size="sm"
-                className="px-4"
+                size="icon-sm"
+                aria-label="Remove"
+                className="hover:text-destructive dark:hover:text-destructive"
                 onClick={() => remove(index)}
               >
-                <Trash className="size-4" />
+                <Trash />
               </Button>
             </div>
           </div>

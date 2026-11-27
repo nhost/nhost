@@ -159,7 +159,7 @@ export default function AssistantsPage() {
           </div>
           <div className="flex flex-row place-content-between rounded-lg">
             <Button className="w-full" onClick={openCreateAssistantForm}>
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Create a new assistant
             </Button>
           </div>
@@ -172,7 +172,7 @@ export default function AssistantsPage() {
     <div className="flex w-full flex-col overflow-x-hidden">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateAssistantForm}>
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New
         </Button>
       </div>

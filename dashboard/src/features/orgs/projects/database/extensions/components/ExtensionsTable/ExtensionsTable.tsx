@@ -10,6 +10,7 @@ import { ExtensionActionControl } from '@/features/orgs/projects/database/extens
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
 import { ExtensionPreloadStatus } from '@/features/orgs/projects/database/extensions/components/ExtensionPreloadStatus';
 import { InstalledBadge } from '@/features/orgs/projects/database/extensions/components/InstalledBadge';
+import { SqlJobsLink } from '@/features/orgs/projects/database/extensions/components/SqlJobsLink';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
 import { cn } from '@/lib/utils';
@@ -53,7 +54,10 @@ function ExtensionRow({
         </div>
       </TableCell>
       <TableCell>
-        <span className="text-muted-foreground">{extension.comment}</span>
+        <div className="space-y-1">
+          <p className="text-muted-foreground">{extension.comment}</p>
+          {extension.name === 'pg_cron' && <SqlJobsLink />}
+        </div>
       </TableCell>
       <TableCell className="w-56">
         <div className="flex items-center justify-end gap-2">

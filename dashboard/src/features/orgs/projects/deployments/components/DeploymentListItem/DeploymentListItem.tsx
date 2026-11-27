@@ -95,7 +95,7 @@ export default function DeploymentListItem({
                     className="rounded-full border-primary text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"
                   >
-                    <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
+                    <ArrowCounterclockwiseIcon className="h-4 w-4" />
                     Redeploy
                   </Button>
                 </span>

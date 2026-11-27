@@ -5,7 +5,7 @@ import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { cleanupTriggerTestIfNeeded } from '@/e2e/utils';
 
-const cronTriggersRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/events/cron-triggers`;
+const cronTriggersRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/events/cron-jobs`;
 const cronTriggerName = `e2e_dashboard_cron_${snakeCase(faker.lorem.words(2)).slice(0, 16)}`;
 
 test.beforeAll(async () => {
@@ -21,7 +21,7 @@ async function fillBasicFields({
 }) {
   await page.getByPlaceholder('cron_trigger_name').fill(triggerName);
   await page
-    .getByPlaceholder(/describe the cron trigger/i)
+    .getByPlaceholder(/describe what this webhook job does/i)
     .fill('E2E test cron trigger');
   await page
     .getByPlaceholder(/httpbin\.org/i)
@@ -29,13 +29,19 @@ async function fillBasicFields({
       `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/healthz`,
     );
 
-  const scheduleInput = page.getByPlaceholder('* * * * *');
-  await scheduleInput.click();
-  await page.getByRole('option', { name: /every minute/i }).click();
-  await expect(scheduleInput).toHaveValue('* * * * *');
+  const dialog = page.getByRole('dialog');
+  const scheduleInput = dialog.getByRole('textbox', {
+    name: 'Schedule (Cron Expression)',
+    exact: true,
+  });
+  await dialog
+    .getByRole('button', { name: 'Every 5 minutes', exact: true })
+    .click();
+  await expect(scheduleInput).toHaveValue('*/5 * * * *');
 
-  // Prevent a leaked trigger from firing every minute if cleanup fails.
+  // Prevent a leaked trigger from firing every five minutes if cleanup fails.
   await scheduleInput.fill('0 0 1 1 *');
+  await expect(scheduleInput).toHaveValue('0 0 1 1 *');
 
   await page.getByPlaceholder(/John Doe/i).fill('{"key": "value"}');
 }
@@ -47,17 +53,17 @@ async function deleteCronTrigger({
   page: Page;
   triggerName: string;
 }) {
-  await page.getByTestId(`cron-trigger-menu-${triggerName}`).click();
-  await page.getByRole('menuitem', { name: /delete cron trigger/i }).click();
+  await page.getByRole('button', { name: `${triggerName} actions` }).click();
+  await page.getByRole('menuitem', { name: /^delete$/i }).click();
 
   await expect(
-    page.getByRole('heading', { name: /delete cron trigger/i }),
+    page.getByRole('heading', { name: /delete webhook job/i }),
   ).toBeVisible();
 
   await page.getByRole('button', { name: /^delete$/i }).click();
 
   await page.waitForSelector(
-    'div:has-text("Cron trigger deleted successfully.")',
+    'div:has-text("Webhook job deleted successfully.")',
   );
 
   await page.waitForURL(cronTriggersRoute);
@@ -69,8 +75,8 @@ test('should create and delete a cron trigger with transforms', async ({
   await page.goto(cronTriggersRoute);
   await page.waitForURL(cronTriggersRoute);
 
-  await page.getByRole('button', { name: /new cron trigger/i }).click();
-  await expect(page.getByText(/create a new cron trigger/i)).toBeVisible();
+  await page.getByRole('button', { name: /new webhook job/i }).click();
+  await expect(page.getByText(/create webhook job/i)).toBeVisible();
 
   await fillBasicFields({ page, triggerName: cronTriggerName });
 
@@ -95,9 +101,9 @@ test('should create and delete a cron trigger with transforms', async ({
 
   await page.getByRole('button', { name: /^create$/i }).click();
 
-  await page.waitForURL(`${cronTriggersRoute}/${cronTriggerName}`);
+  await page.waitForURL(`${cronTriggersRoute}/webhook/${cronTriggerName}`);
   await page.waitForSelector(
-    'div:has-text("The cron trigger has been created successfully.")',
+    'div:has-text("The webhook job has been created successfully.")',
   );
 
   await deleteCronTrigger({ page, triggerName: cronTriggerName });

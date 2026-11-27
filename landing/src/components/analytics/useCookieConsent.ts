@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
-import { readConsentCookie, writeConsentCookie } from '@/lib/cookieConsent'
-import { clearAnalyticsStorage, resetAnalytics } from '@/lib/segment'
+import { useCallback, useEffect, useState } from 'react';
+import { readConsentCookie, writeConsentCookie } from '@/lib/cookieConsent';
+import { clearAnalyticsStorage, resetAnalytics } from '@/lib/segment';
 
 // `true` accepted, `false` rejected, `null` no choice yet.
-export type CookieConsentValue = boolean | null
+export type CookieConsentValue = boolean | null;
 
 /**
  * The visitor's cookie choice, shared with the dashboard (see
@@ -11,26 +11,26 @@ export type CookieConsentValue = boolean | null
  * server render and hydration match.
  */
 export function useCookieConsent() {
-  const [consent, setConsentState] = useState<CookieConsentValue>()
+  const [consent, setConsentState] = useState<CookieConsentValue>();
 
   useEffect(() => {
-    const savedConsent = readConsentCookie()
+    const savedConsent = readConsentCookie();
     // A missing choice can also mean consent was reset on the other property.
     if (savedConsent !== true) {
-      clearAnalyticsStorage()
+      clearAnalyticsStorage();
     }
-    setConsentState(savedConsent)
-  }, [])
+    setConsentState(savedConsent);
+  }, []);
 
   const setConsent = useCallback((accepted: boolean) => {
     if (!accepted) {
-      clearAnalyticsStorage()
+      clearAnalyticsStorage();
     }
-    writeConsentCookie(accepted)
-    setConsentState(accepted)
-  }, [])
+    writeConsentCookie(accepted);
+    setConsentState(accepted);
+  }, []);
 
-  return [consent, setConsent] as const
+  return [consent, setConsent] as const;
 }
 
 /**
@@ -40,18 +40,18 @@ export function useCookieConsent() {
  */
 export function withdrawCookieConsent() {
   try {
-    resetAnalytics()
+    resetAnalytics();
   } catch (error: unknown) {
-    console.error('Failed to reset analytics:', error)
+    console.error('Failed to reset analytics:', error);
   } finally {
-    writeConsentCookie(false)
-    window.location.reload()
+    writeConsentCookie(false);
+    window.location.reload();
   }
 }
 
-export const OPEN_COOKIE_SETTINGS_EVENT = 'nhost-cookie-settings-open'
+export const OPEN_COOKIE_SETTINGS_EVENT = 'nhost-cookie-settings-open';
 
 /** Shows the cookie banner again, so the visitor can review or change their choice. */
 export function openCookieSettings() {
-  window.dispatchEvent(new Event(OPEN_COOKIE_SETTINGS_EVENT))
+  window.dispatchEvent(new Event(OPEN_COOKIE_SETTINGS_EVENT));
 }

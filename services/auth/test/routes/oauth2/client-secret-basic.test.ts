@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'bun:test';
+import { beforeAll, describe, expect, it } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
-import * as jose from 'jose';
 import { randomBytes } from 'crypto';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -32,10 +32,7 @@ async function hashSecret(secret: string): Promise<string> {
 }
 
 /** Run the auth code flow up to obtaining an authorization code. */
-async function getAuthCode(
-  jwt: string,
-  clientId: string,
-): Promise<string> {
+async function getAuthCode(jwt: string, clientId: string): Promise<string> {
   const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
     client_id: clientId,
     redirect_uri: REDIRECT_URI,
@@ -45,7 +42,9 @@ async function getAuthCode(
   });
 
   const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
-  const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+  const requestId = new URL(authResp.headers.get('location')!).searchParams.get(
+    'request_id',
+  )!;
 
   const { body: loginResp } = await nhost.auth.oauth2LoginPost(
     { requestId },
@@ -93,7 +92,11 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
     // Create a confidential client via GraphQL
     const secret = randomBytes(32).toString('hex');
     const secretHash = await hashSecret(secret);
-    const { body: { data } } = await nhost.graphql.request<{ insertAuthOauth2Client: { clientId: string } }>(
+    const {
+      body: { data },
+    } = await nhost.graphql.request<{
+      insertAuthOauth2Client: { clientId: string };
+    }>(
       {
         query: `mutation ($object: authOauth2Clients_insert_input!) {
           insertAuthOauth2Client(object: $object) { clientId }
@@ -239,7 +242,9 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
           code,
           redirect_uri: REDIRECT_URI,
         },
-        { headers: { Authorization: basicAuthHeader(clientId, 'wrong-secret') } },
+        {
+          headers: { Authorization: basicAuthHeader(clientId, 'wrong-secret') },
+        },
       );
       expect(true).toBe(false);
     } catch (err) {

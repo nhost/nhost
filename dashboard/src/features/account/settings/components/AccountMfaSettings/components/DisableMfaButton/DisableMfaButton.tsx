@@ -44,7 +44,7 @@ function DisableMfaButton() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
-          <ShieldOff className="mr-2 h-4 w-4" />
+          <ShieldOff className="h-4 w-4" />
           Disable multi-factor authentication
         </Button>
       </DialogTrigger>

@@ -16,7 +16,7 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
   return (
     <Tooltip interactive>
       <TooltipTrigger asChild>
-        <Info className="size-4 text-primary" />
+        <Info className="size-4 text-foreground" />
       </TooltipTrigger>
       <TooltipContent>{children}</TooltipContent>
     </Tooltip>

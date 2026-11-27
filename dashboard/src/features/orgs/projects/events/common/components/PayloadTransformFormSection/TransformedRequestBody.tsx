@@ -77,21 +77,21 @@ export default function TransformedRequestBody() {
         transformation template.
       </FormDescription>
       {buildArgsError && (
-        <Alert variant="destructive" className="max-w-lg">
+        <Alert variant="destructive">
           <AlertTitle>Invalid sample input</AlertTitle>
           <AlertDescription>{buildArgsError}</AlertDescription>
         </Alert>
       )}
       {!canRun && (
-        <Alert variant="destructive" className="max-w-lg">
+        <Alert>
           <AlertTitle>Webhook URL not configured</AlertTitle>
           <AlertDescription>
-            Please configure your webhook URL to generate request body transform
+            Add a webhook URL in General to preview the transformed body.
           </AlertDescription>
         </Alert>
       )}
       {canRun && (
-        <div className="relative w-full max-w-lg">
+        <div className="relative w-full">
           <Textarea
             className="min-h-[250px] w-full font-mono text-foreground"
             value={requestBody}

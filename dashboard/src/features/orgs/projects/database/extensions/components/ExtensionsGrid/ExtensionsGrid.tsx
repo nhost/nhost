@@ -4,6 +4,7 @@ import { ExtensionActionControl } from '@/features/orgs/projects/database/extens
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
 import { ExtensionPreloadStatus } from '@/features/orgs/projects/database/extensions/components/ExtensionPreloadStatus';
 import { InstalledBadge } from '@/features/orgs/projects/database/extensions/components/InstalledBadge';
+import { SqlJobsLink } from '@/features/orgs/projects/database/extensions/components/SqlJobsLink';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,7 @@ function ExtensionCard({
       <p className="line-clamp-2 flex-1 text-muted-foreground text-sm">
         {extension.comment}
       </p>
+      {extension.name === 'pg_cron' && <SqlJobsLink />}
 
       <div className="flex items-center gap-2">
         <ExtensionPreloadStatus

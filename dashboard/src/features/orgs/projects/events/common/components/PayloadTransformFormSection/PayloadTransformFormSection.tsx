@@ -8,13 +8,16 @@ import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { SampleContextFormSection } from '@/features/orgs/projects/events/common/components/SampleContextFormSection';
+import { cn } from '@/lib/utils';
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformFormSectionProps {
+  className?: string;
   onResetSampleInput: () => void;
 }
 
 export default function PayloadTransformFormSection({
+  className,
   onResetSampleInput,
 }: PayloadTransformFormSectionProps) {
   const form = useFormContext();
@@ -27,8 +30,8 @@ export default function PayloadTransformFormSection({
   const values = watch();
 
   return (
-    <div className="flex flex-col gap-6 pl-4">
-      <div className="flex flex-col gap-12">
+    <div className={cn('flex flex-col gap-6 pl-4', className)}>
+      <div className="flex flex-col divide-y [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-6">
         <FormTextarea
           control={form.control}
           name="payloadTransform.sampleInput"
@@ -50,10 +53,10 @@ export default function PayloadTransformFormSection({
               </Button>
             </div>
           }
-          className="min-h-[250px] max-w-lg font-mono text-foreground"
+          className="min-h-[250px] font-mono text-foreground"
         />
         <div className="space-y-4">
-          <div className="flex max-w-lg flex-row justify-between gap-4 text-foreground">
+          <div className="flex flex-row justify-between gap-4 text-foreground">
             <div className="flex flex-row items-center gap-2">
               <h4 className="font-medium text-foreground text-sm">
                 Request Body Transform
@@ -99,25 +102,25 @@ export default function PayloadTransformFormSection({
               name="payloadTransform.requestBodyTransform.template"
               label="Request Body Transform JSON Template"
               placeholder="Request Body Transform JSON Template"
-              className="min-h-[250px] max-w-lg font-mono text-foreground"
+              className="min-h-[250px] font-mono text-foreground"
             />
           )}
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType ===
             'application/x-www-form-urlencoded' && (
-            <div className="max-w-lg space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-foreground text-sm">
                   Form Template
                 </h4>
                 <Button
                   type="button"
-                  variant="subtle"
-                  size="sm"
-                  className="px-4"
+                  variant="outline"
+                  size="xs"
                   onClick={() => append({ key: '', value: '' })}
                 >
-                  <PlusIcon className="size-5" />
+                  <PlusIcon />
+                  Add field
                 </Button>
               </div>
               <div className="flex flex-col gap-4">
@@ -161,11 +164,12 @@ export default function PayloadTransformFormSection({
                       <Button
                         type="button"
                         variant="subtle"
-                        size="sm"
-                        className="px-4"
+                        size="icon-sm"
+                        aria-label="Remove"
+                        className="hover:text-destructive dark:hover:text-destructive"
                         onClick={() => remove(index)}
                       >
-                        <TrashIcon className="size-4" />
+                        <TrashIcon />
                       </Button>
                     </div>
                   </div>
@@ -175,12 +179,11 @@ export default function PayloadTransformFormSection({
           )}
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType === 'disabled' && (
-            <Alert variant="destructive" className="max-w-lg">
-              <AlertTitle>Request Body Transformation Disabled</AlertTitle>
+            <Alert variant="destructive">
+              <AlertTitle>No request body</AlertTitle>
               <AlertDescription>
-                The request body is disabled. No request body will be sent with
-                this trigger. Enable the request body transform to customize the
-                payload sent with this trigger.
+                No body is sent with this request. Pick a transform type to send
+                a custom body.
               </AlertDescription>
             </Alert>
           )}

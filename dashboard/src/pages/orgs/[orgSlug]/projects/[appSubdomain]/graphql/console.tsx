@@ -98,13 +98,13 @@ function HasuraPageContent() {
                   rel="noreferrer noopener"
                 >
                   Open Hasura
-                  <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+                  <ArrowSquareOutIcon className="h-4 w-4" />
                 </Link>
               </Button>
             ) : (
               <Button variant="outline" disabled>
                 Open Hasura
-                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+                <ArrowSquareOutIcon className="h-4 w-4" />
               </Button>
             )}
           </div>

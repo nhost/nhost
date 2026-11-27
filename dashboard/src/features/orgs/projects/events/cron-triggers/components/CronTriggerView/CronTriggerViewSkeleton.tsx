@@ -19,7 +19,7 @@ export default function CronTriggerViewSkeleton() {
 
       <div className="flex-1 space-y-4 overflow-auto p-6">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+          <div className="rounded-lg border p-4">
             <Skeleton className="mb-3 h-5 w-44" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
@@ -27,13 +27,13 @@ export default function CronTriggerViewSkeleton() {
               <Skeleton className="h-4 w-3/4" />
             </div>
           </div>
-          <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+          <div className="rounded-lg border p-4">
             <Skeleton className="mb-3 h-5 w-36" />
             <Skeleton className="h-10 w-full" />
           </div>
         </div>
 
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+        <div className="rounded-lg border p-4">
           <Skeleton className="mb-3 h-5 w-44" />
           <div className="grid gap-4 lg:grid-cols-4">
             <div className="space-y-1">
@@ -55,14 +55,14 @@ export default function CronTriggerViewSkeleton() {
           </div>
         </div>
 
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+        <div className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-36" />
             <Skeleton className="h-4 w-4" />
           </div>
         </div>
 
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+        <div className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-56" />
             <Skeleton className="h-4 w-4" />

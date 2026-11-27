@@ -1,18 +1,21 @@
 import { useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { cn } from '@/lib/utils';
 
 interface RetryConfigurationFormSectionProps {
+  className?: string;
   showToleranceSec?: boolean;
 }
 
 export default function RetryConfigurationFormSection({
+  className,
   showToleranceSec,
 }: RetryConfigurationFormSectionProps) {
   const { control } = useFormContext();
 
   return (
-    <div className="flex flex-col gap-6 pl-4">
+    <div className={cn('flex flex-col gap-6 pl-4', className)}>
       <div className="space-y-2">
         <h3 className="font-medium text-base text-foreground">
           Retry Configuration
@@ -24,7 +27,7 @@ export default function RetryConfigurationFormSection({
       <div
         className={
           showToleranceSec
-            ? 'grid max-w-lg grid-cols-2 gap-6 text-foreground'
+            ? 'grid grid-cols-1 gap-6 text-foreground sm:grid-cols-2'
             : 'flex flex-col gap-8 text-foreground lg:flex-row'
         }
       >

@@ -283,7 +283,7 @@ export default function RoleSettings() {
             className="mx-4 justify-self-start"
             onClick={handleOpenCreator}
           >
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Create Allowed Role
           </Button>
         </div>

@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'bun:test';
+import { beforeAll, describe, expect, it } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
-import * as jose from 'jose';
 import { randomBytes } from 'crypto';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -36,7 +36,9 @@ async function getTokens(jwt: string) {
   const clientSecret = generateSecret();
   const secretHash = await hashSecret(clientSecret);
 
-  const { body: { data } } = await nhost.graphql.request<{
+  const {
+    body: { data },
+  } = await nhost.graphql.request<{
     insertAuthOauth2Client: { clientId: string };
   }>(
     {
@@ -67,7 +69,9 @@ async function getTokens(jwt: string) {
   });
 
   const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
-  const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+  const requestId = new URL(authResp.headers.get('location')!).searchParams.get(
+    'request_id',
+  )!;
 
   const { body: loginResp } = await nhost.auth.oauth2LoginPost(
     { requestId },

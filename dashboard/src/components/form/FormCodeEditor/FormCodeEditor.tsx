@@ -28,6 +28,8 @@ interface FormCodeEditorProps<
   /** Rendered between the editor and the validation message (e.g. helper text). */
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
+  basicSetup?: ReactCodeMirrorProps['basicSetup'];
+  indentWithTab?: boolean;
   readOnly?: boolean;
   autoFocus?: boolean;
   className?: string;
@@ -44,6 +46,8 @@ export default function FormCodeEditor<
   onChange,
   children,
   extensions,
+  basicSetup,
+  indentWithTab,
   readOnly = false,
   autoFocus,
   className,
@@ -73,11 +77,14 @@ export default function FormCodeEditor<
               readOnly={readOnly}
               editable={!readOnly}
               autoFocus={autoFocus}
-              basicSetup={{
-                foldGutter: false,
-                highlightActiveLine: !readOnly,
-                highlightActiveLineGutter: !readOnly,
-              }}
+              indentWithTab={indentWithTab}
+              basicSetup={
+                basicSetup ?? {
+                  foldGutter: false,
+                  highlightActiveLine: !readOnly,
+                  highlightActiveLineGutter: !readOnly,
+                }
+              }
               className={cn(
                 'overflow-hidden rounded-md border text-sm',
                 className,

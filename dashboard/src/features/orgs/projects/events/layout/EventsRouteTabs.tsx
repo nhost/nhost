@@ -18,8 +18,8 @@ export default function EventsRouteTabs() {
       <RouteTabLink href={`${projectPath}/events/event-triggers`}>
         Event Triggers
       </RouteTabLink>
-      <RouteTabLink href={`${projectPath}/events/cron-triggers`}>
-        Cron Triggers
+      <RouteTabLink href={`${projectPath}/events/cron-jobs`}>
+        Cron Jobs
       </RouteTabLink>
       <RouteTabLink href={`${projectPath}/events/one-offs`}>
         One-Off Scheduled Events

@@ -219,9 +219,9 @@ export default function AutoEmbeddingsForm({
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {autoEmbeddingsId ? (
-              <RefreshCwIcon className="mr-2 h-4 w-4" />
+              <RefreshCwIcon className="h-4 w-4" />
             ) : (
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
             )}
             {autoEmbeddingsId ? 'Update' : 'Create'}
           </Button>

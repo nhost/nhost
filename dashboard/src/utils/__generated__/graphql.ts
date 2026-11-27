@@ -11209,6 +11209,7 @@ export type Billing_Time_Based_Usage_Bool_Exp = {
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   productType?: InputMaybe<Billing_Time_Based_Usage_Product_Type_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  /** Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory. */
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
@@ -11312,6 +11313,7 @@ export type Billing_Time_Based_Usage_Order_By = {
   organizationID?: InputMaybe<Order_By>;
   productType?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
+  /** Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory. */
   value?: InputMaybe<Order_By>;
 };
 
@@ -11480,7 +11482,7 @@ export enum Billing_Time_Based_Usage_Select_Column {
   ProductType = 'productType',
   /** column name */
   UpdatedAt = 'updatedAt',
-  /** column name */
+  /** Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory. */
   Value = 'value'
 }
 
@@ -11582,7 +11584,7 @@ export enum Billing_Time_Based_Usage_Update_Column {
   ProductType = 'productType',
   /** column name */
   UpdatedAt = 'updatedAt',
-  /** column name */
+  /** Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory. */
   Value = 'value'
 }
 
@@ -13788,6 +13790,140 @@ export type FilesMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
 
+/** columns and relationships of "storage.files_to_delete" */
+export type FilesToDelete = {
+  __typename?: 'filesToDelete';
+  deletedAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+};
+
+/** aggregated selection of "storage.files_to_delete" */
+export type FilesToDelete_Aggregate = {
+  __typename?: 'filesToDelete_aggregate';
+  aggregate?: Maybe<FilesToDelete_Aggregate_Fields>;
+  nodes: Array<FilesToDelete>;
+};
+
+/** aggregate fields of "storage.files_to_delete" */
+export type FilesToDelete_Aggregate_Fields = {
+  __typename?: 'filesToDelete_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<FilesToDelete_Max_Fields>;
+  min?: Maybe<FilesToDelete_Min_Fields>;
+};
+
+
+/** aggregate fields of "storage.files_to_delete" */
+export type FilesToDelete_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<FilesToDelete_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "storage.files_to_delete". All fields are combined with a logical 'AND'. */
+export type FilesToDelete_Bool_Exp = {
+  _and?: InputMaybe<Array<FilesToDelete_Bool_Exp>>;
+  _not?: InputMaybe<FilesToDelete_Bool_Exp>;
+  _or?: InputMaybe<Array<FilesToDelete_Bool_Exp>>;
+  deletedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "storage.files_to_delete" */
+export enum FilesToDelete_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  FilesToDeletePkey = 'files_to_delete_pkey'
+}
+
+/** input type for inserting data into table "storage.files_to_delete" */
+export type FilesToDelete_Insert_Input = {
+  deletedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type FilesToDelete_Max_Fields = {
+  __typename?: 'filesToDelete_max_fields';
+  deletedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type FilesToDelete_Min_Fields = {
+  __typename?: 'filesToDelete_min_fields';
+  deletedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "storage.files_to_delete" */
+export type FilesToDelete_Mutation_Response = {
+  __typename?: 'filesToDelete_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<FilesToDelete>;
+};
+
+/** on_conflict condition type for table "storage.files_to_delete" */
+export type FilesToDelete_On_Conflict = {
+  constraint: FilesToDelete_Constraint;
+  update_columns?: Array<FilesToDelete_Update_Column>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "storage.files_to_delete". */
+export type FilesToDelete_Order_By = {
+  deletedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: storage.files_to_delete */
+export type FilesToDelete_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "storage.files_to_delete" */
+export enum FilesToDelete_Select_Column {
+  /** column name */
+  DeletedAt = 'deletedAt',
+  /** column name */
+  Id = 'id'
+}
+
+/** input type for updating data in table "storage.files_to_delete" */
+export type FilesToDelete_Set_Input = {
+  deletedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "filesToDelete" */
+export type FilesToDelete_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: FilesToDelete_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type FilesToDelete_Stream_Cursor_Value_Input = {
+  deletedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "storage.files_to_delete" */
+export enum FilesToDelete_Update_Column {
+  /** column name */
+  DeletedAt = 'deletedAt',
+  /** column name */
+  Id = 'id'
+}
+
+export type FilesToDelete_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<FilesToDelete_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: FilesToDelete_Bool_Exp;
+};
+
 /** aggregated selection of "storage.files" */
 export type Files_Aggregate = {
   __typename?: 'files_aggregate';
@@ -15196,8 +15332,12 @@ export type Mutation_Root = {
   deleteFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
   /** delete single row from the table: "storage.files" */
   deleteFile?: Maybe<Files>;
+  /** delete single row from the table: "storage.files_to_delete" */
+  deleteFileToDelete?: Maybe<FilesToDelete>;
   /** delete data from the table: "storage.files" */
   deleteFiles?: Maybe<Files_Mutation_Response>;
+  /** delete data from the table: "storage.files_to_delete" */
+  deleteFilesToDelete?: Maybe<FilesToDelete_Mutation_Response>;
   /** delete single row from the table: "github_app_installations" */
   deleteGithubAppInstallation?: Maybe<GithubAppInstallations>;
   /** delete data from the table: "github_app_installations" */
@@ -15455,8 +15595,12 @@ export type Mutation_Root = {
   insertFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
   /** insert a single row into the table: "storage.files" */
   insertFile?: Maybe<Files>;
+  /** insert a single row into the table: "storage.files_to_delete" */
+  insertFileToDelete?: Maybe<FilesToDelete>;
   /** insert data into the table: "storage.files" */
   insertFiles?: Maybe<Files_Mutation_Response>;
+  /** insert data into the table: "storage.files_to_delete" */
+  insertFilesToDelete?: Maybe<FilesToDelete_Mutation_Response>;
   /** insert a single row into the table: "github_app_installations" */
   insertGithubAppInstallation?: Maybe<GithubAppInstallations>;
   /** insert data into the table: "github_app_installations" */
@@ -15735,8 +15879,12 @@ export type Mutation_Root = {
   updateFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
   /** update single row of the table: "storage.files" */
   updateFile?: Maybe<Files>;
+  /** update single row of the table: "storage.files_to_delete" */
+  updateFileToDelete?: Maybe<FilesToDelete>;
   /** update data of the table: "storage.files" */
   updateFiles?: Maybe<Files_Mutation_Response>;
+  /** update data of the table: "storage.files_to_delete" */
+  updateFilesToDelete?: Maybe<FilesToDelete_Mutation_Response>;
   /** update single row of the table: "github_app_installations" */
   updateGithubAppInstallation?: Maybe<GithubAppInstallations>;
   /** update data of the table: "github_app_installations" */
@@ -15958,6 +16106,8 @@ export type Mutation_Root = {
   update_deployments_many?: Maybe<Array<Maybe<Deployments_Mutation_Response>>>;
   /** update multiples rows of table: "feature_flags" */
   update_featureFlags_many?: Maybe<Array<Maybe<FeatureFlags_Mutation_Response>>>;
+  /** update multiples rows of table: "storage.files_to_delete" */
+  update_filesToDelete_many?: Maybe<Array<Maybe<FilesToDelete_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
   /** update multiples rows of table: "github_app_installations" */
@@ -16452,8 +16602,20 @@ export type Mutation_RootDeleteFileArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteFileToDeleteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteFilesArgs = {
   where: Files_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteFilesToDeleteArgs = {
+  where: FilesToDelete_Bool_Exp;
 };
 
 
@@ -17295,9 +17457,23 @@ export type Mutation_RootInsertFileArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertFileToDeleteArgs = {
+  object: FilesToDelete_Insert_Input;
+  on_conflict?: InputMaybe<FilesToDelete_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertFilesArgs = {
   objects: Array<Files_Insert_Input>;
   on_conflict?: InputMaybe<Files_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertFilesToDeleteArgs = {
+  objects: Array<FilesToDelete_Insert_Input>;
+  on_conflict?: InputMaybe<FilesToDelete_On_Conflict>;
 };
 
 
@@ -18369,6 +18545,13 @@ export type Mutation_RootUpdateFileArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateFileToDeleteArgs = {
+  _set?: InputMaybe<FilesToDelete_Set_Input>;
+  pk_columns: FilesToDelete_Pk_Columns_Input;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateFilesArgs = {
   _append?: InputMaybe<Files_Append_Input>;
   _delete_at_path?: InputMaybe<Files_Delete_At_Path_Input>;
@@ -18378,6 +18561,13 @@ export type Mutation_RootUpdateFilesArgs = {
   _prepend?: InputMaybe<Files_Prepend_Input>;
   _set?: InputMaybe<Files_Set_Input>;
   where: Files_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateFilesToDeleteArgs = {
+  _set?: InputMaybe<FilesToDelete_Set_Input>;
+  where: FilesToDelete_Bool_Exp;
 };
 
 
@@ -19170,6 +19360,12 @@ export type Mutation_RootUpdate_Deployments_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_FeatureFlags_ManyArgs = {
   updates: Array<FeatureFlags_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_FilesToDelete_ManyArgs = {
+  updates: Array<FilesToDelete_Updates>;
 };
 
 
@@ -22420,10 +22616,16 @@ export type Query_Root = {
   featureFlagsAggregate: FeatureFlags_Aggregate;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
+  /** fetch data from the table: "storage.files_to_delete" using primary key columns */
+  fileToDelete?: Maybe<FilesToDelete>;
   /** An array relationship */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
+  /** fetch data from the table: "storage.files_to_delete" */
+  filesToDelete: Array<FilesToDelete>;
+  /** fetch aggregated fields from the table: "storage.files_to_delete" */
+  filesToDeleteAggregate: FilesToDelete_Aggregate;
   getBackupPresignedURL: BackupPresignedUrl;
   getCPUSecondsUsage: Metrics;
   getEgressVolume: Metrics;
@@ -23505,6 +23707,11 @@ export type Query_RootFileArgs = {
 };
 
 
+export type Query_RootFileToDeleteArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Query_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23520,6 +23727,24 @@ export type Query_RootFilesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
+};
+
+
+export type Query_RootFilesToDeleteArgs = {
+  distinct_on?: InputMaybe<Array<FilesToDelete_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<FilesToDelete_Order_By>>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
+};
+
+
+export type Query_RootFilesToDeleteAggregateArgs = {
+  distinct_on?: InputMaybe<Array<FilesToDelete_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<FilesToDelete_Order_By>>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
 };
 
 
@@ -26316,10 +26541,18 @@ export type Subscription_Root = {
   featureFlags_stream: Array<FeatureFlags>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
+  /** fetch data from the table: "storage.files_to_delete" using primary key columns */
+  fileToDelete?: Maybe<FilesToDelete>;
   /** An array relationship */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
+  /** fetch data from the table: "storage.files_to_delete" */
+  filesToDelete: Array<FilesToDelete>;
+  /** fetch aggregated fields from the table: "storage.files_to_delete" */
+  filesToDeleteAggregate: FilesToDelete_Aggregate;
+  /** fetch data from the table in a streaming manner: "storage.files_to_delete" */
+  filesToDelete_stream: Array<FilesToDelete>;
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
   /**
@@ -27581,6 +27814,11 @@ export type Subscription_RootFileArgs = {
 };
 
 
+export type Subscription_RootFileToDeleteArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Subscription_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -27596,6 +27834,31 @@ export type Subscription_RootFilesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootFilesToDeleteArgs = {
+  distinct_on?: InputMaybe<Array<FilesToDelete_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<FilesToDelete_Order_By>>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
+};
+
+
+export type Subscription_RootFilesToDeleteAggregateArgs = {
+  distinct_on?: InputMaybe<Array<FilesToDelete_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<FilesToDelete_Order_By>>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
+};
+
+
+export type Subscription_RootFilesToDelete_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<FilesToDelete_Stream_Cursor_Input>>;
+  where?: InputMaybe<FilesToDelete_Bool_Exp>;
 };
 
 
@@ -31442,6 +31705,7 @@ export type Users_Max_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
+  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
@@ -31468,6 +31732,7 @@ export type Users_Max_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
+  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
@@ -31495,6 +31760,7 @@ export type Users_Min_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
+  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
@@ -31521,6 +31787,7 @@ export type Users_Min_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
+  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
@@ -32330,6 +32597,23 @@ export type ResetDatabasePasswordMutationVariables = Exact<{
 
 
 export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+
+export type GetCronSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetCronSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', settings?: { __typename?: 'ConfigPostgresSettings', extensions?: { __typename?: 'ConfigPostgresSettingsExtensions', cron?: { __typename?: 'ConfigPostgresSettingsExtensionsCron', timezone?: string | null, maxRunningJobs?: any | null, logRun?: string | null } | null } | null } | null } } | null };
+
+export type UpdateCronSettingsMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  timezone: Scalars['String'];
+  maxRunningJobs: Scalars['ConfigInt32'];
+  logRun: Scalars['String'];
+}>;
+
+
+export type UpdateCronSettingsMutation = { __typename?: 'mutation_root', updateConfig: { __typename: 'ConfigConfig' } };
 
 export type ConnectGithubRepoMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -34796,6 +35080,95 @@ export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHo
 export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+export const GetCronSettingsDocument = gql`
+    query GetCronSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    postgres {
+      settings {
+        extensions {
+          cron {
+            timezone
+            maxRunningJobs
+            logRun
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCronSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetCronSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCronSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCronSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetCronSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetCronSettingsQuery, GetCronSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCronSettingsQuery, GetCronSettingsQueryVariables>(GetCronSettingsDocument, options);
+      }
+export function useGetCronSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCronSettingsQuery, GetCronSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCronSettingsQuery, GetCronSettingsQueryVariables>(GetCronSettingsDocument, options);
+        }
+export type GetCronSettingsQueryHookResult = ReturnType<typeof useGetCronSettingsQuery>;
+export type GetCronSettingsLazyQueryHookResult = ReturnType<typeof useGetCronSettingsLazyQuery>;
+export type GetCronSettingsQueryResult = Apollo.QueryResult<GetCronSettingsQuery, GetCronSettingsQueryVariables>;
+export function refetchGetCronSettingsQuery(variables: GetCronSettingsQueryVariables) {
+      return { query: GetCronSettingsDocument, variables: variables }
+    }
+export const UpdateCronSettingsDocument = gql`
+    mutation UpdateCronSettings($appId: uuid!, $timezone: String!, $maxRunningJobs: ConfigInt32!, $logRun: String!) {
+  updateConfig(
+    appID: $appId
+    config: {postgres: {settings: {extensions: {cron: {timezone: $timezone, maxRunningJobs: $maxRunningJobs, logRun: $logRun}}}}}
+  ) {
+    __typename
+  }
+}
+    `;
+export type UpdateCronSettingsMutationFn = Apollo.MutationFunction<UpdateCronSettingsMutation, UpdateCronSettingsMutationVariables>;
+
+/**
+ * __useUpdateCronSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateCronSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCronSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCronSettingsMutation, { data, loading, error }] = useUpdateCronSettingsMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      timezone: // value for 'timezone'
+ *      maxRunningJobs: // value for 'maxRunningJobs'
+ *      logRun: // value for 'logRun'
+ *   },
+ * });
+ */
+export function useUpdateCronSettingsMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCronSettingsMutation, UpdateCronSettingsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCronSettingsMutation, UpdateCronSettingsMutationVariables>(UpdateCronSettingsDocument, options);
+      }
+export type UpdateCronSettingsMutationHookResult = ReturnType<typeof useUpdateCronSettingsMutation>;
+export type UpdateCronSettingsMutationResult = Apollo.MutationResult<UpdateCronSettingsMutation>;
+export type UpdateCronSettingsMutationOptions = Apollo.BaseMutationOptions<UpdateCronSettingsMutation, UpdateCronSettingsMutationVariables>;
 export const ConnectGithubRepoDocument = gql`
     mutation ConnectGithubRepo($appID: uuid!, $githubNodeID: String!, $productionBranch: String!, $baseFolder: String!) {
   connectGithubRepo(

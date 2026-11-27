@@ -1,141 +1,33 @@
-import { Ellipsis, Pencil, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
+import CronJobListItem from '@/features/orgs/projects/events/cron-jobs/components/CronJobListItem';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import type { BaseCronTriggerFormTriggerProps } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm';
-import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-triggers/components/DeleteCronTriggerDialog';
-import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/EditCronTriggerForm';
-import { cn } from '@/lib/utils';
+  cronJobsPath,
+  webhookJobPath,
+} from '@/features/orgs/projects/events/cron-jobs/cron-jobs-path';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 
-const menuItemClassName = 'cursor-pointer gap-2';
-
-export interface CronTriggerListItemProps {
+interface CronTriggerListItemProps {
   cronTrigger: CronTrigger;
+  onNavigate: VoidFunction;
 }
 
 export default function CronTriggerListItem({
   cronTrigger,
+  onNavigate,
 }: CronTriggerListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
-  const editTriggerRef = useRef<BaseCronTriggerFormTriggerProps | null>(null);
-  const isSelected = cronTrigger.name === cronTriggerSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${cronTrigger.name}`;
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const [showDeleteCronTriggerDialog, setShowDeleteCronTriggerDialog] =
-    useState(false);
+  const { orgSlug, appSubdomain, cronTriggerSlug } = useRouter().query;
 
   return (
-    <>
-      <div className="group pb-1">
-        <Button
-          asChild
-          variant="link"
-          size="sm"
-          className={cn(
-            'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-            {
-              'bg-table-selected': isSelected,
-            },
-          )}
-        >
-          <div className="flex w-full max-w-full items-center">
-            <Link
-              href={href}
-              className={cn(
-                'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
-                {
-                  'text-primary': isSelected,
-                },
-              )}
-            >
-              <TextWithTooltip
-                containerClassName="w-full"
-                className={cn('!truncate text-sm+', {
-                  'text-primary': isSelected,
-                })}
-                text={cronTrigger.name}
-              />
-            </Link>
-
-            <DropdownMenu
-              modal={false}
-              open={isMenuOpen}
-              onOpenChange={setIsMenuOpen}
-            >
-              <DropdownMenuTrigger
-                asChild
-                className={cn(
-                  'relative z-10 opacity-0 transition-opacity group-hover:opacity-100',
-                  {
-                    'opacity-100': isSelected || isMenuOpen,
-                  },
-                )}
-              >
-                <Button
-                  variant="subtle"
-                  size="icon-xs"
-                  data-testid={`cron-trigger-menu-${cronTrigger.name}`}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                  }}
-                >
-                  <Ellipsis className="size-6" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                side="bottom"
-                className="w-52"
-                forceMount
-              >
-                <DropdownMenuItem
-                  onSelect={() => {
-                    editTriggerRef.current?.open?.();
-                  }}
-                  className={menuItemClassName}
-                >
-                  <Pencil className="size-4" />
-                  Edit Cron Trigger
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => setShowDeleteCronTriggerDialog(true)}
-                  className={cn(
-                    menuItemClassName,
-                    'text-destructive focus:bg-destructive-hover focus:text-destructive',
-                  )}
-                >
-                  <Trash2 className="size-4" />
-                  Delete Cron Trigger
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </Button>
-      </div>
-      <EditCronTriggerForm
-        cronTrigger={cronTrigger}
-        trigger={(controls) => {
-          editTriggerRef.current = controls;
-          return null;
-        }}
-      />
-      <DeleteCronTriggerDialog
-        open={showDeleteCronTriggerDialog}
-        setOpen={setShowDeleteCronTriggerDialog}
-        cronTriggerToDelete={cronTrigger.name}
-      />
-    </>
+    <CronJobListItem
+      name={cronTrigger.name}
+      schedule={describeCronSchedule(cronTrigger.schedule)}
+      href={webhookJobPath(
+        cronJobsPath(orgSlug, appSubdomain),
+        cronTrigger.name,
+      )}
+      selected={cronTrigger.name === cronTriggerSlug}
+      onNavigate={onNavigate}
+    />
   );
 }

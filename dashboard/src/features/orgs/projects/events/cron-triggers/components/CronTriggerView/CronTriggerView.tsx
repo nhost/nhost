@@ -1,19 +1,23 @@
+import { Pencil } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/v3/tabs';
+import { Tabs, TabsContent } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/common/hooks/useGetScheduledEventLogsQuery';
+import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
+import {
+  CronJobPaneTab,
+  CronJobPaneTabs,
+} from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneTabs';
+import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
+import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
+import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-triggers/components/DeleteCronTriggerDialog';
+import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/EditCronTriggerForm';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
-import { isEmptyValue } from '@/lib/utils';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
@@ -28,6 +32,7 @@ export default function CronTriggerView() {
     (trigger) => trigger.name === cronTriggerSlug,
   );
 
+  const [deleting, setDeleting] = useState(false);
   const [tab, setTab] = useState('overview');
   const [eventLogsSection, setEventLogsSection] =
     useState<CronTriggerEventsSection>('processed');
@@ -74,10 +79,10 @@ export default function CronTriggerView() {
   if (error instanceof Error) {
     return (
       <EventsEmptyState
-        title="Cron trigger not found"
+        title="Webhook job not found"
         description={
           <span>
-            Cron trigger{' '}
+            Webhook job{' '}
             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
               {cronTriggerSlug}
             </code>{' '}
@@ -88,13 +93,13 @@ export default function CronTriggerView() {
     );
   }
 
-  if (isEmptyValue(cronTrigger)) {
+  if (!cronTrigger) {
     return (
       <EventsEmptyState
-        title="Cron trigger not found"
+        title="Webhook job not found"
         description={
           <span>
-            Cron trigger{' '}
+            Webhook job{' '}
             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
               {cronTriggerSlug}
             </code>{' '}
@@ -106,52 +111,64 @@ export default function CronTriggerView() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
-      <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col">
-        <div className="sticky top-0 z-10 border-b-1 bg-background">
-          <div className="p-6">
-            <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
-              {cronTrigger!.name}
-            </h1>
-            <p className="text-gray-600 text-sm dark:text-gray-400">
-              Cron Trigger Configuration
-            </p>
-          </div>
-
-          <div className="flex flex-col items-start justify-between gap-4 px-6 py-4 lg:flex-row lg:items-center">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
-            </TabsList>
-
-            {tab === 'pending-processed-events' && (
-              <PaginationControls
-                className="px-0 py-0"
-                offset={offset}
-                limit={limit}
-                hasNoPreviousPage={hasNoPreviousPage}
-                hasNoNextPage={hasNoNextPage}
-                onPrev={goPrev}
-                onNext={() => !hasNoNextPage && goNext()}
-                onChangeLimit={setLimitAndReset}
+    <div className="flex min-h-full w-full flex-col bg-background">
+      <Tabs
+        value={tab}
+        onValueChange={setTab}
+        className="flex min-h-full flex-col gap-0"
+      >
+        <CronJobPaneHeader
+          title={cronTrigger.name}
+          description={cronTrigger.comment}
+          actions={
+            <>
+              <EditCronTriggerForm
+                cronTrigger={cronTrigger}
+                trigger={({ open }) => (
+                  <JobIconButton label="Edit job" onClick={open}>
+                    <Pencil />
+                  </JobIconButton>
+                )}
               />
-            )}
-          </div>
-        </div>
-
-        <TabsContent value="overview" className="overflow-auto p-6">
-          <CronTriggerOverview cronTrigger={cronTrigger!} />
-        </TabsContent>
-        <TabsContent
-          className="mt-0 flex-1 overflow-auto"
-          value="pending-processed-events"
+              <DeleteJobButton onClick={() => setDeleting(true)} />
+              <DeleteCronTriggerDialog
+                open={deleting}
+                setOpen={setDeleting}
+                cronTriggerToDelete={cronTrigger.name}
+              />
+            </>
+          }
         >
+          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+            <CronJobPaneTabs aria-label="Job details">
+              <CronJobPaneTab value="overview">Overview</CronJobPaneTab>
+              <CronJobPaneTab value="pending-processed-events">
+                Events
+              </CronJobPaneTab>
+            </CronJobPaneTabs>
+          </div>
+        </CronJobPaneHeader>
+        <TabsContent value="overview" className="p-6">
+          <CronTriggerOverview cronTrigger={cronTrigger} />
+        </TabsContent>
+        <TabsContent className="mt-0 flex-1" value="pending-processed-events">
           <CronTriggerEventsDataTable
+            triggerName={cronTrigger.name}
             eventLogsSection={eventLogsSection}
             onEventLogsSectionChange={setEventLogsSection}
             data={eventsData}
             isLoading={isEventsLoading}
             limit={limit}
+          />
+          <PaginationControls
+            className="justify-end px-6 pt-0 pb-6"
+            offset={offset}
+            limit={limit}
+            hasNoPreviousPage={hasNoPreviousPage}
+            hasNoNextPage={hasNoNextPage}
+            onPrev={goPrev}
+            onNext={() => !hasNoNextPage && goNext()}
+            onChangeLimit={setLimitAndReset}
           />
         </TabsContent>
       </Tabs>

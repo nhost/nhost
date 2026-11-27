@@ -118,7 +118,7 @@ export default function LogsHeader({
             loading={loading}
             loaderClassName="h-4 w-4"
           >
-            {!loading && <SearchIcon className="mr-2 h-4 w-4" />}
+            {!loading && <SearchIcon className="h-4 w-4" />}
             Search
           </ButtonWithLoading>
         </Form>

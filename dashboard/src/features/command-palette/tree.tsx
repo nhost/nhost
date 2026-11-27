@@ -372,7 +372,17 @@ const subPageChildren: Record<
   ),
   events: toSubPageNodes(projectSubPagesBySlug.events, 'project-events', {
     'event-triggers': ['events', 'webhooks'],
-    'cron-triggers': ['events', 'scheduled'],
+    'cron-jobs': [
+      'webhook',
+      'triggers',
+      'events',
+      'scheduled',
+      'sql',
+      'jobs',
+      'pg_cron',
+      'postgres',
+      'cron',
+    ],
     'one-offs': ['events', 'scheduled'],
   }),
   auth: toSubPageNodes(
