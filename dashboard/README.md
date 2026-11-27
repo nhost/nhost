@@ -109,7 +109,7 @@ The platform dashboard includes a native support workspace:
 - `/support`: the public support hub, with links to the docs, Discord, GitHub issues, and the ticket queue. It needs no session, so signed-out visitors can reach it too.
 - `/support/tickets`: organization-visible customer tickets, or the global queue for support agents. Switch between open, closed, and all tickets, filter by status, search by title, project, organization, or ticket number, and paginate results. Agents can also show only the tickets assigned to them.
 - `/support/ticket`: create a ticket for one of your organizations, optionally tied to a current project. The form collects title, severity, affected services, and description.
-- `/support/tickets/[ticketId]`: public conversation and activity, with status transitions, self-assignment, unassignment, and severity changes restricted to support agents. Customers can view ticket details and reply, but cannot update ticket fields. Agents can reopen resolved tickets; closed tickets are final and read-only.
+- `/support/tickets/[ticketId]`: the ticket's conversation. Customers can view ticket details and reply, but cannot update ticket fields. Only support agents can change the status, assign themselves, unassign, or change the severity, and once a ticket has changed they also see an Activity tab with its latest 100 events. Agents can reopen resolved tickets; closed tickets are final and read-only.
 
 This uses the existing dashboard Nhost session and GraphQL endpoint. There is **no separate support login, OAuth client, admin secret, or Zendesk credential**. The old `/api/support/create-ticket` route is removed; clients must use the native GraphQL API instead. Existing Zendesk tickets are not imported.
 
