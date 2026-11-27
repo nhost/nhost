@@ -1,10 +1,10 @@
-import { Shapes } from 'lucide-react';
+import { Database, Shapes } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelForm';
 import { NativeQueriesDetailsHeader } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsHeader';
-import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import LogicalModelDetailsSkeleton from './LogicalModelDetailsSkeleton';
@@ -37,7 +37,8 @@ export default function LogicalModelDetails() {
 
   if (!model) {
     return (
-      <NativeQueriesEmptyState
+      <EmptyState
+        icon={Database}
         title="Logical model not found"
         description={
           <span>
