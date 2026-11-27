@@ -8,12 +8,14 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/internal/lib/nhostclient"
 	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/oauth2"
 )
 
 func sanitizeName(name string) string {
@@ -155,7 +157,7 @@ func (ce *CliEnv) FetchOAuth2Metadata(
 }
 
 func (ce *CliEnv) NewCloudInterceptor(
-	ctx context.Context,
+	_ context.Context,
 ) (func(context.Context, *http.Request) error, error) {
 	if pat := ce.PAT(); pat != "" {
 		cl, err := ce.NewAuthClient()
@@ -166,72 +168,32 @@ func (ce *CliEnv) NewCloudInterceptor(
 		return nhostclient.WithPAT(cl, pat), nil
 	}
 
-	creds, err := ce.Credentials()
-	if err != nil {
+	if _, err := ce.Credentials(); err != nil {
 		return nil, fmt.Errorf(
 			"failed to load credentials (run `nhost login` first): %w",
 			err,
 		)
 	}
 
-	if creds.OAuth2RefreshToken != "" {
-		return ce.newOAuth2CloudInterceptor(ctx, creds)
-	}
-
-	return ce.newRefreshTokenCloudInterceptor(ctx, creds)
-}
-
-func (ce *CliEnv) newOAuth2CloudInterceptor(
-	ctx context.Context,
-	creds Credentials,
-) (func(context.Context, *http.Request) error, error) {
-	metadata, err := ce.FetchOAuth2Metadata(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-
-	src := auth.NewRotatingTokenSource(
-		ctx,
-		metadata.TokenEndpoint,
-		ce.OAuth2ClientID(),
-		creds.OAuth2RefreshToken,
+	var (
+		mu    sync.Mutex
+		token *oauth2.Token
 	)
-	baseInterceptor := nhostclient.WithOAuth2RefreshToken(src)
 
 	return func(ctx context.Context, req *http.Request) error {
-		if err := baseInterceptor(ctx, req); err != nil {
-			return err
+		mu.Lock()
+		defer mu.Unlock()
+
+		if !token.Valid() {
+			fresh, err := ce.refreshSession(ctx)
+			if err != nil {
+				return err
+			}
+
+			token = fresh
 		}
 
-		if rt := src.GetRefreshToken(); rt != creds.OAuth2RefreshToken {
-			creds.OAuth2RefreshToken = rt
-			_ = saveCredentials(ce, creds)
-		}
-
-		return nil
-	}, nil
-}
-
-func (ce *CliEnv) newRefreshTokenCloudInterceptor(
-	_ context.Context,
-	creds Credentials,
-) (func(context.Context, *http.Request) error, error) {
-	cl, err := ce.NewAuthClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create auth client: %w", err)
-	}
-
-	interceptor := nhostclient.NewRefreshTokenInterceptor(cl, creds.RefreshToken)
-
-	return func(ctx context.Context, req *http.Request) error {
-		if err := interceptor.Intercept(ctx, req); err != nil {
-			return err //nolint:wrapcheck // error is already wrapped by Intercept
-		}
-
-		if rt := interceptor.GetRefreshToken(); rt != creds.RefreshToken {
-			creds.RefreshToken = rt
-			_ = saveCredentials(ce, creds)
-		}
+		req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 
 		return nil
 	}, nil

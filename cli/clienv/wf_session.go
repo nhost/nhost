@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
+	"golang.org/x/oauth2"
 )
 
 // Credentials holds the stored authentication credentials for the CLI.
@@ -18,8 +20,11 @@ type Credentials struct {
 	OAuth2RefreshToken string `json:"oauth2RefreshToken,omitempty"`
 }
 
-var errMissingRefreshToken = errors.New(
-	"credentials file is missing a refresh token; please run 'nhost login' to re-authenticate",
+var (
+	errMissingRefreshToken = errors.New(
+		"credentials file is missing a refresh token; please run 'nhost login' to re-authenticate",
+	)
+	errRefreshFailed = errors.New("failed to refresh access token")
 )
 
 func (ce *CliEnv) loadCredentials(
@@ -41,16 +46,55 @@ func (ce *CliEnv) loadCredentials(
 func (ce *CliEnv) LoadSession(
 	ctx context.Context,
 ) (string, error) {
-	creds, err := ce.loadCredentials(ctx)
+	if _, err := ce.loadCredentials(ctx); err != nil {
+		return "", err
+	}
+
+	token, err := ce.refreshSession(ctx)
+	if errors.Is(err, errRefreshFailed) {
+		if _, err := ce.Login(ctx); err != nil {
+			return "", fmt.Errorf("failed to login: %w", err)
+		}
+
+		token, err = ce.refreshSession(ctx)
+	}
+
 	if err != nil {
 		return "", err
 	}
 
-	if creds.RefreshToken != "" {
-		return ce.loadRefreshTokenSession(ctx, creds)
-	}
+	return token.AccessToken, nil
+}
 
-	return ce.loadOAuth2Session(ctx, creds)
+// Refresh tokens are single-use, so the credentials are read, refreshed and
+// saved under the lock: CLI processes never refresh with the same token.
+func (ce *CliEnv) refreshSession(ctx context.Context) (*oauth2.Token, error) {
+	var token *oauth2.Token
+
+	err := ce.withCredentialsLock(func() error {
+		creds, err := ce.Credentials()
+		if err != nil {
+			return err
+		}
+
+		if creds.OAuth2RefreshToken != "" {
+			token, err = ce.refreshOAuth2Session(ctx, &creds)
+		} else {
+			token, err = ce.refreshPATSession(ctx, &creds)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if err := saveCredentials(ce, creds); err != nil {
+			return fmt.Errorf("failed to persist new refresh token: %w", err)
+		}
+
+		return nil
+	})
+
+	return token, err
 }
 
 func (ce *CliEnv) refreshToken(
@@ -66,7 +110,12 @@ func (ce *CliEnv) refreshToken(
 	}
 
 	if resp.StatusCode() == http.StatusUnauthorized {
-		return nil, nil //nolint:nilnil // nil session signals caller to re-login
+		return nil, fmt.Errorf(
+			"%w: error during token refresh: %s\n%s",
+			errRefreshFailed,
+			resp.Status(),
+			resp.Body,
+		)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
@@ -80,57 +129,39 @@ func (ce *CliEnv) refreshToken(
 	return resp.JSON200, nil
 }
 
-func (ce *CliEnv) loadRefreshTokenSession(
+func (ce *CliEnv) refreshPATSession(
 	ctx context.Context,
-	creds Credentials,
-) (string, error) {
+	creds *Credentials,
+) (*oauth2.Token, error) {
 	cl, err := ce.NewAuthClient()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	session, err := ce.refreshToken(ctx, cl, creds)
+	session, err := ce.refreshToken(ctx, cl, *creds)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if session == nil {
-		creds, err = ce.Login(ctx)
-		if err != nil {
-			return "", fmt.Errorf("failed to login: %w", err)
-		}
-
-		if creds.RefreshToken == "" {
-			return ce.loadOAuth2Session(ctx, creds)
-		}
-
-		session, err = ce.refreshToken(ctx, cl, creds)
-		if err != nil {
-			return "", err
-		}
-
-		if session == nil {
-			return "", errors.New("failed to refresh token after re-login") //nolint:err113
-		}
-	}
-
-	if session.RefreshToken != creds.RefreshToken {
+	if session.RefreshToken != "" {
 		creds.RefreshToken = session.RefreshToken
-		if err := saveCredentials(ce, creds); err != nil {
-			return "", fmt.Errorf("failed to persist new refresh token: %w", err)
-		}
 	}
 
-	return session.AccessToken, nil
+	return &oauth2.Token{ //nolint:exhaustruct
+		AccessToken: session.AccessToken,
+		Expiry: time.Now().Add(
+			time.Duration(session.AccessTokenExpiresIn) * time.Second,
+		),
+	}, nil
 }
 
-func (ce *CliEnv) loadOAuth2Session(
+func (ce *CliEnv) refreshOAuth2Session(
 	ctx context.Context,
-	creds Credentials,
-) (string, error) {
+	creds *Credentials,
+) (*oauth2.Token, error) {
 	metadata, err := ce.FetchOAuth2Metadata(ctx)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	src := auth.NewRotatingTokenSource(
@@ -139,29 +170,12 @@ func (ce *CliEnv) loadOAuth2Session(
 
 	token, err := src.Token()
 	if err != nil {
-		creds, err = ce.Login(ctx)
-		if err != nil {
-			return "", fmt.Errorf("failed to login: %w", err)
-		}
-
-		src = auth.NewRotatingTokenSource(
-			ctx, metadata.TokenEndpoint, ce.OAuth2ClientID(), creds.OAuth2RefreshToken,
-		)
-
-		token, err = src.Token()
-		if err != nil {
-			return "", fmt.Errorf("failed to refresh access token: %w", err)
-		}
+		return nil, fmt.Errorf("%w: %w", errRefreshFailed, err)
 	}
 
-	if src.GetRefreshToken() != creds.OAuth2RefreshToken {
-		creds.OAuth2RefreshToken = src.GetRefreshToken()
-		if err := saveCredentials(ce, creds); err != nil {
-			return "", fmt.Errorf("failed to persist new refresh token: %w", err)
-		}
-	}
+	creds.OAuth2RefreshToken = src.GetRefreshToken()
 
-	return token.AccessToken, nil
+	return token, nil
 }
 
 func (ce *CliEnv) Credentials() (Credentials, error) {
