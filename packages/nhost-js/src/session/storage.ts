@@ -45,8 +45,9 @@ export class SessionStorage {
   /**
    * Sets the session in the underlying storage and notifies subscribers
    * @param value - The session to store
+   * @returns The stored session, including the decoded access token
    */
-  set(value: AuthSession): void {
+  set(value: AuthSession): StoredSession {
     const decodedToken = decodeUserSession(value.accessToken);
     const decodedSession = {
       ...value,
@@ -55,6 +56,7 @@ export class SessionStorage {
 
     this.storage.set(decodedSession);
     this.notifySubscribers(decodedSession);
+    return decodedSession;
   }
 
   /**
