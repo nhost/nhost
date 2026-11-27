@@ -82,7 +82,7 @@ export default function IndexPage() {
           <div className="rounded bg-muted py-2">
             <CodeBlock
               copyToClipboardToastTitle="Error details"
-              className="!mt-0 rounded text-sm"
+              className="!mt-0 text-sm"
             >
               {error.message}
             </CodeBlock>

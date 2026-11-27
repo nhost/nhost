@@ -237,8 +237,8 @@ export default function BaseCronTriggerForm({
                   <FormInput
                     control={form.control}
                     name="comment"
-                    label="Comment"
-                    placeholder="A statement to help describe the webhook job in brief"
+                    label="Description"
+                    placeholder="Describe what this webhook job does"
                     className="max-w-lg"
                     autoComplete="off"
                   />

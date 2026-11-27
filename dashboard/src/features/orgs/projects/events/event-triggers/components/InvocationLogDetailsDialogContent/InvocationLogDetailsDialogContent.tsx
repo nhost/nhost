@@ -113,7 +113,7 @@ export default function InvocationLogDetailsDialogContent({
                 <div>
                   <h4 className="mb-2 font-medium text-foreground">Payload</h4>
                   <CodeBlock
-                    className="rounded py-2"
+                    className="py-2"
                     copyToClipboardToastTitle={`${log.trigger_name} payload`}
                   >
                     {JSON.stringify(log.request.payload, null, 2)}
@@ -164,7 +164,7 @@ export default function InvocationLogDetailsDialogContent({
                 <div>
                   <h4 className="mb-2 font-medium">Response Body</h4>
                   <CodeBlock
-                    className="w-full max-w-full whitespace-pre-wrap break-all rounded py-2"
+                    className="w-full max-w-full whitespace-pre-wrap break-all py-2"
                     copyToClipboardToastTitle={`${log.trigger_name} response body`}
                   >
                     {log.response?.data?.body ?? log.response?.data?.message}

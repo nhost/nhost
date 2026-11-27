@@ -48,7 +48,7 @@ export default function InconsistentObjectDefinitionDialog({
           </p>
         </div>
         <CodeBlock
-          className="rounded py-2"
+          className="py-2"
           copyToClipboardToastTitle="Object definition"
         >
           {JSON.stringify(definition, null, 2)}

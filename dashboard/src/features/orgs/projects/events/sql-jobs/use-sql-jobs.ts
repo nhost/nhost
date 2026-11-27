@@ -88,7 +88,7 @@ export function useSqlJobRunCounts(job: SqlJob) {
         target!,
         getJobRunCountsSql(job.jobid),
       );
-      return counts ?? { all: 0, failed: 0 };
+      return counts ?? { all: 0, succeeded: 0, failed: 0, running: 0 };
     },
     enabled: Boolean(target),
     refetchInterval: 10_000,

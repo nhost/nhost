@@ -30,16 +30,14 @@ export default function CronJobListItem({
           selected && 'bg-table-selected',
         )}
       >
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span
-            className={cn(
-              'truncate font-medium text-sm+',
-              selected && 'text-primary',
-              paused && !selected && 'text-muted-foreground',
-            )}
-          >
-            {name}
-          </span>
+        <span
+          className={cn(
+            'flex min-w-0 flex-1 flex-col',
+            selected && 'text-primary',
+            paused && !selected && 'text-muted-foreground',
+          )}
+        >
+          <span className="truncate font-medium text-sm+">{name}</span>
           <span className="truncate text-muted-foreground text-xs">
             {schedule}
           </span>

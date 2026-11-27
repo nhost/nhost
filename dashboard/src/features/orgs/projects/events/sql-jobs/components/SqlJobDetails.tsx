@@ -9,7 +9,6 @@ import {
   Pause,
   Pencil,
   Play,
-  RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Pagination } from '@/components/common/Pagination';
@@ -17,8 +16,13 @@ import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboa
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { Label } from '@/components/ui/v3/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -36,14 +40,11 @@ import {
 } from '@/components/ui/v3/tabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
-import {
-  describeCronSchedule,
-  getCronScheduleKind,
-} from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
+import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
+import ScheduleFields from '@/features/orgs/projects/events/common/components/ScheduleFields';
 import CronJobPaneHeader from '@/features/orgs/projects/events/cron-jobs/components/CronJobPaneHeader';
 import DeleteJobButton from '@/features/orgs/projects/events/cron-jobs/components/DeleteJobButton';
 import JobIconButton from '@/features/orgs/projects/events/cron-jobs/components/JobIconButton';
-import SidebarIconAction from '@/features/orgs/projects/events/cron-jobs/components/SidebarIconAction';
 import type { SqlJobRunFilter } from '@/features/orgs/projects/events/sql-jobs/sql';
 import {
   SQL_EDITOR_EXTENSIONS,
@@ -115,12 +116,10 @@ export default function SqlJobDetails({
   const schedule = describeCronSchedule(job.schedule);
   const runCounts = useSqlJobRunCounts(job);
   const hasRuns = (runCounts.data?.all ?? 0) > 0;
-  const noRunsYet = runCounts.isSuccess && !hasRuns;
   return (
     <Tabs defaultValue="overview" className="gap-0">
       <CronJobPaneHeader
         title={job.jobname ?? `Job ${job.jobid}`}
-        subtitle={`SQL job · ${schedule}${noRunsYet ? ' · No runs yet' : ''}`}
         actions={
           <>
             <JobIconButton
@@ -220,34 +219,6 @@ export default function SqlJobDetails({
         <SqlJobRunHistory job={job} />
       </TabsContent>
     </Tabs>
-  );
-}
-
-const SCHEDULE_FIELDS = ['Minute', 'Hour', 'Day', 'Month', 'Weekday'];
-
-function ScheduleFields({ schedule }: { schedule: string }) {
-  const parts = schedule.trim().split(/\s+/);
-  if (getCronScheduleKind(schedule) !== 'expression' || parts.length !== 5) {
-    return (
-      <p className="mt-3 inline-block rounded-md border bg-muted/30 px-3 py-2 font-mono text-sm">
-        {schedule}
-      </p>
-    );
-  }
-  return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {parts.map((part, index) => (
-        <div
-          key={SCHEDULE_FIELDS[index]}
-          className="flex min-w-20 flex-col items-center rounded-md border bg-muted/30 px-3 py-2"
-        >
-          <span className="font-mono text-base">{part}</span>
-          <span className="text-muted-foreground text-xs">
-            {SCHEDULE_FIELDS[index]}
-          </span>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -377,12 +348,23 @@ function RunRow({ run }: { run: SqlJobRun }) {
 
 const RUNS_PAGE_SIZE = 20;
 
+const RUN_FILTERS: { value: SqlJobRunFilter; label: string }[] = [
+  { value: 'all', label: 'All runs' },
+  { value: 'succeeded', label: 'Succeeded' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'running', label: 'Running' },
+];
+
 function SqlJobRunHistory({ job }: { job: SqlJob }) {
   const [filter, setFilter] = useState<SqlJobRunFilter>('all');
   const [page, setPage] = useState(1);
   const offset = (page - 1) * RUNS_PAGE_SIZE;
   const runs = useSqlJobRuns(job, offset, RUNS_PAGE_SIZE, filter);
   const counts = useSqlJobRunCounts(job);
+  if (counts.data?.failed === 0 && filter === 'failed') {
+    setFilter('all');
+    setPage(1);
+  }
   const total = counts.data?.[filter] ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / RUNS_PAGE_SIZE));
   if (page > totalPages && counts.data) {
@@ -391,40 +373,32 @@ function SqlJobRunHistory({ job }: { job: SqlJob }) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`failed-only-${job.jobid}`}
-            checked={filter === 'failed'}
-            onCheckedChange={(checked) => {
-              setFilter(checked === true ? 'failed' : 'all');
-              setPage(1);
-            }}
-          />
-          <Label
-            htmlFor={`failed-only-${job.jobid}`}
-            className="cursor-pointer font-normal text-sm"
-          >
-            Only failed runs
-            <span className="ml-1.5 text-muted-foreground text-xs">
-              {counts.data?.failed ?? ''}
-            </span>
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground text-sm">
-            Times in your time zone
-          </p>
-          <SidebarIconAction
-            label="Refresh"
-            disabled={runs.isFetching}
-            onClick={() => {
-              runs.refetch();
-              counts.refetch();
-            }}
-          >
-            <RefreshCw />
-          </SidebarIconAction>
-        </div>
+        <Select
+          value={filter}
+          onValueChange={(value) => {
+            setFilter(value as SqlJobRunFilter);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-44" aria-label="Show runs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RUN_FILTERS.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+                {counts.data ? (
+                  <span className="ml-1.5 text-muted-foreground text-xs">
+                    {counts.data[value]}
+                  </span>
+                ) : null}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto text-muted-foreground text-sm">
+          Times in your time zone
+        </p>
       </div>
       {runs.isError ? (
         <Alert variant="destructive">
@@ -432,16 +406,16 @@ function SqlJobRunHistory({ job }: { job: SqlJob }) {
           <AlertDescription>
             {runs.error instanceof Error
               ? runs.error.message
-              : 'Try refreshing run history.'}
+              : 'Run history will update automatically.'}
           </AlertDescription>
         </Alert>
       ) : (
         <>
           {runs.data?.length === 0 ? (
             <p className="rounded-lg border py-10 text-center text-muted-foreground text-sm">
-              {filter === 'failed'
-                ? 'No failed runs.'
-                : 'No recorded runs yet.'}
+              {filter === 'all'
+                ? 'No recorded runs yet.'
+                : `No ${filter} runs.`}
             </p>
           ) : (
             <div className="overflow-hidden rounded-lg border">

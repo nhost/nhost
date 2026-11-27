@@ -7,7 +7,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { describeCronSchedule } from '@/features/orgs/projects/events/common/components/CronScheduleInput/cron-schedule';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
@@ -121,7 +120,7 @@ export default function CronTriggerView() {
       >
         <CronJobPaneHeader
           title={cronTrigger.name}
-          subtitle={`Webhook job · ${describeCronSchedule(cronTrigger.schedule)}, in UTC`}
+          description={cronTrigger.comment}
           actions={
             <>
               <EditCronTriggerForm
@@ -146,18 +145,6 @@ export default function CronTriggerView() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
             </TabsList>
-            {tab === 'pending-processed-events' && (
-              <PaginationControls
-                className="px-0 py-0"
-                offset={offset}
-                limit={limit}
-                hasNoPreviousPage={hasNoPreviousPage}
-                hasNoNextPage={hasNoNextPage}
-                onPrev={goPrev}
-                onNext={() => !hasNoNextPage && goNext()}
-                onChangeLimit={setLimitAndReset}
-              />
-            )}
           </div>
         </CronJobPaneHeader>
         <TabsContent value="overview" className="p-6">
@@ -168,11 +155,22 @@ export default function CronTriggerView() {
           value="pending-processed-events"
         >
           <CronTriggerEventsDataTable
+            triggerName={cronTrigger.name}
             eventLogsSection={eventLogsSection}
             onEventLogsSectionChange={setEventLogsSection}
             data={eventsData}
             isLoading={isEventsLoading}
             limit={limit}
+          />
+          <PaginationControls
+            className="justify-end px-6 pt-0 pb-6"
+            offset={offset}
+            limit={limit}
+            hasNoPreviousPage={hasNoPreviousPage}
+            hasNoNextPage={hasNoNextPage}
+            onPrev={goPrev}
+            onNext={() => !hasNoNextPage && goNext()}
+            onChangeLimit={setLimitAndReset}
           />
         </TabsContent>
       </Tabs>

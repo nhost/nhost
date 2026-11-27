@@ -21,7 +21,7 @@ async function fillBasicFields({
 }) {
   await page.getByPlaceholder('cron_trigger_name').fill(triggerName);
   await page
-    .getByPlaceholder(/describe the webhook job/i)
+    .getByPlaceholder(/describe what this webhook job does/i)
     .fill('E2E test cron trigger');
   await page
     .getByPlaceholder(/httpbin\.org/i)

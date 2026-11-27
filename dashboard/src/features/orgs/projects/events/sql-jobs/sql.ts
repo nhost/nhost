@@ -30,7 +30,14 @@ export const SQL_JOBS_SQL =
   FROM cron.job job ORDER BY job.jobid DESC
 ) j`);
 
-export type SqlJobRunFilter = 'all' | 'failed';
+export type SqlJobRunFilter = 'all' | 'succeeded' | 'failed' | 'running';
+
+const RUN_FILTER_SQL: Record<SqlJobRunFilter, string> = {
+  all: '',
+  succeeded: " AND runs.status = 'succeeded'",
+  failed: " AND runs.status = 'failed'",
+  running: " AND runs.status NOT IN ('succeeded', 'failed')",
+};
 
 export function getJobRunsSql(
   jobid: string,
@@ -55,7 +62,7 @@ export function getJobRunsSql(
     ORDER BY runs.start_time DESC NULLS LAST, runs.runid DESC LIMIT %s OFFSET %s
   ) r`,
       jobid,
-      filter === 'failed' ? " AND runs.status = 'failed'" : '',
+      RUN_FILTER_SQL[filter],
       limit,
       offset,
     ),
@@ -71,7 +78,9 @@ export function getJobRunCountsSql(jobid: string) {
     format(
       `SELECT row_to_json(r) AS data FROM (
     SELECT count(*)::int AS "all",
-      count(*) FILTER (WHERE status = 'failed')::int AS failed
+      count(*) FILTER (WHERE status = 'succeeded')::int AS succeeded,
+      count(*) FILTER (WHERE status = 'failed')::int AS failed,
+      count(*) FILTER (WHERE status NOT IN ('succeeded', 'failed'))::int AS running
     FROM cron.job_run_details WHERE jobid = %L::bigint
   ) r`,
       jobid,

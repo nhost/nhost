@@ -1,5 +1,15 @@
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+// Teach tailwind-merge the custom `sm+` sizes from tailwind.config.js.
+// Without this it reads `text-sm+` as a text color and drops it next to
+// classes like `text-primary`, so the element falls back to another size.
+const twMerge = extendTailwindMerge({
+  classGroups: {
+    'font-size': [{ text: ['sm+'] }],
+    rounded: [{ rounded: ['sm+'] }],
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
