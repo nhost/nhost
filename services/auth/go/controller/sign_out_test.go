@@ -1,12 +1,16 @@
 package controller_test
 
 import (
+	"bytes"
+	"log/slog"
+	"net/http"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -128,10 +132,13 @@ func TestSignOut(t *testing.T) {
 					All:          new(true),
 				},
 			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
-				Status:  400,
+			expectedResponse: api.SignOutdefaultJSONResponse{
+				StatusCode: http.StatusUnauthorized,
+				Body: api.ErrorResponse{
+					Status:  http.StatusUnauthorized,
+					Error:   api.InvalidRequest,
+					Message: "User is not authenticated",
+				},
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
@@ -236,5 +243,51 @@ func TestSignOut(t *testing.T) {
 				ctx, t, c.SignOut, tc.request, tc.expectedResponse,
 			)
 		})
+	}
+}
+
+func TestSignOutAllUnauthenticatedDoesNotLogError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	c, _ := getController(
+		t,
+		ctrl,
+		getConfig,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+	)
+
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	ctx := oapimw.LoggerToContext(t.Context(), logger)
+
+	resp, err := c.SignOut(ctx, api.SignOutRequestObject{
+		Body: &api.SignOutRequest{
+			RefreshToken: nil,
+			All:          new(true),
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got, ok := resp.(api.SignOutdefaultJSONResponse)
+	if !ok {
+		t.Fatalf("expected api.SignOutdefaultJSONResponse, got %T", resp)
+	}
+
+	if got.StatusCode != http.StatusUnauthorized || got.Body.Status != http.StatusUnauthorized {
+		t.Fatalf("expected 401 unauthorized response, got %+v", got)
+	}
+
+	if bytes.Contains(logBuf.Bytes(), []byte("level=ERROR")) ||
+		bytes.Contains(logBuf.Bytes(), []byte("level=WARN")) {
+		t.Fatalf("expected no error/warn log, got: %s", logBuf.String())
 	}
 }
