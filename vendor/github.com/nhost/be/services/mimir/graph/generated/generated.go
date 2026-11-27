@@ -99,6 +99,7 @@ type ComplexityRoot struct {
 		EmailPassword     func(childComplexity int) int
 		EmailPasswordless func(childComplexity int) int
 		Oauth             func(childComplexity int) int
+		Oidc              func(childComplexity int) int
 		Otp               func(childComplexity int) int
 		SmsPasswordless   func(childComplexity int) int
 		Webauthn          func(childComplexity int) int
@@ -542,6 +543,17 @@ type ComplexityRoot struct {
 		Ingresses func(childComplexity int) int
 	}
 
+	ConfigOIDCProvider struct {
+		Audiences    func(childComplexity int) int
+		ClientId     func(childComplexity int) int
+		ClientSecret func(childComplexity int) int
+		DisableNonce func(childComplexity int) int
+		DiscoveryUrl func(childComplexity int) int
+		Issuer       func(childComplexity int) int
+		Scopes       func(childComplexity int) int
+		Slug         func(childComplexity int) int
+	}
+
 	ConfigObservability struct {
 		Grafana func(childComplexity int) int
 	}
@@ -617,6 +629,8 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresSettingsExtensionsPgDurable struct {
+		HttpAllowedDomains func(childComplexity int) int
+		HttpSecurity       func(childComplexity int) int
 		LogWorkflowSql     func(childComplexity int) int
 		MaxUserConnections func(childComplexity int) int
 		RetentionDays      func(childComplexity int) int
@@ -745,6 +759,7 @@ type ComplexityRoot struct {
 
 	ConfigSystemConfig struct {
 		Auth                       func(childComplexity int) int
+		Envoy                      func(childComplexity int) int
 		Graphql                    func(childComplexity int) int
 		PersistentVolumesEncrypted func(childComplexity int) int
 		Postgres                   func(childComplexity int) int
@@ -1078,6 +1093,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ConfigAuthMethod.Oauth(childComplexity), true
+	case "ConfigAuthMethod.oidc":
+		if e.ComplexityRoot.ConfigAuthMethod.Oidc == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigAuthMethod.Oidc(childComplexity), true
 	case "ConfigAuthMethod.otp":
 		if e.ComplexityRoot.ConfigAuthMethod.Otp == nil {
 			break
@@ -2535,6 +2556,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ConfigNetworking.Ingresses(childComplexity), true
 
+	case "ConfigOIDCProvider.audiences":
+		if e.ComplexityRoot.ConfigOIDCProvider.Audiences == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.Audiences(childComplexity), true
+	case "ConfigOIDCProvider.clientId":
+		if e.ComplexityRoot.ConfigOIDCProvider.ClientId == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.ClientId(childComplexity), true
+	case "ConfigOIDCProvider.clientSecret":
+		if e.ComplexityRoot.ConfigOIDCProvider.ClientSecret == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.ClientSecret(childComplexity), true
+	case "ConfigOIDCProvider.disableNonce":
+		if e.ComplexityRoot.ConfigOIDCProvider.DisableNonce == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.DisableNonce(childComplexity), true
+	case "ConfigOIDCProvider.discoveryUrl":
+		if e.ComplexityRoot.ConfigOIDCProvider.DiscoveryUrl == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.DiscoveryUrl(childComplexity), true
+	case "ConfigOIDCProvider.issuer":
+		if e.ComplexityRoot.ConfigOIDCProvider.Issuer == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.Issuer(childComplexity), true
+	case "ConfigOIDCProvider.scopes":
+		if e.ComplexityRoot.ConfigOIDCProvider.Scopes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.Scopes(childComplexity), true
+	case "ConfigOIDCProvider.slug":
+		if e.ComplexityRoot.ConfigOIDCProvider.Slug == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigOIDCProvider.Slug(childComplexity), true
+
 	case "ConfigObservability.grafana":
 		if e.ComplexityRoot.ConfigObservability.Grafana == nil {
 			break
@@ -2843,6 +2913,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ConfigPostgresSettingsExtensionsCron.Timezone(childComplexity), true
 
+	case "ConfigPostgresSettingsExtensionsPgDurable.httpAllowedDomains":
+		if e.ComplexityRoot.ConfigPostgresSettingsExtensionsPgDurable.HttpAllowedDomains == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigPostgresSettingsExtensionsPgDurable.HttpAllowedDomains(childComplexity), true
+	case "ConfigPostgresSettingsExtensionsPgDurable.httpSecurity":
+		if e.ComplexityRoot.ConfigPostgresSettingsExtensionsPgDurable.HttpSecurity == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigPostgresSettingsExtensionsPgDurable.HttpSecurity(childComplexity), true
 	case "ConfigPostgresSettingsExtensionsPgDurable.logWorkflowSql":
 		if e.ComplexityRoot.ConfigPostgresSettingsExtensionsPgDurable.LogWorkflowSql == nil {
 			break
@@ -3271,6 +3353,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ConfigSystemConfig.Auth(childComplexity), true
+	case "ConfigSystemConfig.envoy":
+		if e.ComplexityRoot.ConfigSystemConfig.Envoy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigSystemConfig.Envoy(childComplexity), true
 	case "ConfigSystemConfig.graphql":
 		if e.ComplexityRoot.ConfigSystemConfig.Graphql == nil {
 			break
@@ -3855,6 +3943,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigLocaleComparisonExp,
 		ec.unmarshalInputConfigNetworkingComparisonExp,
 		ec.unmarshalInputConfigNetworkingInsertInput,
+		ec.unmarshalInputConfigOIDCProviderComparisonExp,
+		ec.unmarshalInputConfigOIDCProviderInsertInput,
 		ec.unmarshalInputConfigObservabilityComparisonExp,
 		ec.unmarshalInputConfigObservabilityInsertInput,
 		ec.unmarshalInputConfigPortComparisonExp,
@@ -4577,6 +4667,10 @@ type ConfigAuthMethod {
     """
     oauth: ConfigAuthMethodOauth
     """
+    Custom OpenID Connect sign-in providers.
+    """
+    oidc: [ConfigOIDCProvider!]
+    """
     WebAuthn / passkey sign-in.
     """
     webauthn: ConfigAuthMethodWebauthn
@@ -4589,6 +4683,7 @@ input ConfigAuthMethodUpdateInput {
     emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
     oauth: ConfigAuthMethodOauthUpdateInput
+        oidc: [ConfigOIDCProviderUpdateInput!]
     webauthn: ConfigAuthMethodWebauthnUpdateInput
 }
 
@@ -4599,6 +4694,7 @@ input ConfigAuthMethodInsertInput {
     emailPassword: ConfigAuthMethodEmailPasswordInsertInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessInsertInput
     oauth: ConfigAuthMethodOauthInsertInput
+        oidc: [ConfigOIDCProviderInsertInput!]
     webauthn: ConfigAuthMethodWebauthnInsertInput
 }
 
@@ -4612,6 +4708,7 @@ input ConfigAuthMethodComparisonExp {
     emailPassword: ConfigAuthMethodEmailPasswordComparisonExp
     smsPasswordless: ConfigAuthMethodSmsPasswordlessComparisonExp
     oauth: ConfigAuthMethodOauthComparisonExp
+    oidc: ConfigOIDCProviderComparisonExp
     webauthn: ConfigAuthMethodWebauthnComparisonExp
 }
 
@@ -7476,6 +7573,80 @@ input ConfigNetworkingComparisonExp {
 """
 
 """
+type ConfigOIDCProvider {
+    """
+    Unique provider identifier used in the Auth callback URL.
+    """
+    slug: String!
+    """
+    Issuer URL configured in the identity provider.
+    """
+    issuer: String!
+    """
+    Optional discovery endpoint. Auth derives it from the issuer by default.
+    """
+    discoveryUrl: String
+    """
+    OAuth client ID registered with the identity provider.
+    """
+    clientId: String!
+    """
+    OAuth client secret. Supports references to project secrets.
+    """
+    clientSecret: String!
+    """
+    Requested OAuth scopes. Auth defaults to openid, email, and profile.
+    """
+    scopes: [String!]
+    """
+    Additional allowed audiences for ID tokens. Auth always allows the client ID.
+    """
+    audiences: [String!]
+    """
+    Skip ID-token nonce verification for this provider.
+    """
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderUpdateInput {
+    slug: String
+    issuer: String
+    discoveryUrl: String
+    clientId: String
+    clientSecret: String
+        scopes: [String!]
+        audiences: [String!]
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderInsertInput {
+    slug: String!
+    issuer: String!
+    discoveryUrl: String
+    clientId: String!
+    clientSecret: String!
+        scopes: [String!]
+        audiences: [String!]
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderComparisonExp {
+    _and: [ConfigOIDCProviderComparisonExp!]
+    _not: ConfigOIDCProviderComparisonExp
+    _or: [ConfigOIDCProviderComparisonExp!]
+    slug: ConfigStringComparisonExp
+    issuer: ConfigStringComparisonExp
+    discoveryUrl: ConfigStringComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+    scopes: ConfigStringComparisonExp
+    audiences: ConfigStringComparisonExp
+    disableNonce: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
 type ConfigObservability {
     """
     Grafana dashboards and alerting configuration.
@@ -8005,18 +8176,30 @@ type ConfigPostgresSettingsExtensionsPgDurable {
     Log substituted workflow SQL, which may contain secrets.
     """
     logWorkflowSql: String
+    """
+    HTTP egress policy. Unrestricted permits private-network destinations.
+    """
+    httpSecurity: String
+    """
+    Allowed HTTP host patterns. An empty list denies all hosts in restricted mode.
+    """
+    httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableUpdateInput {
     maxUserConnections: ConfigInt32
     retentionDays: ConfigInt32
     logWorkflowSql: String
+    httpSecurity: String
+        httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableInsertInput {
     maxUserConnections: ConfigInt32
     retentionDays: ConfigInt32
     logWorkflowSql: String
+    httpSecurity: String
+        httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableComparisonExp {
@@ -8026,6 +8209,8 @@ input ConfigPostgresSettingsExtensionsPgDurableComparisonExp {
     maxUserConnections: ConfigInt32ComparisonExp
     retentionDays: ConfigInt32ComparisonExp
     logWorkflowSql: ConfigStringComparisonExp
+    httpSecurity: ConfigStringComparisonExp
+    httpAllowedDomains: ConfigStringComparisonExp
 }
 
 """
@@ -8825,6 +9010,10 @@ type ConfigSystemConfig {
 
     """
     persistentVolumesEncrypted: Boolean
+    """
+    serve the app's default domains through Envoy Gateway in regions that run it
+    """
+    envoy: Boolean
 }
 
 input ConfigSystemConfigUpdateInput {
@@ -8832,6 +9021,7 @@ input ConfigSystemConfigUpdateInput {
     graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
     persistentVolumesEncrypted: Boolean
+    envoy: Boolean
 }
 
 input ConfigSystemConfigInsertInput {
@@ -8839,6 +9029,7 @@ input ConfigSystemConfigInsertInput {
     graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
     persistentVolumesEncrypted: Boolean
+    envoy: Boolean
 }
 
 input ConfigSystemConfigComparisonExp {
@@ -8849,6 +9040,7 @@ input ConfigSystemConfigComparisonExp {
     graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
     persistentVolumesEncrypted: ConfigBooleanComparisonExp
+    envoy: ConfigBooleanComparisonExp
 }
 
 """
@@ -9245,6 +9437,8 @@ func (ec *executionContext) childFields_ConfigAuthMethod(ctx context.Context, fi
 		return ec.fieldContext_ConfigAuthMethod_smsPasswordless(ctx, field)
 	case "oauth":
 		return ec.fieldContext_ConfigAuthMethod_oauth(ctx, field)
+	case "oidc":
+		return ec.fieldContext_ConfigAuthMethod_oidc(ctx, field)
 	case "webauthn":
 		return ec.fieldContext_ConfigAuthMethod_webauthn(ctx, field)
 	}
@@ -10127,6 +10321,28 @@ func (ec *executionContext) childFields_ConfigNetworking(ctx context.Context, fi
 	return nil, fmt.Errorf("no field named %q was found under type ConfigNetworking", field.Name)
 }
 
+func (ec *executionContext) childFields_ConfigOIDCProvider(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "slug":
+		return ec.fieldContext_ConfigOIDCProvider_slug(ctx, field)
+	case "issuer":
+		return ec.fieldContext_ConfigOIDCProvider_issuer(ctx, field)
+	case "discoveryUrl":
+		return ec.fieldContext_ConfigOIDCProvider_discoveryUrl(ctx, field)
+	case "clientId":
+		return ec.fieldContext_ConfigOIDCProvider_clientId(ctx, field)
+	case "clientSecret":
+		return ec.fieldContext_ConfigOIDCProvider_clientSecret(ctx, field)
+	case "scopes":
+		return ec.fieldContext_ConfigOIDCProvider_scopes(ctx, field)
+	case "audiences":
+		return ec.fieldContext_ConfigOIDCProvider_audiences(ctx, field)
+	case "disableNonce":
+		return ec.fieldContext_ConfigOIDCProvider_disableNonce(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ConfigOIDCProvider", field.Name)
+}
+
 func (ec *executionContext) childFields_ConfigObservability(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "grafana":
@@ -10283,6 +10499,10 @@ func (ec *executionContext) childFields_ConfigPostgresSettingsExtensionsPgDurabl
 		return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_retentionDays(ctx, field)
 	case "logWorkflowSql":
 		return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_logWorkflowSql(ctx, field)
+	case "httpSecurity":
+		return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpSecurity(ctx, field)
+	case "httpAllowedDomains":
+		return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpAllowedDomains(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresSettingsExtensionsPgDurable", field.Name)
 }
@@ -10539,6 +10759,8 @@ func (ec *executionContext) childFields_ConfigSystemConfig(ctx context.Context, 
 		return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 	case "persistentVolumesEncrypted":
 		return ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
+	case "envoy":
+		return ec.fieldContext_ConfigSystemConfig_envoy(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfig", field.Name)
 }
@@ -13176,6 +13398,38 @@ func (ec *executionContext) fieldContext_ConfigAuthMethod_oauth(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_ConfigAuthMethodOauth(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethod_oidc(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethod) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigAuthMethod_oidc(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Oidc, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.ConfigOIDCProvider) graphql.Marshaler {
+			return ec.marshalOConfigOIDCProvider2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderᚄ(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigAuthMethod_oidc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethod",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ConfigOIDCProvider(ctx, field)
 		},
 	}
 	return fc, nil
@@ -19150,6 +19404,190 @@ func (ec *executionContext) fieldContext_ConfigNetworking_ingresses(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigOIDCProvider_slug(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_slug(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Slug, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_slug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_issuer(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_issuer(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Issuer, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_issuer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_discoveryUrl(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_discoveryUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DiscoveryUrl, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_discoveryUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_clientId(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_clientId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ClientId, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_clientId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_clientSecret(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_clientSecret(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ClientSecret, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_clientSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_scopes(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_scopes(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Scopes, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalOString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_scopes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_audiences(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_audiences(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Audiences, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalOString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_audiences(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigOIDCProvider_disableNonce(ctx context.Context, field graphql.CollectedField, obj *model.ConfigOIDCProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigOIDCProvider_disableNonce(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DisableNonce, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *bool) graphql.Marshaler {
+			return ec.marshalOBoolean2ᚖbool(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigOIDCProvider_disableNonce(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigOIDCProvider", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
 func (ec *executionContext) _ConfigObservability_grafana(ctx context.Context, field graphql.CollectedField, obj *model.ConfigObservability) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20465,6 +20903,52 @@ func (ec *executionContext) _ConfigPostgresSettingsExtensionsPgDurable_logWorkfl
 	)
 }
 func (ec *executionContext) fieldContext_ConfigPostgresSettingsExtensionsPgDurable_logWorkflowSql(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigPostgresSettingsExtensionsPgDurable", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigPostgresSettingsExtensionsPgDurable_httpSecurity(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettingsExtensionsPgDurable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpSecurity(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.HttpSecurity, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpSecurity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigPostgresSettingsExtensionsPgDurable", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigPostgresSettingsExtensionsPgDurable_httpAllowedDomains(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettingsExtensionsPgDurable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpAllowedDomains(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.HttpAllowedDomains, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalOString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigPostgresSettingsExtensionsPgDurable_httpAllowedDomains(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("ConfigPostgresSettingsExtensionsPgDurable", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
@@ -22236,6 +22720,29 @@ func (ec *executionContext) _ConfigSystemConfig_persistentVolumesEncrypted(ctx c
 	)
 }
 func (ec *executionContext) fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigSystemConfig", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigSystemConfig_envoy(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigSystemConfig_envoy(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Envoy, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *bool) graphql.Marshaler {
+			return ec.marshalOBoolean2ᚖbool(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigSystemConfig_envoy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("ConfigSystemConfig", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
@@ -25818,7 +26325,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "oidc", "webauthn"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25888,6 +26395,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx cont
 				return it, err
 			}
 			it.Oauth = data
+		case "oidc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oidc"))
+			data, err := ec.unmarshalOConfigOIDCProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oidc = data
 		case "webauthn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webauthn"))
 			data, err := ec.unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExp(ctx, v)
@@ -26101,7 +26615,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
+	fieldsInOrder := [...]string{"anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "oidc", "webauthn"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26150,6 +26664,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx contex
 				return it, err
 			}
 			it.Oauth = data
+		case "oidc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oidc"))
+			data, err := ec.unmarshalOConfigOIDCProviderInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderInsertInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oidc = data
 		case "webauthn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webauthn"))
 			data, err := ec.unmarshalOConfigAuthMethodWebauthnInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnInsertInput(ctx, v)
@@ -34174,6 +34695,185 @@ func (ec *executionContext) unmarshalInputConfigNetworkingInsertInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigOIDCProviderComparisonExp(ctx context.Context, obj any) (model.ConfigOIDCProviderComparisonExp, error) {
+	var it model.ConfigOIDCProviderComparisonExp
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "slug", "issuer", "discoveryUrl", "clientId", "clientSecret", "scopes", "audiences", "disableNonce"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigOIDCProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigOIDCProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigOIDCProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "slug":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Slug = data
+		case "issuer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issuer"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Issuer = data
+		case "discoveryUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discoveryUrl"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscoveryUrl = data
+		case "clientId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientId = data
+		case "clientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientSecret"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientSecret = data
+		case "scopes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Scopes = data
+		case "audiences":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audiences"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audiences = data
+		case "disableNonce":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableNonce"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableNonce = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigOIDCProviderInsertInput(ctx context.Context, obj any) (model.ConfigOIDCProviderInsertInput, error) {
+	var it model.ConfigOIDCProviderInsertInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"slug", "issuer", "discoveryUrl", "clientId", "clientSecret", "scopes", "audiences", "disableNonce"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "slug":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Slug = data
+		case "issuer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issuer"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Issuer = data
+		case "discoveryUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discoveryUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscoveryUrl = data
+		case "clientId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientId = data
+		case "clientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientSecret"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientSecret = data
+		case "scopes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Scopes = data
+		case "audiences":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audiences"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audiences = data
+		case "disableNonce":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableNonce"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableNonce = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigObservabilityComparisonExp(ctx context.Context, obj any) (model.ConfigObservabilityComparisonExp, error) {
 	var it model.ConfigObservabilityComparisonExp
 	if obj == nil {
@@ -35283,7 +35983,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsExtensionsPgDura
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "maxUserConnections", "retentionDays", "logWorkflowSql"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "maxUserConnections", "retentionDays", "logWorkflowSql", "httpSecurity", "httpAllowedDomains"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35332,6 +36032,20 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsExtensionsPgDura
 				return it, err
 			}
 			it.LogWorkflowSql = data
+		case "httpSecurity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpSecurity"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpSecurity = data
+		case "httpAllowedDomains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpAllowedDomains"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpAllowedDomains = data
 		}
 	}
 	return it, nil
@@ -35348,7 +36062,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsExtensionsPgDura
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"maxUserConnections", "retentionDays", "logWorkflowSql"}
+	fieldsInOrder := [...]string{"maxUserConnections", "retentionDays", "logWorkflowSql", "httpSecurity", "httpAllowedDomains"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35376,6 +36090,20 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsExtensionsPgDura
 				return it, err
 			}
 			it.LogWorkflowSql = data
+		case "httpSecurity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpSecurity"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpSecurity = data
+		case "httpAllowedDomains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpAllowedDomains"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpAllowedDomains = data
 		}
 	}
 	return it, nil
@@ -38051,7 +38779,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "graphql", "postgres", "persistentVolumesEncrypted"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "graphql", "postgres", "persistentVolumesEncrypted", "envoy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38107,6 +38835,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 				return it, err
 			}
 			it.PersistentVolumesEncrypted = data
+		case "envoy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("envoy"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Envoy = data
 		}
 	}
 	return it, nil
@@ -38204,7 +38939,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"auth", "graphql", "postgres", "persistentVolumesEncrypted"}
+	fieldsInOrder := [...]string{"auth", "graphql", "postgres", "persistentVolumesEncrypted", "envoy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38239,6 +38974,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 				return it, err
 			}
 			it.PersistentVolumesEncrypted = data
+		case "envoy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("envoy"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Envoy = data
 		}
 	}
 	return it, nil
@@ -39476,6 +40218,11 @@ func (ec *executionContext) _ConfigAuthMethod(ctx context.Context, sel ast.Selec
 			}
 		case "oauth":
 			out.Values[i] = ec._ConfigAuthMethod_oauth(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "oidc":
+			out.Values[i] = ec._ConfigAuthMethod_oidc(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -43027,6 +43774,80 @@ func (ec *executionContext) _ConfigNetworking(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var configOIDCProviderImplementors = []string{"ConfigOIDCProvider"}
+
+func (ec *executionContext) _ConfigOIDCProvider(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigOIDCProvider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configOIDCProviderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigOIDCProvider")
+		case "slug":
+			out.Values[i] = ec._ConfigOIDCProvider_slug(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "issuer":
+			out.Values[i] = ec._ConfigOIDCProvider_issuer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "discoveryUrl":
+			out.Values[i] = ec._ConfigOIDCProvider_discoveryUrl(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "clientId":
+			out.Values[i] = ec._ConfigOIDCProvider_clientId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "clientSecret":
+			out.Values[i] = ec._ConfigOIDCProvider_clientSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "scopes":
+			out.Values[i] = ec._ConfigOIDCProvider_scopes(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "audiences":
+			out.Values[i] = ec._ConfigOIDCProvider_audiences(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "disableNonce":
+			out.Values[i] = ec._ConfigOIDCProvider_disableNonce(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var configObservabilityImplementors = []string{"ConfigObservability"}
 
 func (ec *executionContext) _ConfigObservability(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigObservability) graphql.Marshaler {
@@ -43572,6 +44393,16 @@ func (ec *executionContext) _ConfigPostgresSettingsExtensionsPgDurable(ctx conte
 			}
 		case "logWorkflowSql":
 			out.Values[i] = ec._ConfigPostgresSettingsExtensionsPgDurable_logWorkflowSql(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "httpSecurity":
+			out.Values[i] = ec._ConfigPostgresSettingsExtensionsPgDurable_httpSecurity(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "httpAllowedDomains":
+			out.Values[i] = ec._ConfigPostgresSettingsExtensionsPgDurable_httpAllowedDomains(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -44592,6 +45423,11 @@ func (ec *executionContext) _ConfigSystemConfig(ctx context.Context, sel ast.Sel
 			}
 		case "persistentVolumesEncrypted":
 			out.Values[i] = ec._ConfigSystemConfig_persistentVolumesEncrypted(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "envoy":
+			out.Values[i] = ec._ConfigSystemConfig_envoy(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -46738,6 +47574,32 @@ func (ec *executionContext) marshalNConfigLocale2string(ctx context.Context, sel
 func (ec *executionContext) unmarshalNConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx context.Context, v any) (*model.ConfigNetworkingComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigNetworkingComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigOIDCProvider2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProvider(ctx context.Context, sel ast.SelectionSet, v *model.ConfigOIDCProvider) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigOIDCProvider(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigOIDCProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExp(ctx context.Context, v any) (*model.ConfigOIDCProviderComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigOIDCProviderComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigOIDCProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderInsertInput(ctx context.Context, v any) (*model.ConfigOIDCProviderInsertInput, error) {
+	res, err := ec.unmarshalInputConfigOIDCProviderInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigOIDCProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderUpdateInput(ctx context.Context, v any) (*model.ConfigOIDCProviderUpdateInput, error) {
+	var res = new(model.ConfigOIDCProviderUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNConfigObservability2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservability(ctx context.Context, sel ast.SelectionSet, v *model.ConfigObservability) graphql.Marshaler {
@@ -52104,6 +52966,87 @@ func (ec *executionContext) unmarshalOConfigNetworkingUpdateInput2ᚖgithubᚗco
 	var res = new(model.ConfigNetworkingUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigOIDCProvider2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigOIDCProvider) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNConfigOIDCProvider2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProvider(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigOIDCProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigOIDCProviderComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigOIDCProviderComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigOIDCProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigOIDCProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderComparisonExp(ctx context.Context, v any) (*model.ConfigOIDCProviderComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigOIDCProviderComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigOIDCProviderInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigOIDCProviderInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigOIDCProviderInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigOIDCProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigOIDCProviderUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigOIDCProviderUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigOIDCProviderUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigOIDCProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigOIDCProviderUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigObservabilityComparisonExp, error) {

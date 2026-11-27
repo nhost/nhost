@@ -48,6 +48,7 @@ type App struct {
 	IsLockedReason             pgtype.Text
 	OrganizationID             uuid.UUID
 	AutomaticDeploys           bool
+	TriggerUpdateCounter       int32
 }
 
 type AppState struct {
@@ -165,6 +166,21 @@ type AuthSchemaMigration struct {
 	Dirty   bool
 }
 
+type AuthSchemaMigrationCatalog struct {
+	ID             uuid.UUID
+	Version        int64
+	PreviousID     pgtype.UUID
+	Identifier     string
+	UpSql          []byte
+	DownSql        []byte
+	UpSha256       []byte
+	DownSha256     []byte
+	FormatVersion  int32
+	RegisteredAt   pgtype.Timestamptz
+	ArchivedAt     pgtype.Timestamptz
+	ArchiveBatchID pgtype.UUID
+}
+
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthUser struct {
 	ID                           uuid.UUID
@@ -240,15 +256,6 @@ type Backup struct {
 	ExpireCondition pgtype.Text
 }
 
-type BillingDedicatedCompute struct {
-	ID              uuid.UUID
-	CreatedAt       pgtype.Timestamptz
-	UpdatedAt       pgtype.Timestamptz
-	AppID           uuid.UUID
-	TotalMillicores int32
-	OrganizationID  pgtype.UUID
-}
-
 type BillingReport struct {
 	ID                   uuid.UUID
 	CreatedAt            pgtype.Timestamptz
@@ -311,6 +318,22 @@ type BillingSubscriptionItem struct {
 	PersistentVolume      string
 	CustomDomains         string
 	Pitr                  string
+}
+
+type BillingTimeBasedUsage struct {
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	AppID     uuid.UUID
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          int32
+	OrganizationID pgtype.UUID
+	ProductType    string
+}
+
+type BillingTimeBasedUsageProductType struct {
+	Value   string
+	Comment pgtype.Text
 }
 
 type CliToken struct {
@@ -634,6 +657,7 @@ type Plan struct {
 	FeatureBackupRetentionDays         int32
 	StripePriceIDPitr                  string
 	SlaLevel                           string
+	SupportAllowedSeverities           []string
 }
 
 type Region struct {
@@ -716,9 +740,29 @@ type StorageFile struct {
 	Metadata         []byte
 }
 
+type StorageFilesToDelete struct {
+	ID        uuid.UUID
+	DeletedAt pgtype.Timestamptz
+}
+
 type StorageSchemaMigration struct {
 	Version int64
 	Dirty   bool
+}
+
+type StorageSchemaMigrationCatalog struct {
+	ID             uuid.UUID
+	Version        int64
+	PreviousID     pgtype.UUID
+	Identifier     string
+	UpSql          []byte
+	DownSql        []byte
+	UpSha256       []byte
+	DownSha256     []byte
+	FormatVersion  int32
+	RegisteredAt   pgtype.Timestamptz
+	ArchivedAt     pgtype.Timestamptz
+	ArchiveBatchID pgtype.UUID
 }
 
 type StorageVirus struct {
@@ -729,6 +773,111 @@ type StorageVirus struct {
 	Filename    string
 	Virus       string
 	UserSession []byte
+}
+
+type SupportAttachmentDraft struct {
+	ID              uuid.UUID
+	OrganizationID  uuid.UUID
+	CreatedByUserID uuid.UUID
+	CreatedByRole   string
+	CreatedAt       pgtype.Timestamptz
+}
+
+type SupportAttachmentUpload struct {
+	ID               uuid.UUID
+	TicketID         pgtype.UUID
+	UploadedByUserID uuid.UUID
+	UploadedByRole   string
+	UploaderName     string
+	CreatedAt        pgtype.Timestamptz
+	ClaimedAt        pgtype.Timestamptz
+	DraftID          pgtype.UUID
+	DiscardedAt      pgtype.Timestamptz
+}
+
+type SupportComment struct {
+	ID         uuid.UUID
+	TicketID   uuid.UUID
+	AuthorID   uuid.UUID
+	AuthorName string
+	AuthorRole string
+	Body       string
+	CreatedAt  pgtype.Timestamptz
+}
+
+type SupportCustomerReminder struct {
+	ID           uuid.UUID
+	TicketID     uuid.UUID
+	WaitingSince pgtype.Timestamptz
+	ReminderDay  int32
+	CreatedAt    pgtype.Timestamptz
+}
+
+type SupportEmailDelivery struct {
+	ID                 uuid.UUID
+	TicketEventID      pgtype.UUID
+	CommentID          pgtype.UUID
+	RecipientID        uuid.UUID
+	SentAt             pgtype.Timestamptz
+	CustomerReminderID pgtype.UUID
+}
+
+type SupportSeverity struct {
+	Value       string
+	Description string
+}
+
+type SupportTicket struct {
+	ID                uuid.UUID
+	Number            int64
+	OrganizationID    uuid.UUID
+	OrganizationName  string
+	ProjectID         pgtype.UUID
+	ProjectName       pgtype.Text
+	RequesterID       uuid.UUID
+	RequesterName     string
+	AssigneeID        pgtype.UUID
+	AssigneeName      pgtype.Text
+	UpdatedByID       uuid.UUID
+	UpdatedByRole     string
+	Title             string
+	Description       string
+	Severity          string
+	Services          []string
+	Status            string
+	Version           int32
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
+	ResolvedAt        pgtype.Timestamptz
+	ClosedAt          pgtype.Timestamptz
+	AttachmentDraftID pgtype.UUID
+}
+
+type SupportTicketEvent struct {
+	ID        uuid.UUID
+	TicketID  uuid.UUID
+	ActorID   uuid.UUID
+	ActorName string
+	Kind      string
+	OldValue  pgtype.Text
+	NewValue  pgtype.Text
+	CreatedAt pgtype.Timestamptz
+}
+
+type SupportTicketEventKind struct {
+	Value       string
+	Description string
+}
+
+type SupportTicketStatus struct {
+	Value       string
+	Description string
+}
+
+type SupportTicketTransition struct {
+	FromStatus      string
+	ToStatus        string
+	CustomerAllowed bool
 }
 
 type UnifiedDeployment struct {

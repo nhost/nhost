@@ -410,6 +410,10 @@ type ConfigAuthMethod {
     """
     oauth: ConfigAuthMethodOauth
     """
+    Custom OpenID Connect sign-in providers.
+    """
+    oidc: [ConfigOIDCProvider!]
+    """
     WebAuthn / passkey sign-in.
     """
     webauthn: ConfigAuthMethodWebauthn
@@ -422,6 +426,7 @@ input ConfigAuthMethodUpdateInput {
     emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
     oauth: ConfigAuthMethodOauthUpdateInput
+        oidc: [ConfigOIDCProviderUpdateInput!]
     webauthn: ConfigAuthMethodWebauthnUpdateInput
 }
 
@@ -432,6 +437,7 @@ input ConfigAuthMethodInsertInput {
     emailPassword: ConfigAuthMethodEmailPasswordInsertInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessInsertInput
     oauth: ConfigAuthMethodOauthInsertInput
+        oidc: [ConfigOIDCProviderInsertInput!]
     webauthn: ConfigAuthMethodWebauthnInsertInput
 }
 
@@ -445,6 +451,7 @@ input ConfigAuthMethodComparisonExp {
     emailPassword: ConfigAuthMethodEmailPasswordComparisonExp
     smsPasswordless: ConfigAuthMethodSmsPasswordlessComparisonExp
     oauth: ConfigAuthMethodOauthComparisonExp
+    oidc: ConfigOIDCProviderComparisonExp
     webauthn: ConfigAuthMethodWebauthnComparisonExp
 }
 
@@ -3309,6 +3316,80 @@ input ConfigNetworkingComparisonExp {
 """
 
 """
+type ConfigOIDCProvider {
+    """
+    Unique provider identifier used in the Auth callback URL.
+    """
+    slug: String!
+    """
+    Issuer URL configured in the identity provider.
+    """
+    issuer: String!
+    """
+    Optional discovery endpoint. Auth derives it from the issuer by default.
+    """
+    discoveryUrl: String
+    """
+    OAuth client ID registered with the identity provider.
+    """
+    clientId: String!
+    """
+    OAuth client secret. Supports references to project secrets.
+    """
+    clientSecret: String!
+    """
+    Requested OAuth scopes. Auth defaults to openid, email, and profile.
+    """
+    scopes: [String!]
+    """
+    Additional allowed audiences for ID tokens. Auth always allows the client ID.
+    """
+    audiences: [String!]
+    """
+    Skip ID-token nonce verification for this provider.
+    """
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderUpdateInput {
+    slug: String
+    issuer: String
+    discoveryUrl: String
+    clientId: String
+    clientSecret: String
+        scopes: [String!]
+        audiences: [String!]
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderInsertInput {
+    slug: String!
+    issuer: String!
+    discoveryUrl: String
+    clientId: String!
+    clientSecret: String!
+        scopes: [String!]
+        audiences: [String!]
+    disableNonce: Boolean
+}
+
+input ConfigOIDCProviderComparisonExp {
+    _and: [ConfigOIDCProviderComparisonExp!]
+    _not: ConfigOIDCProviderComparisonExp
+    _or: [ConfigOIDCProviderComparisonExp!]
+    slug: ConfigStringComparisonExp
+    issuer: ConfigStringComparisonExp
+    discoveryUrl: ConfigStringComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+    scopes: ConfigStringComparisonExp
+    audiences: ConfigStringComparisonExp
+    disableNonce: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
 type ConfigObservability {
     """
     Grafana dashboards and alerting configuration.
@@ -3838,18 +3919,30 @@ type ConfigPostgresSettingsExtensionsPgDurable {
     Log substituted workflow SQL, which may contain secrets.
     """
     logWorkflowSql: String
+    """
+    HTTP egress policy. Unrestricted permits private-network destinations.
+    """
+    httpSecurity: String
+    """
+    Allowed HTTP host patterns. An empty list denies all hosts in restricted mode.
+    """
+    httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableUpdateInput {
     maxUserConnections: ConfigInt32
     retentionDays: ConfigInt32
     logWorkflowSql: String
+    httpSecurity: String
+        httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableInsertInput {
     maxUserConnections: ConfigInt32
     retentionDays: ConfigInt32
     logWorkflowSql: String
+    httpSecurity: String
+        httpAllowedDomains: [String!]
 }
 
 input ConfigPostgresSettingsExtensionsPgDurableComparisonExp {
@@ -3859,6 +3952,8 @@ input ConfigPostgresSettingsExtensionsPgDurableComparisonExp {
     maxUserConnections: ConfigInt32ComparisonExp
     retentionDays: ConfigInt32ComparisonExp
     logWorkflowSql: ConfigStringComparisonExp
+    httpSecurity: ConfigStringComparisonExp
+    httpAllowedDomains: ConfigStringComparisonExp
 }
 
 """
@@ -4658,6 +4753,10 @@ type ConfigSystemConfig {
 
     """
     persistentVolumesEncrypted: Boolean
+    """
+    serve the app's default domains through Envoy Gateway in regions that run it
+    """
+    envoy: Boolean
 }
 
 input ConfigSystemConfigUpdateInput {
@@ -4665,6 +4764,7 @@ input ConfigSystemConfigUpdateInput {
     graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
     persistentVolumesEncrypted: Boolean
+    envoy: Boolean
 }
 
 input ConfigSystemConfigInsertInput {
@@ -4672,6 +4772,7 @@ input ConfigSystemConfigInsertInput {
     graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
     persistentVolumesEncrypted: Boolean
+    envoy: Boolean
 }
 
 input ConfigSystemConfigComparisonExp {
@@ -4682,6 +4783,7 @@ input ConfigSystemConfigComparisonExp {
     graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
     persistentVolumesEncrypted: ConfigBooleanComparisonExp
+    envoy: ConfigBooleanComparisonExp
 }
 
 """

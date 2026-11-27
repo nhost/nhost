@@ -18,12 +18,14 @@ func SecretsResolver[T any](
 	fillerFunc func(any) (*T, error),
 ) (*T, error) {
 	vars := map[string]any{}
+
 	for _, e := range secrets {
-		vars["secrets."+e.Name] = strings.ReplaceAll(
-			strings.ReplaceAll(e.Value, `"`, `\"`),
-			"\n",
-			"\\n",
-		)
+		quoted, err := json.Marshal(e.Value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode secret %s: %w", e.Name, err)
+		}
+
+		vars["secrets."+e.Name] = string(quoted[1 : len(quoted)-1])
 	}
 
 	data, err := json.Marshal(conf)

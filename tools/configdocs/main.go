@@ -293,6 +293,10 @@ func (g *generator) renderStruct(b *strings.Builder, prefix string, st *ast.Stru
 				fieldPath = prefix + "." + fi.name
 			}
 
+			if curatedType, ok := typeOverrides[fieldPath]; ok {
+				typeCell = curatedType
+			}
+
 			desc := resolveDoc(fi.doc, fieldPath, fi.name)
 			if fi.conditional {
 				desc = strings.TrimSpace("*(conditional)* " + desc)
@@ -668,8 +672,8 @@ func humanizeEnvVar(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-// TEMPORARY: the override maps below (defOverrides, envOverrides, pathOverrides,
-// fieldOverrides) are a curation layer that fills in descriptions the vendored
+// TEMPORARY: the override maps below (defOverrides, typeOverrides, envOverrides,
+// pathOverrides, fieldOverrides) are a curation layer that fills in descriptions the vendored
 // mimir schema.cue either lacks or documents only with a bare env-var name. The
 // durable fix is to move these into the schema's doc comments upstream in the
 // nhost/be repo (services/mimir/schema/schema.cue), which makes the schema the
@@ -678,12 +682,33 @@ func humanizeEnvVar(s string) string {
 // vendored module is bumped here, these maps can be deleted.
 
 // defOverrides replaces a definition's section intro. Used where the schema
-// comment links to Hasura docs we no longer want to reference.
+// comment links to Hasura docs or omits validation requirements.
 //
 //nolint:gochecknoglobals // Curated descriptions are immutable reference data until the upstream schema includes them.
 var defOverrides = map[string]string{
+	"#OIDCProvider": "OpenID Connect provider configuration. " +
+		"`issuer` and non-empty `discoveryUrl` values must use HTTPS without user info or a fragment. " +
+		"`issuer` must also have no query string. " +
+		"Omit `discoveryUrl` to derive the discovery endpoint from the issuer.\n\n" +
+		"`clientId` and each entry in `scopes` and `audiences` must be non-empty printable ASCII " +
+		"without spaces, double quotes, or backslashes. " +
+		"A non-empty `scopes` list must include `openid`; an empty list is allowed. " +
+		"`clientSecret` must not be empty or contain only whitespace.",
 	"#JWTSecret": "Signing key and configuration used to verify JSON Web Tokens. " +
 		"See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.",
+}
+
+// typeOverrides replaces types that contain undocumented local CUE let names.
+// The OIDCProvider section intro explains the constraints behind these types.
+// Keep these scoped by field path so unrelated string fields are unaffected.
+//
+//nolint:gochecknoglobals // Curated types are immutable reference data until the upstream schema documents them.
+var typeOverrides = map[string]string{
+	"OIDCProvider.issuer":       "HTTPS URL",
+	"OIDCProvider.discoveryUrl": "HTTPS URL or empty string",
+	"OIDCProvider.clientId":     "OAuth token string",
+	"OIDCProvider.scopes":       "list of OAuth token strings",
+	"OIDCProvider.audiences":    "list of OAuth token strings",
 }
 
 // envOverrides maps bare environment-variable schema comments to brief,

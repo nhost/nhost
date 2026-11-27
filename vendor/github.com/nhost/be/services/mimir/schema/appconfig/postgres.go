@@ -268,6 +268,16 @@ func postgresExtensionEnv(extensions *model.ConfigPostgresSettingsExtensions) []
 		)
 		env = appendPostgresSetting(env, "PG_DURABLE_RETENTION_DAYS", s.GetRetentionDays())
 		env = appendPostgresSetting(env, "PG_DURABLE_LOG_WORKFLOW_SQL", s.GetLogWorkflowSql())
+		env = appendPostgresSetting(env, "PG_DURABLE_HTTP_SECURITY", s.GetHttpSecurity())
+
+		if domains := s.GetHttpAllowedDomains(); domains != nil {
+			env = append(env, EnvVar{
+				Name:       "PG_DURABLE_HTTP_ALLOWED_DOMAINS",
+				Value:      Stringify(domains),
+				IsSecret:   false,
+				SecretName: "",
+			})
+		}
 	}
 
 	if s := extensions.GetTimescaledb(); s != nil {

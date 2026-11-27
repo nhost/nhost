@@ -220,6 +220,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 			Method: &model.ConfigAuthMethod{
+				Oidc: nil,
 				Anonymous: &model.ConfigAuthMethodAnonymous{
 					Enabled: new(false),
 				},
@@ -472,6 +473,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 						MaxUserConnections: new(int32(10)),
 						RetentionDays:      new(int32(30)),
 						LogWorkflowSql:     new("off"),
+						HttpSecurity:       nil,
+						HttpAllowedDomains: nil,
 					},
 					Timescaledb: &model.ConfigPostgresSettingsExtensionsTimescaledb{
 						MaxBackgroundWorkers: new(int32(16)),

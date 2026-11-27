@@ -33,7 +33,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.20.0'
+version = '0.0.0-dev'
 
 [auth.redirections]
 clientUrl = 'https://my.app.com'
@@ -80,6 +80,13 @@ passwordMinLength = 9
 
 [auth.method.smsPasswordless]
 enabled = false
+
+[[auth.method.oidc]]
+slug = 'example-idp'
+issuer = 'https://id.example.com/tenant'
+clientId = 'local-app'
+clientSecret = '{{ secrets.OIDC_CLIENT_SECRET }}'
+scopes = ['openid', 'email']
 
 [auth.method.oauth]
 [auth.method.oauth.apple]

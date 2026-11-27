@@ -115,7 +115,7 @@ func (r *mutationResolver) configValidate(
 		return err
 	}
 
-	return nil
+	return r.verifyMinVersions(oldApp, newApp)
 }
 
 func verifyStorageIsntDownsized(

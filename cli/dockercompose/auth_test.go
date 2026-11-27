@@ -1,11 +1,102 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/be/services/mimir/model"
 )
+
+func TestAuthOIDC(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		useTLS     bool
+		exposePort uint
+		serverURL  string
+		wantURL    string
+		wantErr    error
+	}{
+		{
+			name: "HTTPS", useTLS: true, exposePort: 0, serverURL: "",
+			wantURL: "https://dev.auth.local.nhost.run:1336/v1", wantErr: nil,
+		},
+		{
+			name: "disabled TLS", useTLS: false, exposePort: 0, serverURL: "",
+			wantURL: "http://dev.auth.local.nhost.run:1336/v1", wantErr: errOIDCRequiresHTTPS,
+		},
+		{
+			name: "direct Auth port", useTLS: true, exposePort: 8080, serverURL: "",
+			wantURL: "http://dev.auth.local.nhost.run:8080/v1", wantErr: errOIDCRequiresHTTPS,
+		},
+		{
+			name:       "HTTPS through an external proxy",
+			useTLS:     false,
+			exposePort: 0,
+			serverURL:  "https://dev.example.com/v1",
+			wantURL:    "https://dev.example.com/v1",
+			wantErr:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := getConfig()
+			cfg.Auth.Version = new("0.0.0-dev")
+
+			if tc.serverURL != "" {
+				cfg.Global.Environment = append(
+					cfg.Global.Environment,
+					&model.ConfigGlobalEnvironmentVariable{
+						Name: "AUTH_SERVER_URL", Value: tc.serverURL,
+					},
+				)
+			}
+
+			cfg.Auth.Method.Oidc = []*model.ConfigOIDCProvider{
+				{
+					Slug:         "example-idp",
+					Issuer:       "https://id.example.com/tenant",
+					DiscoveryUrl: nil,
+					ClientId:     "local-app",
+					ClientSecret: "example-value",
+					Scopes:       nil,
+					Audiences:    nil,
+					DisableNonce: nil,
+				},
+			}
+
+			svc, err := auth(cfg, "dev", 1336, tc.useTLS, "/tmp/nhost", tc.exposePort)
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("auth() error = %v, want %v", err, tc.wantErr)
+			}
+
+			if tc.wantErr != nil {
+				for _, text := range []string{tc.wantURL, "keep TLS enabled", "do not set --auth-port", "HTTPS AUTH_SERVER_URL in global.environment"} {
+					if !strings.Contains(err.Error(), text) {
+						t.Errorf("auth() error = %q, want it to contain %q", err, text)
+					}
+				}
+
+				return
+			}
+
+			const expected = `{"example-idp":{"issuer":"https://id.example.com/tenant","clientId":"local-app","clientSecret":"example-value"}}`
+			if got := svc.Environment["AUTH_PROVIDER_OIDC"]; got != expected {
+				t.Errorf("AUTH_PROVIDER_OIDC = %s, want %s", got, expected)
+			}
+
+			if got := svc.Environment["AUTH_SERVER_URL"]; got != tc.wantURL {
+				t.Errorf("AUTH_SERVER_URL = %s, want %s", got, tc.wantURL)
+			}
+		})
+	}
+}
 
 func expectedAuth() *Service {
 	return &Service{

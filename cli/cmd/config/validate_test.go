@@ -53,7 +53,7 @@ func expectedConfig() *model.ConfigConfig {
 		},
 		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: new(22)}},
 		Auth: &model.ConfigAuth{
-			Version: new("0.20.0"),
+			Version: new("0.0.0-dev"),
 			Misc: &model.ConfigAuthMisc{
 				ConcealErrors: new(false),
 			},
@@ -174,6 +174,18 @@ func expectedConfig() *model.ConfigConfig {
 					},
 					Workos: &model.ConfigAuthMethodOauthWorkos{
 						Enabled: new(false),
+					},
+				},
+				Oidc: []*model.ConfigOIDCProvider{
+					{
+						Slug:         "example-idp",
+						Issuer:       "https://id.example.com/tenant",
+						DiscoveryUrl: nil,
+						ClientId:     "local-app",
+						ClientSecret: `value$with\backslash"`,
+						Scopes:       []string{"openid", "email"},
+						Audiences:    nil,
+						DisableNonce: nil,
 					},
 				},
 				Webauthn: &model.ConfigAuthMethodWebauthn{
