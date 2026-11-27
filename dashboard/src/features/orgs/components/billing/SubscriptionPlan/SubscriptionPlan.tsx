@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Slash } from 'lucide-react';
+import { ArrowUpRight, Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,16 +17,15 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { RadioGroup } from '@/components/ui/v3/radio-group';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
 import { useCustomerPortal } from '@/features/orgs/components/billing/hooks/useCustomerPortal';
+import { PlanCard } from '@/features/orgs/components/billing/PlanCard';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -46,6 +45,39 @@ const changeOrgPlanForm = z.object({
   plan: z.string(),
 });
 
+/**
+ * Feature highlights shown on each plan card in the upgrade dialog.
+ * Purely presentational copy, keyed by plan name.
+ */
+const PLAN_HIGHLIGHTS: Record<string, string[]> = {
+  Starter: [
+    '1 GB database, 1 GB storage',
+    '5 GB egress',
+    'Functions, realtime APIs',
+    'Community support',
+  ],
+  Pro: [
+    '10 GB database, 50 GB storage',
+    'Automated backups',
+    'Point in time recovery',
+    'Email support',
+  ],
+  Team: [
+    'SOC 2 Type II',
+    'Email support SLA',
+    'Advanced GraphQL features',
+    'HIPAA (coming soon)',
+  ],
+  Enterprise: [
+    'Everything in Team plus:',
+    'SLAs, dedicated technical account manager',
+    'Dedicated clusters (add-on)',
+  ],
+};
+
+/** Sentinel form value for the contact-only Enterprise tier (not a real plan id). */
+const ENTERPRISE_PLAN_VALUE = 'enterprise';
+
 export default function SubscriptionPlan() {
   const { org, refetch: refetchOrg } = useCurrentOrg();
   const track = useTrackEvent();
@@ -63,6 +95,15 @@ export default function SubscriptionPlan() {
   const isCancelled = org?.status === Organization_Status_Enum.Cancelled;
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
+  // Real, purchasable plans only. The Enterprise tier is contact only and is
+  // rendered as its own card further down, so any Enterprise-ish plan coming
+  // back from the API (e.g. staging test plans) is excluded here.
+  const orderablePlans = useMemo(
+    () =>
+      plans.filter((plan) => !plan.name.toLowerCase().startsWith('enterprise')),
+    [plans],
+  );
+
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
     defaultValues: {
@@ -70,11 +111,13 @@ export default function SubscriptionPlan() {
     },
   });
 
+  // Nothing is picked when the dialog opens, so the user chooses a plan
+  // instead of seeing one already selected next to the current one.
   useEffect(() => {
-    if (org) {
-      form.setValue('plan', org?.plan.id, { shouldDirty: false });
+    if (open) {
+      form.reset({ plan: '' });
     }
-  }, [form, org]);
+  }, [open, form]);
 
   useEffect(() => {
     if (isReady && openUpgradeModal) {
@@ -83,10 +126,42 @@ export default function SubscriptionPlan() {
     }
   }, [openUpgradeModal, isReady, removeQueryParamsFromUrl]);
 
-  const selectedPlan = form.watch('plan');
+  const selectedPlanId = form.watch('plan');
+  const isEnterpriseSelected = selectedPlanId === ENTERPRISE_PLAN_VALUE;
+  const isEnterpriseCurrent = Boolean(
+    org?.plan?.name?.toLowerCase().startsWith('enterprise'),
+  );
+  const selectedPlan = useMemo(
+    () => orderablePlans.find((plan) => plan.id === selectedPlanId),
+    [orderablePlans, selectedPlanId],
+  );
+
+  const submitLabel = useMemo(() => {
+    if (isEnterpriseSelected) {
+      return 'Contact sales';
+    }
+
+    if (!selectedPlan) {
+      return 'Upgrade';
+    }
+
+    const isDowngrade =
+      selectedPlan.isFree ||
+      (org?.plan?.price !== undefined && selectedPlan.price < org.plan.price);
+    const action = isDowngrade ? 'Downgrade' : 'Upgrade';
+    const price = !selectedPlan.isFree ? `, $${selectedPlan.price}/mo` : '';
+
+    return `${action} to ${selectedPlan.name}${price}`;
+  }, [isEnterpriseSelected, selectedPlan, org?.plan?.price]);
 
   const onSubmit = async (values: z.infer<typeof changeOrgPlanForm>) => {
     const { plan: planID } = values;
+
+    if (planID === ENTERPRISE_PLAN_VALUE) {
+      window.location.href = 'mailto:hello@nhost.io';
+      return;
+    }
+
     const { id: organizationID, plan } = org;
 
     if (plan.isFree) {
@@ -135,45 +210,41 @@ export default function SubscriptionPlan() {
 
   const planOptions = useMemo(
     () =>
-      plans.map((plan) => {
-        const disableOption = plan.isFree || plan.name === 'Starter';
-        return (
-          <FormItem key={plan.id}>
-            <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
-              <div className="flex flex-row items-center space-x-3">
-                <FormControl>
-                  <RadioGroupItem value={plan.id} disabled={disableOption} />
-                </FormControl>
-                <div className="flex flex-col space-y-2">
-                  <div className="font-semibold text-md">{plan.name}</div>
-                  <FormDescription className="w-2/3 text-xs">
-                    {planDescriptions[plan.name]}
-                  </FormDescription>
-                  {plan.isFree && !isFreeOrg && (
-                    <FormDescription className="text-muted-foreground text-xs">
-                      Downgrading is not available. To move to Starter, transfer
-                      your projects to a Starter organization and cancel this
-                      organization. See{' '}
-                      <TextLink
-                        href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
-                        external
-                      >
-                        documentation
-                      </TextLink>{' '}
-                      for details.
-                    </FormDescription>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-0 flex h-full items-center font-semibold text-xl">
-                {plan.isFree ? 'Free' : `${plan.price}/mo`}
-              </div>
-            </FormLabel>
-          </FormItem>
-        );
-      }),
-    [plans, isFreeOrg],
+      orderablePlans.map((plan) => (
+        <FormItem key={plan.id}>
+          <PlanCard
+            value={plan.id}
+            name={plan.name}
+            price={plan.isFree ? 'Free' : `$${plan.price}`}
+            isMonthly={!plan.isFree}
+            description={planDescriptions[plan.name]}
+            highlights={PLAN_HIGHLIGHTS[plan.name]}
+            isSelected={selectedPlanId === plan.id}
+            isCurrent={org?.plan?.id === plan.id}
+            disabled={
+              plan.isFree ||
+              plan.name === 'Starter' ||
+              org?.plan?.id === plan.id
+            }
+          >
+            {plan.isFree && !isFreeOrg && (
+              <p className="mt-4 text-muted-foreground text-xs">
+                Downgrading is not available. To move to Starter, transfer your
+                projects to a Starter organization and cancel this organization.
+                See{' '}
+                <TextLink
+                  href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
+                  external
+                >
+                  documentation
+                </TextLink>{' '}
+                for details.
+              </p>
+            )}
+          </PlanCard>
+        </FormItem>
+      )),
+    [orderablePlans, isFreeOrg, org?.plan?.id, selectedPlanId],
   );
 
   return (
@@ -265,80 +336,93 @@ export default function SubscriptionPlan() {
       <Dialog open={open && !isCancelled} onOpenChange={setOpen}>
         <DialogContent
           className={cn(
-            'text-foreground sm:max-w-xl',
+            'max-h-[90vh] w-[calc(100vw-2rem)] max-w-6xl overflow-y-auto p-8 text-foreground sm:max-w-6xl lg:p-12',
             !loading && stripeClientSecret ? 'bg-white text-black' : '',
           )}
         >
-          <DialogHeader>
-            <DialogTitle className="pr-3">
-              Upgrade Organization {org?.name}
+          <DialogHeader className="mb-4">
+            <DialogTitle className="pr-3 text-xl">
+              Upgrade your plan
             </DialogTitle>
-            <DialogDescription />
+            <DialogDescription>
+              Unlock more resources, backups, and support as you grow.
+            </DialogDescription>
           </DialogHeader>
 
           {!stripeClientSecret && (
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
                   control={form.control}
                   name="plan"
-                  render={({ field }) => (
-                    <FormItem className="">
-                      <div>
-                        <FormLabel>Plan</FormLabel>
-                      </div>
+                  render={() => (
+                    <FormItem>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
+                          onValueChange={(value) =>
+                            form.setValue('plan', value, { shouldDirty: true })
+                          }
+                          value={selectedPlanId}
+                          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
                         >
                           {planOptions}
-                          <div>
-                            <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
-                              <div className="flex flex-row items-center space-x-3">
-                                <div className="flex flex-col space-y-2">
-                                  <div className="font-semibold text-md">
-                                    Enterprise
-                                  </div>
-                                  <div className="w-2/3 text-xs">
-                                    {planDescriptions.Enterprise}
-                                  </div>
-                                </div>
-                              </div>
 
-                              <TextLink href="mailto:hello@nhost.io" external>
-                                Contact us
-                              </TextLink>
-                            </div>
-                          </div>
+                          <FormItem>
+                            <PlanCard
+                              value={ENTERPRISE_PLAN_VALUE}
+                              name="Enterprise"
+                              price="Custom"
+                              description={planDescriptions.Enterprise}
+                              highlights={PLAN_HIGHLIGHTS.Enterprise}
+                              isSelected={isEnterpriseSelected}
+                              isCurrent={isEnterpriseCurrent}
+                              disabled={isEnterpriseCurrent}
+                            >
+                              <div className="mt-4">
+                                <TextLink href="mailto:hello@nhost.io" external>
+                                  Contact us
+                                </TextLink>
+                              </div>
+                            </PlanCard>
+                          </FormItem>
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    disabled={form.formState.isSubmitting}
-                    onClick={() => setOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <ButtonWithLoading
-                    data-testid="upgradeOrgSubmitButton"
-                    type="submit"
-                    disabled={selectedPlan === org?.plan?.id}
-                    loading={form.formState.isSubmitting}
-                  >
-                    Upgrade
-                  </ButtonWithLoading>
-                </DialogFooter>
+
+                <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+                  <div className="text-muted-foreground text-xs">
+                    Cancel anytime, prorated billing.{' '}
+                    <TextLink href="https://nhost.io/pricing" external>
+                      See full pricing and feature comparison
+                    </TextLink>
+                  </div>
+                  <DialogFooter className="mt-0">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      disabled={form.formState.isSubmitting}
+                      onClick={() => setOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <ButtonWithLoading
+                      data-testid="upgradeOrgSubmitButton"
+                      type="submit"
+                      disabled={
+                        !selectedPlanId ||
+                        (!isEnterpriseSelected &&
+                          selectedPlanId === org?.plan?.id)
+                      }
+                      loading={form.formState.isSubmitting}
+                    >
+                      {submitLabel}
+                      <ArrowUpRight className="ml-1 h-4 w-4" />
+                    </ButtonWithLoading>
+                  </DialogFooter>
+                </div>
               </form>
             </Form>
           )}
