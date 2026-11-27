@@ -76,6 +76,19 @@ describe('createRecord', () => {
     expect(sql).not.toMatch(/'(\[.*\])'/);
   });
 
+  test("inserts an empty array as '{}' because ARRAY[] has no type", async () => {
+    await createRecord({
+      ...defaultOptions,
+      columnValues: {
+        tags: { value: '[]', isArray: true },
+      },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain("VALUES ('{}')");
+    expect(sql).not.toContain('ARRAY[');
+  });
+
   test('uses DEFAULT when value is absent and column has a default', async () => {
     await createRecord({
       ...defaultOptions,

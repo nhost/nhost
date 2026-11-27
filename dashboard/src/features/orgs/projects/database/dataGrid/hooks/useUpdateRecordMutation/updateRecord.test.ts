@@ -106,6 +106,23 @@ describe('updateRecord', () => {
     expect(sql).not.toMatch(/tags = '(\[.*\])'/);
   });
 
+  test("updates an array column to an empty array as '{}' because ARRAY[] has no type", async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'tags', specificType: 'text[]', value: ['a', 'b'] },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: { tags: { value: '[]' } },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain("tags = '{}'");
+    expect(sql).not.toContain('ARRAY[');
+  });
+
   test("sets a column to NULL when reset is 'null'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },

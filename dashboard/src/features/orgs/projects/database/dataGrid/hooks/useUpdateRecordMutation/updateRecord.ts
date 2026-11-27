@@ -12,6 +12,7 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatArrayValue } from '@/features/orgs/projects/database/dataGrid/utils/formatArrayValue';
 import { formatSelectList } from '@/features/orgs/projects/database/dataGrid/utils/formatSelectList';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import {
@@ -88,13 +89,7 @@ export default async function updateRecord<
       )!.column.columnDef.meta as DataBrowserColumnMetadata;
 
       if (col.isArray) {
-        try {
-          return format('%I = ARRAY[%L]', key, JSON.parse(value));
-        } catch {
-          throw new Error(
-            `Invalid array value for column "${key}". Use JSON array format, e.g. [1, 2, 3].`,
-          );
-        }
+        return format('%I = %s', key, formatArrayValue(key, value));
       }
 
       const spatialType = getSpatialType(col.baseType);

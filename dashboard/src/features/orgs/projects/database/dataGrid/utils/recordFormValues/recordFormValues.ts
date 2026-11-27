@@ -45,6 +45,11 @@ export function getRecordFormValue(
     return getBooleanFormValue(value, column);
   }
 
+  // Arrays are edited as JSON-array text, the format the mutations parse.
+  if (column.isArray && Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
   if (
     value !== null &&
     typeof value === 'object' &&
@@ -181,7 +186,8 @@ export function getColumnUpdateOptions(
 
   let newValue = insertOptions.value;
 
-  if (isJsonColumn(column) && typeof newValue === 'string') {
+  // Array columns stay text: the update parses them into an ARRAY literal.
+  if (isJsonColumn(column) && !column.isArray && typeof newValue === 'string') {
     try {
       newValue = JSON.parse(newValue);
     } catch {
