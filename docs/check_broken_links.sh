@@ -42,6 +42,10 @@ SKIP=(
   # pages load fine in a real browser (false positive)
   'en\.wikipedia\.org'
 
+  # LinkedIn blocks datacenter IPs / the link checker on its company pages with
+  # 403 while they load fine in a real browser (false positive)
+  'www\.linkedin\.com\/company\/'
+
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
 )

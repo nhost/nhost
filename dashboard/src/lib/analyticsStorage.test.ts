@@ -29,7 +29,7 @@ function stubBrowser(url: string, storageBlocked = false) {
   const written: string[] = [];
   const reload = vi.fn(() => {
     expect(written.at(-1)).toBe(
-      'nhost-cookie-consent=; Path=/; Max-Age=0; SameSite=Lax; Domain=nhost.io; Secure',
+      'nhost-cookie-consent=rejected; Path=/; Max-Age=15552000; SameSite=Lax; Domain=nhost.io; Secure',
     );
   });
 
@@ -143,12 +143,12 @@ describe('analytics storage', () => {
   );
 
   it.each(['pending', 'rejected'])(
-    'deletes consent and reloads when the buffered SDK reset would remain %s',
+    'saves the rejection and reloads when the buffered SDK reset would remain %s',
     async (state) => {
       const { storage, written, reload } = stubBrowser('https://app.nhost.io/');
       const { analytics, loadAnalytics } = await import('@/lib/segment');
-      const { default: resetCookieConsent } = await import(
-        '@/components/common/CookieConsent/resetCookieConsent'
+      const { default: withdrawCookieConsent } = await import(
+        '@/components/common/CookieConsent/withdrawCookieConsent'
       );
       analytics.instance = undefined;
       segment.reset.mockImplementationOnce(() =>
@@ -158,11 +158,11 @@ describe('analytics storage', () => {
       );
       loadAnalytics();
 
-      expect(resetCookieConsent()).toBeUndefined();
+      expect(withdrawCookieConsent()).toBeUndefined();
 
       expect(Array.from(storage)).toEqual([['unrelated', 'preserved']]);
       expect(written).toContain(
-        'nhost-cookie-consent=; Path=/; Max-Age=0; SameSite=Lax; Domain=nhost.io; Secure',
+        'nhost-cookie-consent=rejected; Path=/; Max-Age=15552000; SameSite=Lax; Domain=nhost.io; Secure',
       );
       expect(reload).toHaveBeenCalledTimes(1);
       expect(segment.reset).not.toHaveBeenCalled();
@@ -170,11 +170,11 @@ describe('analytics storage', () => {
     },
   );
 
-  it('deletes consent and reloads without rejecting when the loaded SDK reset throws', async () => {
+  it('saves the rejection and reloads without throwing when the loaded SDK reset throws', async () => {
     const { storage, written, reload } = stubBrowser('https://app.nhost.io/');
     const { loadAnalytics } = await import('@/lib/segment');
-    const { default: resetCookieConsent } = await import(
-      '@/components/common/CookieConsent/resetCookieConsent'
+    const { default: withdrawCookieConsent } = await import(
+      '@/components/common/CookieConsent/withdrawCookieConsent'
     );
     const error = new Error('Reset failed');
     const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -184,11 +184,11 @@ describe('analytics storage', () => {
     });
     loadAnalytics();
 
-    expect(resetCookieConsent()).toBeUndefined();
+    expect(withdrawCookieConsent()).toBeUndefined();
 
     expect(Array.from(storage)).toEqual([['unrelated', 'preserved']]);
     expect(written).toContain(
-      'nhost-cookie-consent=; Path=/; Max-Age=0; SameSite=Lax; Domain=nhost.io; Secure',
+      'nhost-cookie-consent=rejected; Path=/; Max-Age=15552000; SameSite=Lax; Domain=nhost.io; Secure',
     );
     expect(reload).toHaveBeenCalledTimes(1);
     expect(segment.instanceReset).toHaveBeenCalledTimes(1);

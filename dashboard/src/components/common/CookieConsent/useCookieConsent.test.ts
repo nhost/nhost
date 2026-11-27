@@ -1,5 +1,5 @@
 import { act, renderHook } from '@/tests/testUtils';
-import { deleteConsentCookie, writeConsentCookie } from './consentCookie';
+import { writeConsentCookie } from './consentCookie';
 import useCookieConsent from './useCookieConsent';
 
 const segment = vi.hoisted(() => ({ load: vi.fn() }));
@@ -17,6 +17,11 @@ const ANALYTICS_KEYS = [
   'ajs_group_id',
   'ajs_group_properties',
 ];
+
+function clearConsentCookie() {
+  // biome-ignore lint/suspicious/noDocumentCookie: reset the saved choice between tests
+  document.cookie = 'nhost-cookie-consent=; Path=/; Max-Age=0';
+}
 
 function seedAnalyticsStorage() {
   for (const key of ANALYTICS_KEYS) {
@@ -38,7 +43,7 @@ describe('useCookieConsent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
-    deleteConsentCookie();
+    clearConsentCookie();
   });
 
   it('has no choice until the user makes one', () => {
