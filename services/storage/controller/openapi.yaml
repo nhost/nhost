@@ -501,7 +501,8 @@ paths:
       operationId: getFilePresignedURL
       description: |
         Retrieve presigned URL to retrieve the file. Expiration of the URL is
-        determined by bucket configuration
+        determined by bucket configuration. Requests authenticated with the
+        admin secret can override it with the `expiresIn` query parameter.
       tags:
         - storage
       security:
@@ -513,6 +514,19 @@ paths:
           description: "Unique identifier of the file"
           schema:
             type: string
+        - name: expiresIn
+          required: false
+          in: query
+          description: |
+            Number of seconds the presigned URL is valid for, overriding the
+            bucket's download expiration. Only allowed for requests that carry
+            a valid `X-Hasura-Admin-Secret` header; other requests get a 403.
+            Capped at 604800 (7 days), the longest expiration S3 signatures
+            support.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 604800
       responses:
         "200":
           description: File gathered successfully
