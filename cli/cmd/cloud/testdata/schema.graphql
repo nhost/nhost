@@ -1,0 +1,82 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+
+scalar uuid
+scalar timestamp
+
+enum app_status {
+  ACTIVE
+  PAUSED
+}
+
+"""A project managed through the Cloud API."""
+type apps implements node {
+  id: uuid!
+  name: String!
+  status: app_status!
+  createdAt: timestamp!
+  details: app_details
+  config: config
+}
+
+interface node {
+  id: uuid!
+}
+
+type team implements node {
+  id: uuid!
+  title: String!
+}
+
+union search_result = apps | team
+
+type app_details {
+  config: config
+}
+
+input apps_bool_exp {
+  _and: [apps_bool_exp!]
+  _or: [apps_bool_exp!]
+  _not: apps_bool_exp
+  name: String
+  status: app_status = ACTIVE
+}
+
+enum config_mode {
+  DEFAULT
+  CUSTOM
+}
+
+input config_input {
+  enabled: Boolean = true
+  mode: config_mode = DEFAULT
+}
+
+type config {
+  enabled: Boolean!
+  metadata: config_metadata
+}
+
+type config_metadata {
+  region: String!
+}
+
+type query_root {
+  """List projects."""
+  apps(where: apps_bool_exp, limit: Int = 10, status: app_status = ACTIVE, after: uuid): [apps!]!
+  app(id: uuid!): apps
+  node(id: uuid!): node
+  search: [search_result!]!
+}
+
+type mutation_root {
+  updateConfig(appID: uuid!, config: config_input!): config
+  updateApp(id: uuid!, name: String!): apps
+}
+
+type subscription_root {
+  apps: [apps!]!
+}

@@ -1,0 +1,14 @@
+schema {
+  query: query_root
+}
+type query_root {
+  """
+  List projects.
+  """
+  apps(where: apps_bool_exp, limit: Int = 10, status: app_status = ACTIVE, after: uuid): [apps!]!
+}
+enum app_status {
+  ACTIVE
+  PAUSED
+}
+scalar uuid

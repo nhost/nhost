@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cloud"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/cmd/configserver"
 	"github.com/nhost/nhost/cli/cmd/deployments"
@@ -39,6 +40,7 @@ func main() {
 		Version:               Version,
 		Description:           "Nhost CLI tool",
 		Commands: []*cli.Command{
+			cloud.Command(),
 			config.Command(),
 			configserver.Command(),
 			deployments.Command(),

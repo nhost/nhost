@@ -26,6 +26,8 @@ let
       ./test_certbot_magicdns_auth_hook.sh
       ./gqlgenc.yaml
       ./ssl/.ssl
+      ./cmd/cloud/cloud_schema.graphql
+      ./cmd/cloud/testdata
       ./cmd/config/testdata
       ./cmd/project/templates
       ./nhostclient/graphql/query
