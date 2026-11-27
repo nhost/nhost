@@ -1,3 +1,32 @@
+## [cli@1.54.0] - 2026-11-27
+
+### 🚀 Features
+
+- *(cli)* Add `nhost info`  (#5341)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Keep default-only inserts for generated columns (#5377)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.53.0
+- *(dashboard)* Bump references to 3.10.0
+- *(dashboard)* Bump references to 3.10.1
+- *(cli)* Update schema (#5420)
+- *(cli)* Update bindings and certs (#5429)
+- *(dashboard)* Bump references to 3.11.0
+- *(dashboard)* Bump references to 3.11.1
+- *(cli)* Regenerate bindings (#5468)
+- *(dashboard)* Bump references to 3.12.0
+
+
+### Chore
+
+- *(deps)* Bump mcp-go and otel (#5449)
+
 ## [cli@1.53.0] - 2026-11-11
 
 ### 🚀 Features
