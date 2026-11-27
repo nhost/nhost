@@ -2,6 +2,7 @@ package dev
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
@@ -11,6 +12,10 @@ import (
 const (
 	flagVolumes = "volumes"
 )
+
+type composeStopper interface {
+	Stop(ctx context.Context, volumes bool) error
+}
 
 func CommandDown() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
@@ -33,8 +38,19 @@ func commandDown(ctx context.Context, cmd *cli.Command) error {
 
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
-	if err := dc.Stop(ctx, cmd.Bool(flagVolumes)); err != nil {
+	return stopDevEnvironment(ctx, ce, dc, cmd.Bool(flagVolumes))
+}
+
+func stopDevEnvironment(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	stopper composeStopper,
+	volumes bool,
+) error {
+	if err := stopper.Stop(ctx, volumes); err != nil {
 		ce.Warnln("failed to stop Nhost development environment: %s", err)
+
+		return fmt.Errorf("failed to stop Nhost development environment: %w", err)
 	}
 
 	return nil
