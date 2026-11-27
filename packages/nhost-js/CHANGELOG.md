@@ -1,3 +1,37 @@
+## [@nhost/nhost-js@4.10.0] - 2026-11-27
+
+### 🚀 Features
+
+- *(auth)* Elevate sessions using TOTP (#4612)
+- *(auth)* Elevate sessions using email OTP (#4665)
+- *(auth)* Elevate sessions using SMS OTP (#4831)
+- *(auth)* Type JWTs by purpose and add audience, sid and jti claims (#5240)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Prevent recursive refresh with custom auth URLs (#5243)
+- *(auth)* Type JWTs by purpose (#5114)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update dependencies due to CVEs (#5307)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5103)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+- *(deps)* Update vulnerable dependencies (#5226)
+- *(deps)* Update vulnerable dependencies (#5242)
+- *(deps)* Update vulnerable dependencies (#5256)
+- *(deps)* Fix workspace minimatch, glob and graphql-scalars audits (#5330)
+- *(deps)* Update vulnerable dependencies (#5398)
+
 ## [@nhost/nhost-js@4.9.0] - 2026-09-30
 
 ### 🚀 Features
