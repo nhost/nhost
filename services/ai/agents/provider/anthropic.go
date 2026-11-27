@@ -11,6 +11,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/nhost/nhost/services/ai/internal/providerconfig"
+
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
@@ -98,7 +100,7 @@ func newAnthropicMessages(configuration endpointConfiguration) *anthropicMessage
 
 	options := []option.RequestOption{
 		option.WithBaseURL(configuration.baseURL),
-		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithHTTPClient(providerconfig.NewNoRedirectHTTPClient()),
 		option.WithMaxRetries(anthropicMessagesMaxRetries),
 	}
 	options = slices.Grow(options, len(headerNames))
@@ -109,7 +111,7 @@ func newAnthropicMessages(configuration endpointConfiguration) *anthropicMessage
 
 	return newAnthropicMessagesWithOptions(
 		options,
-		providerLogRedactions(configuration.headers),
+		providerconfig.LogRedactions(configuration.headers),
 	)
 }
 
@@ -270,7 +272,7 @@ func (a *anthropicMessages) processStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close anthropic stream",
-				slog.String("error", providerErrorLogValue(err, a.logRedactions)),
+				slog.String("error", providerconfig.ErrorLogValue(err, a.logRedactions)),
 			)
 		}
 	}()
