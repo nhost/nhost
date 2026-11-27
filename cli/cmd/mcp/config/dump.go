@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/mcp/config"
@@ -9,27 +10,30 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+var (
+	errConfigPathRequired = errors.New("config file path is required")
+	errConfigLoad         = errors.New(
+		"failed to load config. Run `nhost mcp config` to configure",
+	)
+)
+
 func actionDump(_ context.Context, cmd *cli.Command) error {
 	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
-		return cli.Exit("config file path is required", 1)
+		return errConfigPathRequired
 	}
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
-		return cli.Exit("failed to load config file "+err.Error(), 1)
+		return errConfigLoad
 	}
 
 	b, err := toml.Marshal(cfg)
 	if err != nil {
-		return cli.Exit("failed to marshal config file "+err.Error(), 1)
+		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	fmt.Println("Configuration Preview:") //nolint:forbidigo
-	fmt.Println("---------------------")  //nolint:forbidigo
-	fmt.Println(string(b))                //nolint:forbidigo
-	fmt.Println()                         //nolint:forbidigo
+	fmt.Print(string(b)) //nolint:forbidigo
 
 	return nil
 }
