@@ -1,0 +1,126 @@
+// @vitest-environment happy-dom
+
+import type { User } from '@nhost/nhost-js/auth';
+import { act, type ReactNode } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { MemoryRouter, Navigate, useLocation } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import AccountLayout from '@/app/account/layout';
+import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
+
+const changePassword = vi.hoisted(() =>
+  vi.fn<
+    () => Promise<{ error?: string; success?: boolean; signedIn?: boolean }>
+  >(),
+);
+
+vi.mock('@/app/auth/password/change/actions', () => ({ changePassword }));
+vi.mock('@/components/useRefresh', () => ({
+  useRefresh: () => () => undefined,
+}));
+vi.mock('@/lib/nhost/client', () => ({
+  nhost: { sessionStorage: { remove: () => undefined } },
+}));
+
+const user = {
+  id: 'user-1',
+  email: 'user@example.com',
+  activeMfaType: '',
+} as User;
+
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+let container: HTMLElement;
+let root: Root;
+let path = '';
+
+function Where() {
+  path = useLocation().pathname;
+  return null;
+}
+
+async function render(page: ReactNode): Promise<void> {
+  await act(async () =>
+    root.render(
+      <MemoryRouter initialEntries={['/account']}>
+        <AccountLayout>{page}</AccountLayout>
+        <Where />
+      </MemoryRouter>,
+    ),
+  );
+}
+
+// React reads a controlled input through its own setter, so the value is set
+// past it and announced the way typing does.
+function type(input: HTMLInputElement, value: string): void {
+  Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    'value',
+  )?.set?.call(input, value);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+const row = (): HTMLButtonElement | null =>
+  container.querySelector('button[aria-haspopup="dialog"]');
+
+const dialog = (): HTMLDialogElement | null =>
+  container.querySelector('dialog');
+
+async function submit(password: string): Promise<void> {
+  await act(async () => row()?.click());
+  await act(async () => {
+    for (const input of container.querySelectorAll('input')) {
+      type(input, password);
+    }
+  });
+  await act(async () =>
+    container
+      .querySelector('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })),
+  );
+}
+
+describe('change password row, through a change', () => {
+  beforeEach(() => {
+    changePassword.mockReset();
+    container = document.body.appendChild(document.createElement('div'));
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  // Signing back in takes a code from the authenticator app as well, which
+  // the form asks for.
+  it('keeps a two-factor account signed in, with a code to sign back in', async () => {
+    await render(
+      <ChangePasswordSetting user={{ ...user, activeMfaType: 'totp' }} />,
+    );
+    await act(async () => row()?.click());
+
+    expect(dialog()?.textContent).toContain(
+      "Your other devices will be signed out. You'll stay signed in here.",
+    );
+    expect(dialog()?.textContent).toContain('Authenticator code');
+  });
+
+  // What the account page renders for a visitor it finds signed out.
+  it('keeps the changed card when the page comes back as a redirect', async () => {
+    changePassword.mockResolvedValue({ success: true, signedIn: false });
+    await render(<ChangePasswordSetting user={user} />);
+
+    await submit('a new password');
+
+    expect(container.textContent).toContain('Password changed');
+    expect(container.textContent).toContain('signed you out everywhere');
+
+    await render(<Navigate replace to="/signin?next=%2Faccount" />);
+
+    expect(container.textContent).toContain('Password changed');
+    expect(path).toBe('/account');
+  });
+});

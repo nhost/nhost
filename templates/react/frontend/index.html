@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- The app is dark only, so the class is fixed rather than toggled.
+     src/app/globals.css explains what still reads it. -->
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An auth starter powered by Nhost and React"
+    />
+    <title>Nhost + React</title>
+    <link rel="icon" type="image/svg+xml" href="/src/app/icon.svg" />
+    <!-- Linked here rather than imported from a module, so the page is dark
+         before any script runs. -->
+    <link rel="stylesheet" href="/src/app/globals.css" />
+  </head>
+  <body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
