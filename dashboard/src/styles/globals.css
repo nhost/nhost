@@ -282,6 +282,7 @@ html.dark .graphiql-themed .graphiql-container {
     --accent: 0 0% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 340 52% 48%;
+    --destructive-strip: 350 50% 36%;
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
     --warning: 32 100% 57%;
@@ -382,6 +383,7 @@ html.dark .graphiql-themed .graphiql-container {
     --accent: 210 7.1% 16.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 358.73 79.73% 80.35%;
+    --destructive-strip: 350 50% 36%;
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
     --warning: 32 100% 57%;
