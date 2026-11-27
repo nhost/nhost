@@ -1,3 +1,21 @@
+## [auth@0.54.0] - 2026-11-27
+
+### 🚀 Features
+
+- *(auth)* Type JWTs by purpose and add audience, sid and jti claims (#5240)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Make ticket redemption single-use under concurrent requests (#5389)
+- *(auth)* Keep the MFA ticket when the TOTP code is wrong (#5394)
+- *(auth)* Type JWTs by purpose (#5114)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Remove pg version from schema dump (#5409)
+
 ## [auth@0.53.0] - 2026-11-16
 
 ### 🚀 Features
