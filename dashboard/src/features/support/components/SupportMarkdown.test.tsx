@@ -174,10 +174,10 @@ describe('support Markdown', () => {
   });
 
   it('does not execute HTML, allow dangerous links or embed remote/attachment images', () => {
-    render(
+    const { container } = render(
       <SupportMarkdown>
         {
-          '<script>alert(1)</script>\n\n<iframe src="https://example.com"></iframe>\n\n[scripting](javascript:alert%281%29) [data link](data:text/html,unsafe)\n\n![tracking pixel](https://example.com/pixel.png)\n\n![attachment](blob:private-html)'
+          '<script>alert(1)</script>\n\n<iframe src="https://example.com"></iframe>\n\nHi <img src=x onerror="alert(1)"> and <a href="javascript:alert(1)">click</a>\n\n[scripting](javascript:alert%281%29) [data link](data:text/html,unsafe)\n\n![tracking pixel](https://example.com/pixel.png)\n\n![attachment](blob:private-html)'
         }
       </SupportMarkdown>,
     );
@@ -188,6 +188,21 @@ describe('support Markdown', () => {
     expect(screen.getByText('scripting').closest('a')).toBeNull();
     expect(screen.getByText('[Image: tracking pixel]')).toBeInTheDocument();
     expect(screen.getByText('[Image: attachment]')).toBeInTheDocument();
+    // Raw HTML is shown as inert text, not rendered or dropped.
+    expect(container).toHaveTextContent('<script>alert(1)</script>');
+    expect(container).toHaveTextContent(
+      'Hi <img src=x onerror="alert(1)"> and <a href="javascript:alert(1)">click</a>',
+    );
+  });
+
+  it.each([
+    "Type 'Promise<void>' is not assignable to type 'Promise<string>'.",
+    'at Object.<anonymous> (/app/functions/index.js:3:9)',
+    'I wrapped the app in <NhostProvider nhost={nhost}> as in the docs.',
+    'Requests to https://<subdomain>.auth.<region>.nhost.run/v1 fail.',
+  ])('shows tag-like text literally: %s', (text) => {
+    const { container } = render(<SupportMarkdown>{text}</SupportMarkdown>);
+    expect(container).toHaveTextContent(text);
   });
 
   it('submits the raw Markdown without a preview mode', async () => {

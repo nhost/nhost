@@ -33,7 +33,6 @@ function SupportMarkdown({ children, ticketId }: SupportMarkdownProps) {
     <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:overflow-x-auto break-words prose-td:break-words [overflow-wrap:anywhere]">
       <Markdown
         remarkPlugins={[remarkGfm]}
-        skipHtml
         urlTransform={(url) =>
           supportAttachmentId(url) ? url : defaultUrlTransform(url)
         }

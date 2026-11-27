@@ -1406,7 +1406,9 @@ describe('native dashboard support', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Nhost')).toBeInTheDocument();
     expect(screen.getByText('Reproduction steps')).toBeInTheDocument();
-    expect(screen.queryByText(/<script>/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText('<script>not executed</script>'),
+    ).toBeInTheDocument();
     expect(document.querySelector('article script')).toBeNull();
     expect(
       screen.queryByRole('region', { name: 'Ticket activity' }),
