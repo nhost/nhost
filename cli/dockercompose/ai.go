@@ -18,11 +18,20 @@ func ai(
 
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
-		env[v.Name] = v.Value
+		// appconfig still emits the legacy graphite names; the ai service
+		// reads the AI_* equivalents.
+		switch v.Name {
+		case "GRAPHITE_WEBHOOK_SECRET":
+			env["AI_WEBHOOK_SECRET"] = v.Value
+		case "GRAPHITE_BASE_URL":
+			env["AI_BASE_URL"] = v.Value
+		default:
+			env[v.Name] = v.Value
+		}
 	}
 
 	return &Service{
-		Image: "nhost/graphite:" + *cfg.GetAi().GetVersion(),
+		Image: "nhost/ai:" + *cfg.GetAi().GetVersion(),
 		DependsOn: map[string]DependsOn{
 			"graphql": {
 				Condition: "service_healthy",
@@ -47,7 +56,7 @@ func ai(
 		User:        nil,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD", "graphite", "healthcheck",
+				"CMD", "ai", "healthcheck",
 			},
 			Timeout:     "60s",
 			Interval:    "5s",
