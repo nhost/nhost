@@ -6,7 +6,6 @@ import {
   BranchIcon,
   BranchLivePill,
   BranchStatusMark,
-  ProductionBadge,
 } from '@/features/orgs/projects/branches/components/BranchBits';
 import { useDummyBranches } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
@@ -43,7 +42,7 @@ export default function BranchesComboBox() {
   const options = visible.map((branch) => ({
     value: branch.id,
     label: branch.name,
-    group: branch.isProduction ? 'Production' : 'Branches',
+    group: branch.isProduction ? undefined : 'Branches',
     disabled: branch.status === 'creating' || branch.status === 'deleting',
     // Inside the list the names stay monospace, like git branch names.
     render: (
@@ -58,7 +57,6 @@ export default function BranchesComboBox() {
           {branch.name}
         </span>
         <span className="flex shrink-0 items-center gap-1.5 pl-3">
-          {branch.isProduction && <ProductionBadge />}
           <BranchStatusMark status={branch.status} hideReady />
         </span>
       </div>
@@ -74,7 +72,9 @@ export default function BranchesComboBox() {
         branch={currentBranch}
         className="animate-none text-muted-foreground opacity-100"
       />
-      <span className="truncate">{currentBranch.name}</span>
+      <span className="truncate" title={currentBranch.name}>
+        {currentBranch.name}
+      </span>
       <BranchLivePill status={currentBranch.status} />
     </span>
   );
@@ -113,6 +113,7 @@ export default function BranchesComboBox() {
       // Like the organization and project switchers: the name goes to the
       // project's overview (on this branch), the chevron opens the list.
       linkHref={`/orgs/${orgSlug}/projects/${appSubdomain}`}
+      linkClassName="max-w-72 lg:max-w-96"
       linkContent={label}
       aria-label="Switch branch"
       onChange={(id) => {

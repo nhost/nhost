@@ -95,7 +95,7 @@ function seed(): ProjectBranchesState {
     branches: [
       {
         id: 'production',
-        name: 'production',
+        name: 'main',
         isProduction: true,
         gitBranch: 'main',
         createdAt: ago(60 * 24 * 120),
@@ -196,7 +196,7 @@ function seed(): ProjectBranchesState {
  * branching turns on, or a pull request closes.
  */
 function fillSlots(s: ProjectBranchesState): ProjectBranchesState {
-  if (!(s.automaticBranching ?? true)) {
+  if (!s.automaticBranching) {
     return s;
   }
   const limit = s.branchLimit ?? DEFAULT_BRANCH_LIMIT;
@@ -269,6 +269,7 @@ export function useDummyBranches() {
         return s
           ? {
               ...b,
+              name: b.isProduction && b.name === 'production' ? s.name : b.name,
               pullRequestTitle: b.pullRequestTitle ?? s.pullRequestTitle,
               lastPushBy: b.lastPushBy ?? s.lastPushBy,
             }
@@ -297,7 +298,7 @@ export function useDummyBranches() {
   const production = state.branches.find((b) => b.isProduction)!;
   const branchCount = state.branches.filter((b) => !b.isProduction).length;
   // Older demo data has no settings yet: fall back to the defaults.
-  const automaticBranching = state.automaticBranching ?? true;
+  const automaticBranching = state.automaticBranching ?? false;
   const branchLimit = state.branchLimit ?? DEFAULT_BRANCH_LIMIT;
   const initialData: InitialData = state.initialData ?? 'empty';
 

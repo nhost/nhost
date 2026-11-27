@@ -43,7 +43,10 @@ function Banner() {
               size="icon-xs"
               className="shrink-0 bg-background"
               aria-label="Back to production"
-              onClick={() => switchTo(production.id)}
+              onClick={() => {
+                switchTo(production.id);
+                void router.push(`/orgs/${orgSlug}/projects/${appSubdomain}`);
+              }}
             >
               {/* Production's own icon, not an arrow: an arrow read as
                   "go back a page". */}
@@ -65,40 +68,23 @@ function Banner() {
             . Changes here don't affect production.
           </p>
         </div>
-        <div className="flex shrink-0">
+        {!onBranchesPage && (
           <Tooltip>
             <TooltipTrigger asChild>
-              {onBranchesPage ? (
-                // The span keeps the tooltip working on the disabled button.
-                <span className="inline-flex shrink-0">
-                  <Button
-                    variant="outline"
-                    size="icon-xs"
-                    className="bg-background"
-                    aria-label="Manage branches"
-                    disabled
-                  >
-                    <ListTree />
-                  </Button>
-                </span>
-              ) : (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="icon-xs"
-                  className="shrink-0 bg-background"
-                >
-                  <Link href={manageHref} aria-label="Manage branches">
-                    <ListTree />
-                  </Link>
-                </Button>
-              )}
+              <Button
+                asChild
+                variant="outline"
+                size="icon-xs"
+                className="shrink-0 bg-background"
+              >
+                <Link href={manageHref} aria-label="Manage branches">
+                  <ListTree />
+                </Link>
+              </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              {onBranchesPage ? "You're in Manage branches" : 'Manage branches'}
-            </TooltipContent>
+            <TooltipContent>Manage branches</TooltipContent>
           </Tooltip>
-        </div>
+        )}
       </div>
     </div>
   );

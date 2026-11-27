@@ -1070,7 +1070,7 @@ describe('CommandPaletteTrigger button', () => {
   it('renders the label and shortcut', () => {
     renderTrigger();
 
-    expect(screen.getByText('Search or navigate to...')).toBeInTheDocument();
+    expect(screen.getByText('Search')).toBeInTheDocument();
     expect(screen.getByText('Ctrl K')).toBeInTheDocument();
     expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
   });

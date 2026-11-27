@@ -69,7 +69,7 @@ export default function DashboardNavigationSheet() {
           Dashboard navigation
         </SheetDescription>
 
-        <DashboardNavigation />
+        <DashboardNavigation onSearch={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );

@@ -1,10 +1,7 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import {
-  Clock,
   FileText,
-  GitBranchPlus,
   GitPullRequest,
-  MessageSquare,
   Pencil,
   RotateCcw,
   Search,
@@ -13,6 +10,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
+import { Pagination } from '@/components/common/Pagination';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -29,30 +27,28 @@ import {
   BranchIcon,
   BranchStatusMark,
   CurrentBadge,
-  ProductionBadge,
 } from '@/features/orgs/projects/branches/components/BranchBits';
 import {
   BranchLogsDialog,
   DeleteBranchDialog,
-  PullRequestCommentDialog,
   RenameBranchDialog,
   ResetBranchDialog,
 } from '@/features/orgs/projects/branches/components/BranchDialogs';
 import {
   type Branch,
-  ordinal,
   timeAgo,
   useDummyBranches,
-  type WaitingPullRequest,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { cn } from '@/lib/utils';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { triggerToast } from '@/utils/toast';
 
-type DialogState =
-  | { kind: 'logs' | 'rename' | 'reset' | 'delete'; branch: Branch }
-  | { kind: 'comment'; pullRequest: WaitingPullRequest; position: number }
-  | null;
+const PAGE_SIZE = 20;
+
+type DialogState = {
+  kind: 'logs' | 'rename' | 'reset' | 'delete';
+  branch: Branch;
+} | null;
 
 interface RowActionProps {
   label: string;
@@ -148,16 +144,6 @@ function RaiseLimitLink() {
   );
 }
 
-/** Place in the queue, same pill shape as the status tags, quiet gray. */
-function QueueMark({ position }: { position: number }) {
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted px-2 py-px font-medium text-muted-foreground text-xs">
-      <Clock className="size-3" />
-      {position === 1 ? 'Next' : `${ordinal(position)} in line`}
-    </span>
-  );
-}
-
 /** Busy branches (being created or removed) can't be reset or deleted. */
 function clickableStatus(branch: Branch) {
   return branch.status !== 'creating' && branch.status !== 'deleting';
@@ -176,9 +162,9 @@ export default function AllBranches() {
     automaticBranching,
     githubConnected,
     waiting,
-    createAnyway,
   } = useDummyBranches();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState<DialogState>(null);
 
   if (!githubConnected) {
@@ -189,6 +175,10 @@ export default function AllBranches() {
   const others = branches
     .filter((b) => !b.isProduction)
     .filter((b) => b.name.includes(query) || b.gitBranch.includes(query));
+
+  const totalPages = Math.ceil(others.length / PAGE_SIZE);
+  const currentPage = Math.min(page, Math.max(totalPages, 1));
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
   function renderRow(branch: Branch) {
     const isCurrent = branch.id === currentBranch.id;
@@ -226,7 +216,6 @@ export default function AllBranches() {
             <span className="truncate font-medium font-mono text-sm">
               {branch.name}
             </span>
-            {branch.isProduction && <ProductionBadge />}
             {isCurrent && !branch.isProduction && <CurrentBadge />}
           </div>
           {/* What the branch is for: its pull request title, linked to
@@ -310,81 +299,6 @@ export default function AllBranches() {
     );
   }
 
-  /**
-   * A pull request without a branch yet. Same columns as a branch row, so
-   * the eye reads it as "almost a branch": who opened it and when where the
-   * last push sits, its place in line where the status sits.
-   */
-  function renderWaitingRow(pr: WaitingPullRequest, index: number) {
-    const position = index + 1;
-    return (
-      <li
-        key={pr.pullRequest}
-        className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
-      >
-        <div className="min-w-0 flex-1">
-          {/* No branch name yet, so the pull request is the title. */}
-          <a
-            href={`https://github.com/${repository}/pull/${pr.pullRequest}`}
-            target="_blank"
-            rel="noreferrer"
-            className="group flex min-w-0 max-w-fit items-center gap-2 text-sm"
-          >
-            <GitPullRequest className="size-4 shrink-0 text-muted-foreground" />
-            <span className="shrink-0 text-muted-foreground">
-              #{pr.pullRequest}
-            </span>
-            <span className="truncate font-medium underline-offset-4 group-hover:underline">
-              {pr.title}
-            </span>
-          </a>
-          <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
-            <SiGithub className="size-3 shrink-0" />
-            <span className="truncate font-mono">{pr.gitBranch}</span>
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          <span className="hidden w-44 items-center gap-2 md:flex">
-            <Avatar
-              name={pr.openedBy}
-              className="h-6 w-6"
-              fallbackClassName="text-[11px] font-medium"
-            />
-            <span className="grid min-w-0 text-xs leading-tight">
-              <span className="truncate">{pr.openedBy}</span>
-              <span className="text-muted-foreground">
-                opened {timeAgo(pr.openedAt)}
-              </span>
-            </span>
-          </span>
-          <span className="ml-4 flex w-[6.5rem] justify-end">
-            <QueueMark position={position} />
-          </span>
-          {/* Same four icon slots as a branch row, so the columns line up:
-              two empty, then Create anyway and the GitHub comment. */}
-          <span aria-hidden className="size-8" />
-          <span aria-hidden className="size-8" />
-          <RowAction
-            label="Create anyway"
-            icon={<GitBranchPlus />}
-            onClick={() => {
-              createAnyway(pr.pullRequest);
-              triggerToast(`Creating a branch for #${pr.pullRequest}`);
-            }}
-          />
-          <RowAction
-            label="View GitHub comment"
-            icon={<MessageSquare />}
-            tooltip="GitHub comment"
-            onClick={() =>
-              setDialog({ kind: 'comment', pullRequest: pr, position })
-            }
-          />
-        </div>
-      </li>
-    );
-  }
-
   const close = (open: boolean) => !open && setDialog(null);
 
   return (
@@ -416,7 +330,10 @@ export default function AllBranches() {
             <InputGroupInput
               placeholder="Find a branch"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
           </InputGroup>
         </div>
@@ -435,7 +352,7 @@ export default function AllBranches() {
 
         {others.length > 0 ? (
           <ul className="divide-y overflow-hidden rounded-lg border">
-            {others.map(renderRow)}
+            {others.slice(offset, offset + PAGE_SIZE).map(renderRow)}
           </ul>
         ) : (
           <div className="grid place-items-center gap-3 rounded-lg border border-dashed px-6 py-12 text-center">
@@ -451,29 +368,20 @@ export default function AllBranches() {
             )}
           </div>
         )}
+        {others.length >= PAGE_SIZE && (
+          <Pagination
+            className="flex-row-reverse"
+            totalNrOfPages={totalPages}
+            elementsPerPage={PAGE_SIZE}
+            totalNrOfElements={others.length}
+            itemsLabel="branches"
+            currentPageNumber={currentPage}
+            onPrevPageClick={() => setPage(currentPage - 1)}
+            onNextPageClick={() => setPage(currentPage + 1)}
+            onPageChange={setPage}
+          />
+        )}
       </section>
-
-      {waiting.length > 0 && (
-        <section className="grid gap-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="grid gap-1">
-              <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                Waiting for a branch ({waiting.length})
-              </h2>
-              <p className="max-w-xl text-muted-foreground text-sm">
-                All {branchLimit} branches are in use. These pull requests get
-                one in this order when another pull request closes or you raise
-                the limit.
-              </p>
-            </div>
-            <RaiseLimitLink />
-          </div>
-          {/* Dashed like other "not there yet" spots in the dashboard. */}
-          <ul className="divide-y overflow-hidden rounded-lg border border-dashed">
-            {waiting.map(renderWaitingRow)}
-          </ul>
-        </section>
-      )}
 
       <RenameBranchDialog
         branch={dialog?.kind === 'rename' ? dialog.branch : null}
@@ -493,12 +401,6 @@ export default function AllBranches() {
       <DeleteBranchDialog
         branch={dialog?.kind === 'delete' ? dialog.branch : null}
         open={dialog?.kind === 'delete'}
-        onOpenChange={close}
-      />
-      <PullRequestCommentDialog
-        pullRequest={dialog?.kind === 'comment' ? dialog.pullRequest : null}
-        position={dialog?.kind === 'comment' ? dialog.position : 0}
-        open={dialog?.kind === 'comment'}
         onOpenChange={close}
       />
     </div>

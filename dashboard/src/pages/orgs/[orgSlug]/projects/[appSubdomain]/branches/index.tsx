@@ -8,8 +8,8 @@ import {
   AreaSidebarNav,
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { NavigationSearch } from '@/features/command-palette/CommandPaletteProvider';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useDummyBranches } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
@@ -48,7 +48,6 @@ function BranchesSidebar() {
     githubConnected,
     setGithubConnected,
     demoClosePullRequest,
-    branchCount,
   } = useDummyBranches();
   const path = `/orgs/${orgSlug}/projects/${appSubdomain}/branches`;
 
@@ -56,6 +55,9 @@ function BranchesSidebar() {
     <AreaSidebarRoot className="flex flex-col bg-background md:border-r">
       <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
         Branches
+      </div>
+      <div className="hidden px-2 pt-2 md:block">
+        <NavigationSearch />
       </div>
       <AreaSidebarNav
         ariaLabel="Branches navigation"
@@ -69,14 +71,6 @@ function BranchesSidebar() {
             scroll={false}
           >
             All branches
-            {/* How many branches are open (production not counted), in the
-                dashboard's own Badge, primary blue. A hard
-                shadow in the primary button's depth color lifts the number. Hidden when there are none. */}
-            {githubConnected && branchCount > 0 && (
-              <Badge className="ml-auto px-1.5 py-0 font-medium tabular-nums [text-shadow:0_1px_0_hsl(var(--primary-emboss-depth)/0.6)] hover:bg-primary">
-                {branchCount}
-              </Badge>
-            )}
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${path}?tab=settings`}
@@ -126,24 +120,6 @@ function BranchesSidebar() {
   );
 }
 
-function BranchesIntro() {
-  const { projectName, initialData } = useDummyBranches();
-  return (
-    <p className="text-muted-foreground text-sm">
-      Each pull request gets its own copy of{' '}
-      <span className="font-medium text-foreground">{projectName}</span>
-      {initialData === 'empty' && ', structure only, no data.'}
-      {initialData === 'seed' && ', filled with your seed data.'}
-      {initialData === 'parentBackup' &&
-        ", filled from production's latest backup."}
-    </p>
-  );
-}
-
-const ClientIntro = dynamic(() => Promise.resolve(BranchesIntro), {
-  ssr: false,
-});
-
 export default function BranchesPage() {
   const router = useRouter();
   const tab = getSingleQueryParam(router.query.tab) as Tab | undefined;
@@ -168,7 +144,6 @@ export default function BranchesPage() {
     <div className="mx-auto grid w-full max-w-5xl gap-6 px-5 py-8">
       <header className="grid gap-1">
         <h1 className="font-semibold text-xl">{title}</h1>
-        {tab === 'all' && <ClientIntro />}
       </header>
       <Component />
     </div>

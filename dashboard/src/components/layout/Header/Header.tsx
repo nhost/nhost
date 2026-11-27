@@ -14,12 +14,6 @@ import MobileAccountMenu from '@/components/layout/Header/MobileAccountMenu';
 import SupportPopover from '@/components/layout/Header/SupportPopover';
 import { Logo } from '@/components/presentational/Logo';
 import { Button } from '@/components/ui/v3/button';
-import {
-  CommandPalette,
-  CommandPaletteIconTrigger,
-  CommandPaletteTrigger,
-  useCommandPalette,
-} from '@/features/command-palette';
 import { CreateOrgFormDialog } from '@/features/orgs/components/CreateOrgFormDialog';
 import {
   setCreateOrgDialogOpen,
@@ -40,7 +34,6 @@ export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
   // Most users are on desktop, so render it until the viewport is known.
   const isDesktop = useMediaQuery('md', { initialValue: true });
-  const hasRoomForSearchBox = useMediaQuery('lg', { initialValue: true });
   // Only organization pages have navigation to open; elsewhere the mobile
   // header keeps the logo, as on desktop.
   const { isOrgRoute } = useCurrentRoute();
@@ -49,7 +42,6 @@ export default function Header({ className, ...props }: HeaderProps) {
   // One owner for both layouts, so switching between them neither posts the
   // pending organization request again nor drops its result.
   const inbox = useInbox();
-  const { openCommandPalette, paletteProps } = useCommandPalette();
   const createOrgDialogOpen = useCreateOrgDialogOpen();
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
   const dashboardHref = currentOrgSlug
@@ -94,20 +86,7 @@ export default function Header({ className, ...props }: HeaderProps) {
         {isDesktop ? <HeaderNavigation /> : <HeaderNavigationSheet />}
       </div>
 
-      {hasRoomForSearchBox && (
-        <div className="flex min-w-0 flex-1 justify-center">
-          <CommandPaletteTrigger
-            className="w-full max-w-[20rem]"
-            onOpen={openCommandPalette}
-          />
-        </div>
-      )}
-
       <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
-        {!hasRoomForSearchBox && (
-          <CommandPaletteIconTrigger onOpen={openCommandPalette} />
-        )}
-
         {isDesktop ? (
           <>
             <PlatformOnly>
@@ -127,11 +106,6 @@ export default function Header({ className, ...props }: HeaderProps) {
         )}
       </div>
 
-      {/* Outside the layout switch, so an open palette survives crossing `lg`
-          and an open checkout survives crossing `md`. The inbox attaches to
-          the bell or to the mobile account menu; the organization switcher of
-          either layout opens the dialog. */}
-      <CommandPalette {...paletteProps} />
       <PlatformOnly>
         <InboxPopover inbox={inbox} />
         <CreateOrgFormDialog

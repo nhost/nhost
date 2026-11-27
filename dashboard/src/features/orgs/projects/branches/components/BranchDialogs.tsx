@@ -207,12 +207,6 @@ export function PullRequestCommentDialog({
   );
 }
 
-const STARTING_DATA_TEXT = {
-  empty: 'empty, structure only',
-  seed: 'your seed data',
-  parentBackup: "production's latest backup",
-} as const;
-
 /**
  * Rebuilds the branch's database from the project's starting data, so a
  * test run can start clean. Same layout as the delete organization dialog.
@@ -222,7 +216,7 @@ export function ResetBranchDialog({
   open,
   onOpenChange,
 }: DialogBaseProps & { branch: Branch | null }) {
-  const { resetBranch, initialData } = useDummyBranches();
+  const { resetBranch } = useDummyBranches();
   if (!branch) {
     return null;
   }
@@ -234,9 +228,8 @@ export function ResetBranchDialog({
             Reset {branch.name}?
           </DialogTitle>
           <DialogDescription>
-            Its database starts over from {STARTING_DATA_TEXT[initialData]}.
-            Anything added while testing is lost. The code and the pull request
-            don't change.
+            Start fresh with a new database for this branch. This replaces its
+            current data.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-6">
@@ -267,7 +260,7 @@ export function DeleteBranchDialog({
   open,
   onOpenChange,
 }: DialogBaseProps & { branch: Branch | null }) {
-  const { deleteBranch, waiting } = useDummyBranches();
+  const { deleteBranch } = useDummyBranches();
   if (!branch) {
     return null;
   }
@@ -279,10 +272,7 @@ export function DeleteBranchDialog({
             Delete {branch.name}?
           </DialogTitle>
           <DialogDescription>
-            Its database, files and settings are removed for good. Pull request
-            #{branch.pullRequest} stays open on GitHub.
-            {waiting.length > 0 &&
-              ` Its slot goes to #${waiting[0].pullRequest}, next in line.`}
+            This permanently deletes the branch. Your pull request stays open.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-6">
