@@ -709,6 +709,36 @@ describe('native dashboard support', () => {
       { shallow: true },
     );
   });
+  it('refetches search suggestions when the agent queue filter changes', async () => {
+    makeAgent();
+    const user = new TestUserEvent();
+    const { rerender } = render(<TicketList />);
+    await screen.findByRole('link', { name: /Storage upload fails/ });
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search tickets' }),
+      'Storage',
+    );
+    const suggestionRequests = (assignedOnly: boolean) =>
+      requests.filter(({ operation, variables }) => {
+        const where = JSON.stringify(variables.where);
+        return (
+          operation === 'list' &&
+          where.includes('%Storage%') &&
+          where.includes('assigneeID') === assignedOnly
+        );
+      });
+    await waitFor(() => expect(suggestionRequests(false)).not.toHaveLength(0));
+    expect(suggestionRequests(true)).toHaveLength(0);
+    mocks.useRouter.mockReturnValue({
+      ...mockRouter,
+      query: { queue: 'mine' },
+      isReady: true,
+      push,
+      replace,
+    });
+    rerender(<TicketList />);
+    await waitFor(() => expect(suggestionRequests(true)).not.toHaveLength(0));
+  });
   it('loads the customer queue using the native user role and opens tickets in-app', async () => {
     render(<TicketList />);
     const link = await screen.findByRole(

@@ -128,24 +128,17 @@ export default function TicketList() {
     const timeout = setTimeout(() => setSuggestionQuery(query.trim()), 200);
     return () => clearTimeout(timeout);
   }, [query]);
+  const suggestionWhere = ticketFilter(
+    { ...search, q: suggestionQuery, statusFilters: '', page: 0 },
+    user?.id ?? '',
+    isAgent,
+  );
   const suggestions = useQuery({
-    queryKey: [
-      ...queryKey,
-      'ticket-suggestions',
-      search.status,
-      suggestionQuery,
-    ],
+    queryKey: [...queryKey, 'ticket-suggestions', suggestionWhere],
     queryFn: ({ signal }) =>
       request<DashboardSupportTicketsQuery>(
         DashboardSupportTicketsDocument,
-        {
-          where: ticketFilter(
-            { ...search, q: suggestionQuery, statusFilters: '', page: 0 },
-            user?.id ?? '',
-            isAgent,
-          ),
-          offset: 0,
-        },
+        { where: suggestionWhere, offset: 0 },
         signal,
       ),
     enabled:
@@ -153,11 +146,14 @@ export default function TicketList() {
       router.isReady &&
       !waitingForQueues &&
       suggestionQuery.length >= 2,
+    cacheTime: 0,
     retry: false,
     keepPreviousData: true,
   });
   const suggestionRows =
-    suggestionQuery.length >= 2 ? (suggestions.data?.supportTickets ?? []) : [];
+    suggestionQuery.length >= 2 && !suggestions.isError
+      ? (suggestions.data?.supportTickets ?? [])
+      : [];
   const tickets = useQuery({
     queryKey: [...queryKey, 'tickets', search],
     queryFn: ({ signal }) =>
