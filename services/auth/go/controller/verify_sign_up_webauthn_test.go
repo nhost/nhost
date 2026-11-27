@@ -305,7 +305,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			expectedJWT: &jwt.Token{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -477,7 +477,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			expectedJWT: &jwt.Token{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -642,7 +642,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			expectedJWT: &jwt.Token{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -1301,7 +1301,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			expectedJWT: &jwt.Token{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
 					"https://hasura.io/jwt/claims": map[string]any{

@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 type providerCallbackData struct {
@@ -34,7 +35,7 @@ type providerCallbackData struct {
 func (ctrl *Controller) getStateData(
 	ctx context.Context, state string, logger *slog.Logger,
 ) (*providers.State, *APIError) {
-	stateToken, err := ctrl.wf.jwtGetter.Validate(state)
+	stateToken, err := ctrl.wf.jwtGetter.Validate(state, tokenpurpose.ProviderState)
 	if err != nil {
 		logger.ErrorContext(ctx, "invalid state token", logError(err))
 		return nil, ErrInvalidState
@@ -373,7 +374,7 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	logger *slog.Logger,
 ) *APIError {
 	// Decode JWT token from connect parameter
-	jwtToken, err := ctrl.wf.jwtGetter.Validate(connnect)
+	jwtToken, err := ctrl.wf.jwtGetter.Validate(connnect, tokenpurpose.Session)
 	if err != nil {
 		logger.ErrorContext(ctx, "invalid jwt token", logError(err))
 		return ErrInvalidRequest

@@ -262,11 +262,37 @@ default = "default-value"
   </TabItem>
 </Tabs>
 
+:::caution
+Don't use `claims_map` to supply missing roles for tokens signed by Nhost Auth. This can grant GraphQL and Storage access to ID tokens or OAuth2 access tokens without a `graphql` scope.
+:::
+
 The complete `#JWTSecret` schema, with every field and default, is documented in the [configuration reference](/reference/configuration#jwtsecret).
+
+## Token Types and Claims
+
+Nhost Auth issues four kinds of JWT: first-party session tokens for your app, OAuth2 access tokens for delegated API access, OIDC ID tokens that identify users to OAuth2 clients, and short-lived provider-state tokens used by provider callbacks. All four use the same configured signing key and algorithm (`alg`), include a `kid` header when a key ID is configured, and carry the Auth issuer in `iss` and the issuance time in `iat`.
+
+The table below compares their headers and claims. `typ` is a JWT header field; the remaining rows describe payload claims. See [Tokens and Scopes](/products/auth/oauth2-provider/tokens-and-scopes) for more about the OAuth2 claims and their scope requirements.
+
+| Field | First-party session token | OAuth2 access token | OIDC ID token | Provider-state token |
+|-------|---------------------------|---------------------|---------------|----------------------|
+| `typ` (header) | `nhost-session+jwt` | `at+jwt` | `JWT` | `nhost-provider-state+jwt` |
+| `sub` | User ID | User ID | User ID | — |
+| `aud` | — | OAuth2 client ID | OAuth2 client ID | — |
+| `exp` | `iat` plus `auth.session.accessToken.expiresIn` | `iat` plus `auth.oauth2Provider.accessToken.expiresIn` | Same as the OAuth2 access token | `iat` plus one minute |
+| `scope` | — | Granted scopes as a space-separated string | — | — |
+| `https://hasura.io/jwt/claims` (default namespace) | User ID, allowed and default roles, anonymous status, custom claims, and `x-hasura-auth-elevated` after elevation | Included for `graphql` or `graphql:role:…`; roles follow the granted scopes | — | — |
+| Other claims | — | — | Identity claims; see [ID Token](/products/auth/oauth2-provider/tokens-and-scopes#id-token) | Internal sign-in state, not meant to be read by your code |
+
+Refresh tokens and personal access tokens (PATs) are opaque credentials with no JWT headers or claims. Signing in with a PAT creates a first-party session token.
 
 ## Verify a JWT
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).
+
+When your own code expects a session token, for example in [Functions](/products/functions/guides/jwt-verification), check for `typ: nhost-session+jwt` to reject tokens issued for other purposes, such as those the OAuth2 provider issues to third-party apps. Older Auth versions used `typ: JWT` for all token types.
+
+The GraphQL API and Storage don't need this check: they authorize from the token's role claims, which OAuth2 access tokens carry only when the app was granted a [`graphql` scope](/products/auth/oauth2-provider/tokens-and-scopes#the-graphql-scope).
 
 ## Custom Claims
 
