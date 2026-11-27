@@ -1,0 +1,246 @@
+import { z } from 'zod';
+import { supportAttachmentIds } from '@/features/support/utils/attachments';
+import {
+  SupportSeverities_Enum,
+  SupportTicketStatuses_Enum,
+  type SupportTickets_Bool_Exp,
+} from '@/generated/graphql';
+
+export const STATUSES = [
+  SupportTicketStatuses_Enum.New,
+  SupportTicketStatuses_Enum.WaitingForSupport,
+  SupportTicketStatuses_Enum.InProgress,
+  SupportTicketStatuses_Enum.WaitingForCustomer,
+  SupportTicketStatuses_Enum.Resolved,
+  SupportTicketStatuses_Enum.Closed,
+] as const;
+export const SEVERITIES = [
+  SupportSeverities_Enum.Low,
+  SupportSeverities_Enum.Normal,
+  SupportSeverities_Enum.High,
+  SupportSeverities_Enum.Urgent,
+] as const;
+export const SERVICES = [
+  'auth',
+  'database',
+  'graphql',
+  'storage',
+  'functions',
+  'run',
+  'ai',
+  'dashboard',
+  'cli',
+  'networking',
+  'billing',
+  'other',
+] as const;
+export const PAGE_SIZE = 50;
+export const EVENTS_LIMIT = 100;
+
+export const ticketAttachmentSchema = z.object({
+  id: z.string(),
+  status: z.enum([
+    'pending',
+    'uploading',
+    'uploaded',
+    'failed',
+    'invalid',
+    'unfinished',
+  ]),
+});
+export type TicketAttachment = z.infer<typeof ticketAttachmentSchema>;
+
+export function unlinkedAttachments<T extends TicketAttachment>(
+  attachments: readonly T[],
+  description: string,
+): T[] {
+  const linked = supportAttachmentIds(description);
+  return attachments.filter(
+    (attachment) =>
+      attachment.status === 'uploaded' && !linked.has(attachment.id),
+  );
+}
+
+export const ticketFormSchema = z
+  .object({
+    organizationID: z.uuid('Select an organization'),
+    projectID: z.union([z.uuid(), z.literal('none')]),
+    title: z.string().trim().min(1, 'Add a title').max(200),
+    severity: z.enum(SEVERITIES),
+    services: z.array(z.enum(SERVICES)).min(1, 'Pick at least one service'),
+    description: z.string().trim().min(1, 'Describe the issue').max(50000),
+    attachments: z.array(ticketAttachmentSchema),
+  })
+  .superRefine(({ attachments, description }, context) => {
+    if (
+      attachments.some(
+        ({ status }) => status !== 'uploaded' && status !== 'uploading',
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['attachments'],
+        message:
+          'Upload or remove unfinished attachments before creating the ticket.',
+      });
+    } else if (unlinkedAttachments(attachments, description).length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['attachments'],
+        message:
+          'Insert or remove attachments that are not in the description before creating the ticket.',
+      });
+    }
+  });
+export type TicketFormValues = z.infer<typeof ticketFormSchema>;
+
+export const ticketSearchSchema = z.object({
+  q: z.string().trim().max(200).catch(''),
+  status: z.enum(['active', 'all', 'finished', ...STATUSES]).catch('active'),
+  statusFilters: z
+    .string()
+    .catch('')
+    .transform((value) =>
+      STATUSES.filter((status) => value.split(',').includes(status)).join(','),
+    ),
+  organization: z.string().trim().max(200).catch(''),
+  queue: z.enum(['all', 'mine', 'unassigned']).catch('all'),
+  page: z.coerce.number().int().min(0).max(100000).catch(0),
+});
+export type TicketSearch = Omit<
+  z.infer<typeof ticketSearchSchema>,
+  'statusFilters'
+> & { statusFilters?: string };
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, '\\$&');
+}
+
+export function ticketFilter(
+  search: TicketSearch,
+  userId: string,
+  isAgent: boolean,
+): SupportTickets_Bool_Exp {
+  const filters: SupportTickets_Bool_Exp[] = [];
+  if (search.status === 'active') {
+    filters.push({
+      status: {
+        _nin: [
+          SupportTicketStatuses_Enum.Resolved,
+          SupportTicketStatuses_Enum.Closed,
+        ],
+      },
+    });
+  } else if (search.status === 'finished') {
+    filters.push({
+      status: {
+        _in: [
+          SupportTicketStatuses_Enum.Resolved,
+          SupportTicketStatuses_Enum.Closed,
+        ],
+      },
+    });
+  } else if (search.status !== 'all') {
+    filters.push({ status: { _eq: search.status } });
+  }
+  const statuses = STATUSES.filter((status) =>
+    search.statusFilters?.split(',').includes(status),
+  );
+  if (statuses.length) {
+    filters.push({ status: { _in: statuses } });
+  }
+  if (search.organization) {
+    filters.push({
+      organizationName: { _ilike: `%${escapeLike(search.organization)}%` },
+    });
+  }
+  if (isAgent && search.queue === 'mine') {
+    filters.push({ assigneeID: { _eq: userId } });
+  } else if (isAgent && search.queue === 'unassigned') {
+    filters.push({ assigneeID: { _is_null: true } });
+  }
+  if (search.q) {
+    const pattern = `%${escapeLike(search.q)}%`;
+    const number = /^#?\d+$/.test(search.q)
+      ? Number(search.q.replace(/^#/, ''))
+      : NaN;
+    filters.push({
+      _or: [
+        { title: { _ilike: pattern } },
+        { projectName: { _ilike: pattern } },
+        { organizationName: { _ilike: pattern } },
+        ...(Number.isSafeInteger(number) && number <= 2147483647
+          ? [{ number: { _eq: number } }]
+          : []),
+      ],
+    });
+  }
+  return { _and: filters };
+}
+
+export function getAllowedSupportSeverities(
+  allowed: readonly string[] | null | undefined,
+): SupportSeverities_Enum[] {
+  return SEVERITIES.filter((severity) => allowed?.includes(severity));
+}
+
+export function supportLabel(value: string): string {
+  const labels: Record<string, string> = {
+    auth: 'Authentication',
+    graphql: 'GraphQL',
+    ai: 'AI',
+    cli: 'CLI',
+    run: 'Run',
+  };
+  return Object.hasOwn(labels, value)
+    ? labels[value]
+    : value
+        .replaceAll('_', ' ')
+        .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+export function supportDate(value: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+export function ticketStatusLabel(status: string, isAgent: boolean): string {
+  if (status === 'waiting_for_customer') {
+    return isAgent ? 'Waiting on customer' : 'Waiting on you';
+  }
+  if (status === 'waiting_for_support') {
+    return isAgent ? 'Waiting on support' : 'Waiting on Nhost';
+  }
+  return supportLabel(status);
+}
+
+export function supportInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => [...part][0])
+    .join('')
+    .toLocaleUpperCase();
+}
+
+export function supportGap(from: string, to: string): string {
+  const minutes = Math.max(
+    0,
+    Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000),
+  );
+  if (minutes < 1) {
+    return '<1 min';
+  }
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+  const days = Math.round(hours / 24);
+  return days === 1 ? '1 day' : `${days} days`;
+}

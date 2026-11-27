@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.12.0] - 2026-11-27
+
+### 🚀 Features
+
+- *(dashboard)* Add native support tickets and support homepage (#5427)
+
 ## [@nhost/dashboard@3.11.1] - 2026-11-26
 
 ### 🐛 Bug Fixes

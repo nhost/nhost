@@ -40,11 +40,10 @@ describe('commandPaletteTree', () => {
     const support = rootChildren.find((node) => node.id === 'support');
     expect(support).toMatchObject({
       id: 'support',
-      title: 'Support',
+      title: 'Support tickets',
       kind: 'page',
-      path: '/support',
-      scope: 'external',
-      keywords: ['support', 'help', 'contact'],
+      path: '/support/tickets',
+      keywords: ['support', 'tickets', 'help', 'contact'],
       gate: 'platform',
     });
     expect(support?.icon?.type).toBe(CircleHelpIcon);

@@ -1,0 +1,28 @@
+query dashboardSupportInlineAttachment(
+  $id: uuid!
+  $scope: supportAttachmentUploads_bool_exp!
+) {
+  supportAttachmentUploads(
+    where: {
+      _and: [
+        $scope
+        {
+          id: { _eq: $id }
+          discardedAt: { _is_null: true }
+          file: {
+            bucketId: { _eq: "support_tickets_attachments" }
+            isUploaded: { _eq: true }
+          }
+        }
+      ]
+    }
+    limit: 1
+  ) {
+    file {
+      id
+      name
+      size
+      mimeType
+    }
+  }
+}

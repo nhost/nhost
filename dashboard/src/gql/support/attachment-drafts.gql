@@ -1,0 +1,66 @@
+mutation dashboardCreateSupportAttachmentDraft($organizationId: uuid!) {
+  insertSupportAttachmentDraft(object: { organizationID: $organizationId }) {
+    id
+    createdAt
+  }
+}
+
+query dashboardSupportAttachmentDraft($id: uuid!, $offset: Int!) {
+  supportTickets(where: { attachmentDraftID: { _eq: $id } }, limit: 1) {
+    id
+  }
+  supportAttachmentDraft(id: $id) {
+    id
+    organizationID
+    createdAt
+    uploads(
+      where: { discardedAt: { _is_null: true } }
+      order_by: [{ createdAt: asc }, { id: asc }]
+      limit: 100
+      offset: $offset
+    ) {
+      id
+    }
+    attachments(
+      where: {
+        discardedAt: { _is_null: true }
+        file: {
+          bucketId: { _eq: "support_tickets_attachments" }
+          isUploaded: { _eq: true }
+        }
+      }
+      order_by: [{ createdAt: asc }, { id: asc }]
+      limit: 100
+      offset: $offset
+    ) {
+      id
+      file {
+        id
+        name
+        size
+        mimeType
+      }
+    }
+  }
+}
+
+mutation dashboardReserveSupportDraftAttachment($draftId: uuid!) {
+  insertSupportAttachmentUpload(object: { draftID: $draftId }) {
+    id
+  }
+}
+
+mutation dashboardDiscardSupportDraftAttachment($id: uuid!, $at: timestamptz!) {
+  updateSupportAttachmentUploads(
+    where: { id: { _eq: $id } }
+    _set: { discardedAt: $at }
+  ) {
+    affected_rows
+  }
+}
+
+query dashboardSupportDraftAttachmentReservation($id: uuid!) {
+  supportAttachmentUpload(id: $id) {
+    discardedAt
+  }
+}

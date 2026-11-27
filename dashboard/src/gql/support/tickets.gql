@@ -1,0 +1,170 @@
+fragment DashboardSupportTicket on supportTickets {
+  id
+  number
+  title
+  status
+  severity
+  services
+  organizationID
+  organizationName
+  projectID
+  projectName
+  requesterID
+  requesterName
+  assigneeID
+  assigneeName
+  version
+  createdAt
+  updatedAt
+}
+
+query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!) {
+  supportTickets(
+    where: $where
+    order_by: [{ updatedAt: desc }, { id: desc }]
+    limit: 51
+    offset: $offset
+  ) {
+    ...DashboardSupportTicket
+    comments_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+
+query dashboardSupportTicket($id: uuid!) {
+  supportTicket(id: $id) {
+    ...DashboardSupportTicket
+    description
+    resolvedAt
+    closedAt
+    organization {
+      plan {
+        supportAllowedSeverities
+      }
+    }
+  }
+  supportTicketTransitions {
+    fromStatus
+    toStatus
+  }
+}
+
+query dashboardSupportComments($id: uuid!, $offset: Int!) {
+  supportComments(
+    where: { ticketID: { _eq: $id } }
+    order_by: [{ createdAt: desc }, { id: desc }]
+    limit: 51
+    offset: $offset
+  ) {
+    id
+    authorID
+    authorName
+    authorRole
+    body
+    createdAt
+  }
+}
+
+query dashboardSupportEvents($id: uuid!) {
+  supportTicketEvents(
+    where: { ticketID: { _eq: $id } }
+    order_by: [{ createdAt: desc }, { id: desc }]
+    limit: 100
+  ) {
+    id
+    actorName
+    kind
+    oldValue
+    newValue
+    createdAt
+  }
+}
+
+query dashboardSupportOrganizations($userId: uuid!) {
+  organizations(
+    where: { members: { userID: { _eq: $userId } } }
+    order_by: { name: asc }
+  ) {
+    id
+    name
+    slug
+    plan {
+      name
+      isFree
+      supportAllowedSeverities
+    }
+    apps(order_by: { name: asc }) {
+      id
+      name
+    }
+  }
+  plans(
+    order_by: { sort: asc }
+    where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
+  ) {
+    id
+    name
+    supportAllowedSeverities
+  }
+}
+
+mutation dashboardCreateSupportTicket($input: supportTickets_insert_input!) {
+  insertSupportTicket(object: $input) {
+    id
+  }
+}
+
+mutation dashboardReplyToSupportTicket($ticketId: uuid!, $body: String!) {
+  insertSupportComment(object: { ticketID: $ticketId, body: $body }) {
+    id
+  }
+}
+
+query dashboardSupportAttachments($ticketId: uuid!, $offset: Int!) {
+  supportTicket(id: $ticketId) {
+    attachments(
+      where: {
+        discardedAt: { _is_null: true }
+        file: {
+          bucketId: { _eq: "support_tickets_attachments" }
+          isUploaded: { _eq: true }
+        }
+      }
+      limit: 100
+      offset: $offset
+      order_by: [{ createdAt: asc }, { id: asc }]
+    ) {
+      id
+      uploaderName
+      createdAt
+      file {
+        id
+        name
+        size
+        mimeType
+      }
+    }
+  }
+}
+
+mutation dashboardReserveSupportAttachment($ticketId: uuid!) {
+  insertSupportAttachmentUpload(object: { ticketID: $ticketId }) {
+    id
+  }
+}
+
+mutation dashboardUpdateSupportTicket(
+  $id: uuid!
+  $version: Int!
+  $changes: supportTickets_set_input!
+) {
+  updateSupportTickets(
+    where: { id: { _eq: $id }, version: { _eq: $version } }
+    _set: $changes
+  ) {
+    affected_rows
+  }
+}
