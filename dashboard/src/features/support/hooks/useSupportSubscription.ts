@@ -9,20 +9,26 @@ interface SupportSubscriptionOptions<TData> {
   variables: Record<string, unknown>;
   enabled?: boolean;
   onData: (data: TData) => void;
-  /** Called after the connection was re-established, as updates may have been missed. */
+  /** Called after the connection or subscription was re-established, as updates may have been missed. */
   onReconnect?: VoidFunction;
+}
+
+function retryDelay(retries: number) {
+  return Math.min(1000 * 2 ** retries, 30000);
 }
 
 function retryWait(retries: number) {
   return new Promise<void>((resolve) => {
-    setTimeout(resolve, Math.min(1000 * 2 ** retries, 30000));
+    setTimeout(resolve, retryDelay(retries));
   });
 }
 
 // Opens a GraphQL subscription over its own WebSocket, authenticated like the
 // support HTTP requests: the connection carries the session token and the
 // viewer's support role, and reconnects with fresh headers when Constellation
-// closes it at token expiry.
+// closes it at token expiry. graphql-ws ends a subscription on its first
+// `error` message, which Constellation sends when a poll fails, so the hook
+// subscribes again with the same backoff.
 export function useSupportSubscription<TData>({
   document,
   variables,
@@ -59,21 +65,47 @@ export function useSupportSubscription<TData>({
         },
       },
     });
-    const unsubscribe = client.subscribe<TData>(
-      { query: print(document), variables: latest.current.variables },
-      {
-        next: (result) => {
-          if (result.data) {
-            latest.current.onData(result.data);
-          }
+    let disposed = false;
+    let retries = 0;
+    let resubscribed = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let unsubscribe = () => {};
+    function subscribe() {
+      unsubscribe = client.subscribe<TData>(
+        { query: print(document), variables: latest.current.variables },
+        {
+          next: (result) => {
+            retries = 0;
+            if (resubscribed) {
+              resubscribed = false;
+              latest.current.onReconnect?.();
+            }
+            if (result.data) {
+              latest.current.onData(result.data);
+            }
+          },
+          error: (error) => {
+            console.error('Support subscription failed', error);
+            subscribeLater();
+          },
+          complete: subscribeLater,
         },
-        error: (error) => {
-          console.error('Support subscription failed', error);
-        },
-        complete: () => {},
-      },
-    );
+      );
+    }
+    function subscribeLater() {
+      if (disposed) {
+        return;
+      }
+      retryTimer = setTimeout(() => {
+        resubscribed = true;
+        subscribe();
+      }, retryDelay(retries));
+      retries += 1;
+    }
+    subscribe();
     return () => {
+      disposed = true;
+      clearTimeout(retryTimer);
       unsubscribe();
       void client.dispose();
     };

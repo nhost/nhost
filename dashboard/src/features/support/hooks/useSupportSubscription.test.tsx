@@ -8,6 +8,8 @@ import { act, Providers, renderHook, waitFor } from '@/tests/testUtils';
 
 interface Sink {
   next: (result: { data?: unknown }) => void;
+  error: (error: unknown) => void;
+  complete: VoidFunction;
 }
 const ws = vi.hoisted(() => ({
   clients: [] as {
@@ -52,9 +54,15 @@ beforeEach(() => {
   ws.clients = [];
 });
 afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   mockSession.accessToken = originalToken;
   mockSession.decodedToken = structuredClone(originalClaims);
 });
+
+function sinkAt(index: number) {
+  return ws.clients[0].subscribe.mock.calls[index][1] as Sink;
+}
 
 describe('useSupportSubscription', () => {
   it.each([
@@ -127,6 +135,92 @@ describe('useSupportSubscription', () => {
     rerender({ id: 'another-ticket' });
     await waitFor(() => expect(ws.clients).toHaveLength(2));
     expect(ws.clients[0].dispose).toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      end: 'error',
+      endSubscription: (sink: Sink) =>
+        sink.error([{ message: 'executing subscription poll' }]),
+    },
+    {
+      end: 'complete',
+      endSubscription: (sink: Sink) => sink.complete(),
+    },
+  ])(
+    'subscribes again after an unexpected $end and refreshes once data arrives',
+    async ({ endSubscription }) => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onData = vi.fn();
+      const onReconnect = vi.fn();
+      renderHook(
+        () =>
+          useSupportSubscription({
+            document: DashboardSupportTicketChangesDocument,
+            variables: { id: ticketId },
+            onData,
+            onReconnect,
+          }),
+        { wrapper: Providers },
+      );
+      await waitFor(() => expect(ws.clients).toHaveLength(1));
+      const [client] = ws.clients;
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+      act(() => endSubscription(sinkAt(0)));
+      act(() => vi.advanceTimersByTime(999));
+      expect(client.subscribe).toHaveBeenCalledTimes(1);
+      act(() => vi.advanceTimersByTime(1));
+      expect(client.subscribe).toHaveBeenCalledTimes(2);
+      expect(ws.clients).toHaveLength(1);
+      expect(client.subscribe.mock.calls[1][0]).toEqual({
+        query: print(DashboardSupportTicketChangesDocument),
+        variables: { id: ticketId },
+      });
+      expect(onReconnect).not.toHaveBeenCalled();
+
+      const data = { supportTicket: null };
+      act(() => sinkAt(1).next({ data }));
+      expect(onReconnect).toHaveBeenCalledTimes(1);
+      expect(onData).toHaveBeenCalledWith(data);
+      act(() => sinkAt(1).next({ data }));
+      expect(onReconnect).toHaveBeenCalledTimes(1);
+
+      // Data resets the backoff; repeated failures without data double it.
+      act(() => endSubscription(sinkAt(1)));
+      act(() => vi.advanceTimersByTime(1000));
+      expect(client.subscribe).toHaveBeenCalledTimes(3);
+      act(() => endSubscription(sinkAt(2)));
+      act(() => vi.advanceTimersByTime(1999));
+      expect(client.subscribe).toHaveBeenCalledTimes(3);
+      act(() => vi.advanceTimersByTime(1));
+      expect(client.subscribe).toHaveBeenCalledTimes(4);
+    },
+  );
+
+  it('does not subscribe again after unmounting during the backoff', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { unmount } = renderHook(
+      () =>
+        useSupportSubscription({
+          document: DashboardSupportTicketChangesDocument,
+          variables: { id: ticketId },
+          onData: vi.fn(),
+        }),
+      { wrapper: Providers },
+    );
+    await waitFor(() => expect(ws.clients).toHaveLength(1));
+    const [client] = ws.clients;
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+    act(() => sinkAt(0).error([{ message: 'executing subscription poll' }]));
+    unmount();
+    act(() => vi.advanceTimersByTime(30000));
+    expect(client.subscribe).toHaveBeenCalledTimes(1);
+    expect(client.dispose).toHaveBeenCalled();
+    act(() => sinkAt(0).complete());
+    act(() => vi.advanceTimersByTime(30000));
+    expect(client.subscribe).toHaveBeenCalledTimes(1);
   });
 
   it('does not connect while disabled', async () => {
