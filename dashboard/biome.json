@@ -85,7 +85,6 @@
       }
     },
     "includes": [
-      "!src/styles/graphiql.min.css",
       "!src/utils/hasura-api/generated/**",
       "!src/utils/__generated__/**",
       "!public/**",

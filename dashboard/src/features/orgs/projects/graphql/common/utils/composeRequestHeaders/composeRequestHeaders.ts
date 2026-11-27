@@ -1,4 +1,4 @@
-import type { Fetcher } from '@graphiql/toolkit';
+import type { Transport } from '@graphiql/toolkit';
 
 export interface GraphQLPlaygroundSelection {
   userId: string;
@@ -12,7 +12,7 @@ interface ComposeRequestHeadersOptions {
 }
 
 interface WithRequestHeadersOptions {
-  fetcher: Fetcher;
+  transport: Transport;
   adminSecret: string;
   selection: GraphQLPlaygroundSelection;
 }
@@ -47,23 +47,45 @@ export default function composeRequestHeaders({
     headers.set(name, String(value));
   }
 
-  // GraphiQL spreads these into a plain object and graphql-ws JSON-serializes
-  // them, so a Headers instance would silently reduce to {}.
+  // The transport spreads these into a plain object and graphql-ws
+  // JSON-serializes them, so a Headers instance would silently reduce to {}.
   return Object.fromEntries(headers);
 }
 
+/**
+ * Sends every request with the composed headers. GraphiQL passes the Headers
+ * tab as the request's headers, so they override the selection.
+ */
 export function withRequestHeaders({
-  fetcher,
+  transport,
   adminSecret,
   selection,
-}: WithRequestHeadersOptions): Fetcher {
-  return (graphQLParams, fetcherOpts) =>
-    fetcher(graphQLParams, {
-      ...fetcherOpts,
-      headers: composeRequestHeaders({
-        adminSecret,
-        selection,
-        headersTabOverrides: fetcherOpts?.headers,
+}: WithRequestHeadersOptions): Transport {
+  // Getters, not a spread: the method and supported methods change after
+  // discovery, and a spread would copy their first values.
+  return {
+    get url() {
+      return transport.url;
+    },
+    get method() {
+      return transport.method;
+    },
+    get methodOverride() {
+      return transport.methodOverride;
+    },
+    get supportedMethods() {
+      return transport.supportedMethods;
+    },
+    setMethod: transport.setMethod,
+    subscribe: transport.subscribe,
+    send: (request) =>
+      transport.send({
+        ...request,
+        headers: composeRequestHeaders({
+          adminSecret,
+          selection,
+          headersTabOverrides: request.headers,
+        }),
       }),
-    });
+  };
 }

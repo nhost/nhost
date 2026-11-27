@@ -35,134 +35,254 @@ body {
   z-index: 5;
 }
 
-.execute-button-wrap {
-  display: none;
+/* GraphiQL fills the space under the playground header. */
+.graphiql-themed .graphiql-container {
+  @apply h-auto min-h-0 flex-1;
+
+  /* The dashboard's fonts (fontFamily in tailwind.config.js), in place of
+     GraphiQL's Roboto and Fira Code, which the playground doesn't load. The
+     editors read --font-family-mono too (useEditorFont). */
+  --font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: "Roboto Mono", ui-monospace, monospace;
 }
 
-/* GraphiQL overrides */
-
-html.dark .graphiql-themed .graphiql-container {
-  --color-primary: 349, 87%, 57%;
-  --color-secondary: 263, 63%, 66%;
-  --color-tertiary: 172, 66%, 50%;
-  --color-info: 216, 100%, 61%;
-  --color-neutral: 210, 17%, 93%;
-  --color-base: 210, 5.71%, 11%;
-  --color-warning: 32, 100%, 57%;
-  --color-success: 149, 55%, 60%;
+/* GraphiQL's parts (response bar, search, breadcrumb, editor surfaces…) in
+   the dashboard's colors. GraphiQL reads OKLCH triplets, so each value is the
+   named dashboard token converted from HSL: update them together. Type names
+   are all teal (--chart-2), apart from the blue field names. Keyed on the
+   dashboard's theme class, which theme-init.js sets before the first paint,
+   not on GraphiQL's data-theme, which it only sets in an effect. */
+.light .graphiql-themed .graphiql-container {
+  --bg-canvas: 100% 0 0; /* --background */
+  --bg-elevated: 98.48% 0 0; /* --muted */
+  --bg-subtle: 97.03% 0 0; /* --accent */
+  --bg-overlay: 92.76% 0.006 264.5; /* --border */
+  --border-default: 92.76% 0.006 264.5; /* --border */
+  --border-muted: 94.47% 0.005 247.9; /* --divider */
+  --border-strong: 86.97% 0 0; /* --input */
+  --fg-strong: 13.71% 0.036 258.5; /* --foreground */
+  --fg-default: 13.71% 0.036 258.5; /* --foreground */
+  --fg-muted: 49.95% 0 0; /* --muted-foreground */
+  --fg-subtle: 49.95% 0 0; /* --muted-foreground */
+  --fg-disabled: 72.48% 0.026 257.7; /* --disabled */
+  --fg-dim: 72.48% 0.026 257.7; /* --disabled */
+  --accent-blue: 47.94% 0.202 260.5; /* --primary */
+  --accent-red: 54.68% 0.166 4.1; /* --destructive */
+  --accent-orange: 55.43% 0.13 59.1; /* --warning-foreground */
+  --type-composite: 63.09% 0.101 183.5; /* --chart-2 */
+  --type-scalar: 63.09% 0.101 183.5;
+  --type-enum: 63.09% 0.101 183.5;
+  --type-input: 63.09% 0.101 183.5;
 }
 
-.graphiql-container {
-  @apply h-auto flex-1 !important;
+.dark .graphiql-themed .graphiql-container {
+  --bg-canvas: 22.56% 0.004 248; /* --background */
+  --bg-elevated: 30.76% 0.008 255.8; /* --muted */
+  --bg-subtle: 28.35% 0.007 248.1; /* --accent */
+  --bg-overlay: 32.34% 0.007 255.5; /* --border */
+  --border-default: 32.34% 0.007 255.5; /* --border */
+  --border-muted: 29.24% 0.013 248.3; /* --divider */
+  --border-strong: 45.44% 0.008 248; /* --input */
+  --fg-strong: 93.41% 0.003 264.5; /* --foreground */
+  --fg-default: 93.41% 0.003 264.5; /* --foreground */
+  --fg-muted: 76.53% 0.006 247.9; /* --muted-foreground */
+  --fg-subtle: 76.53% 0.006 247.9; /* --muted-foreground */
+  --fg-disabled: 66.25% 0.018 250.9; /* --disabled */
+  --fg-dim: 66.25% 0.018 250.9; /* --disabled */
+  --accent-blue: 68.76% 0.165 260.4; /* --primary */
+  --accent-red: 80% 0.095 18; /* --destructive */
+  --accent-orange: 87.9% 0.153 91.6; /* --warning-foreground */
+  --type-composite: 69.83% 0.134 165.5; /* --chart-2 */
+  --type-scalar: 69.83% 0.134 165.5;
+  --type-enum: 69.83% 0.134 165.5;
+  --type-input: 69.83% 0.134 165.5;
 }
 
-.graphiql-container .graphiql-toolbar {
-  @apply hidden !important;
+/* Query tabs: over the page, with the active one in our main blue like the
+   active section tab. Hovering a tab highlights it as a whole. */
+.graphiql-themed .graphiql-tabs {
+  @apply gap-2;
+  background: transparent;
+  border-bottom: 0;
 }
 
-.graphiql-container .graphiql-sidebar {
-  @apply hidden !important;
+.graphiql-themed .graphiql-tab {
+  @apply rounded-md border-0;
 }
 
-.graphiql-container .graphiql-sessions {
-  @apply m-0 rounded-none !important;
+/* A tab keeps its width: GraphiQL widens it for the close button when it is
+   selected or hovered, and its tabs animate every width change, so the others
+   slid around. Every tab keeps room for the button, a lone tab too (it has
+   none, so a second tab doesn't widen it), and the button only fades in.
+   Selectors outrank GraphiQL's, which load later. */
+.graphiql-themed .graphiql-tabs .graphiql-tab .graphiql-tab-button {
+  @apply font-sans text-sm;
+  padding-right: var(--px-24);
 }
 
-.graphiql-container .graphiql-session {
-  @apply p-0 !important;
-}
-
-.graphiql-container .graphiql-doc-explorer {
-  @apply h-full overflow-y-auto border-l-0 px-3 py-3 !important;
-}
-
-.graphiql-container .graphiql-plugin {
-  @apply max-w-[initial] border-none py-2 pl-2 pr-0 !important;
-}
-
-.graphiql-container .graphiql-logo {
-  @apply hidden !important;
-}
-
-.graphiql-container .graphiql-add-tab-wrapper {
-  @apply px-4 py-3 !important;
-}
-
-.graphiql-container .graphiql-tab-add {
-  @apply px-2 !important;
-}
-
-.graphiql-container .graphiql-editors {
-  @apply rounded-none shadow-none !important;
-}
-
-.graphiql-themed .graphiql-container .graphiql-main,
-.graphiql-themed .graphiql-container .graphiql-sessions {
-  background-color: transparent;
-}
-
-.graphiql-themed .graphiql-container .graphiql-editors,
-.graphiql-themed .graphiql-container .graphiql-editor,
-.graphiql-themed .graphiql-container .CodeMirror,
-.graphiql-themed .graphiql-container .graphiql-doc-explorer,
-.graphiql-themed
-  .graphiql-container
-  .graphiql-doc-explorer-search-input
-  + div
-  > ul,
-.graphiql-themed .graphiql-container .cm-searching {
-  background-color: transparent;
-}
-
-/* The gutter stays fixed over horizontally scrolled code, so it must be
-   opaque. Match the surface the transparent editors sit on. */
-.graphiql-themed .graphiql-container .CodeMirror-gutters {
-  background-color: hsl(var(--background));
-}
-
-.graphiql-themed .graphiql-container .graphiql-query-editor {
-  background-color: hsl(var(--background));
-}
-
-.graphiql-themed .graphiql-container .graphiql-editor-tools,
-.graphiql-themed .graphiql-container .graphiql-editor-tool {
-  background-color: hsl(var(--muted) / 0.5);
-}
-
-.graphiql-themed .graphiql-container .graphiql-response {
-  background-color: hsl(var(--muted));
-}
-
-.graphiql-themed .graphiql-container .CodeMirror-linenumber,
-.graphiql-themed .graphiql-container .CodeMirror-line,
-.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab,
-.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button {
-  color: hsl(var(--disabled));
-}
-
-.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button.active,
-.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab-active,
-.graphiql-themed .graphiql-container .graphiql-markdown-description,
-.graphiql-themed .graphiql-container .graphiql-doc-explorer-section-title {
-  color: hsl(var(--muted-foreground));
+.graphiql-themed .graphiql-tabs .graphiql-tab .graphiql-tab-close {
+  display: flex;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    color 0.12s;
 }
 
 .graphiql-themed
-  .graphiql-container
-  .graphiql-doc-explorer
-  .graphiql-doc-explorer-header {
-  color: hsl(var(--primary-text));
+  .graphiql-tabs
+  .graphiql-tab:is(:hover, :focus-within, .graphiql-tab-active)
+  .graphiql-tab-close {
+  opacity: 1;
 }
 
-.graphiql-themed .graphiql-container .graphiql-tabs button {
-  outline: none;
+/* The strip scrolls sideways, so an outline outside a tab was cut down to a
+   line on its right edge. Drawn inside the tab instead. */
+.graphiql-themed .graphiql-tabs .graphiql-tab:focus-visible,
+.graphiql-themed .graphiql-tabs .graphiql-tab :focus-visible {
+  outline-offset: -2px;
 }
 
-.graphiql-themed .graphiql-container .CodeMirror-hint {
-  border-color: hsl(var(--divider));
+.graphiql-themed .graphiql-tab.graphiql-tab-active {
+  @apply mt-0 border-0 bg-primary/10 text-primary;
 }
 
-/* Layout bugs on codemirror */
+.graphiql-themed .graphiql-tab:not(.graphiql-tab-active):hover {
+  @apply bg-accent;
+}
+
+.graphiql-themed .graphiql-tab .graphiql-tab-close:hover {
+  @apply bg-transparent text-primary;
+}
+
+/* The Docs search looks like the dashboard's inputs (Input in ui/v3), in its
+   own band with a full width line under it. Selectors outrank GraphiQL's,
+   which load later. */
+.graphiql-themed .graphiql-doc-explorer-search-row-wrapper {
+  @apply border-border border-b px-4 py-3;
+}
+
+.graphiql-themed .graphiql-doc-explorer-search-row-input {
+  @apply h-11 gap-2 rounded-md border border-input bg-transparent px-3 py-0 transition-colors focus-within:border-primary md:h-9;
+}
+
+.graphiql-themed .graphiql-doc-explorer-search-row-input svg {
+  @apply size-4 text-muted-foreground;
+}
+
+/* @tailwindcss/forms pads every text input and rings it on focus; the field's
+   border shows focus instead. */
+.graphiql-themed .graphiql-doc-explorer-search-row-input [role="combobox"] {
+  @apply h-full p-0 font-sans text-base text-foreground placeholder:text-muted-foreground md:text-sm;
+  box-shadow: none;
+}
+
+.graphiql-themed .graphiql-doc-explorer-search-row-listbox {
+  @apply rounded-md border bg-popover p-1 shadow-md;
+}
+
+/* Playground dividers (DividerGrip): a small outlined handle with dots, and on
+   hover a blue line that fades out at both ends with a soft glow, so it is
+   clear they can be dragged. Neither takes the pointer: a drag only starts on
+   the divider itself. */
+.playground-divider {
+  position: relative;
+}
+
+.playground-divider-grip,
+.playground-divider-line {
+  position: absolute;
+  pointer-events: none;
+}
+
+.playground-divider-grip {
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  box-sizing: border-box;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background:
+    radial-gradient(
+      circle,
+      hsl(var(--muted-foreground)) 0.75px,
+      transparent 1.25px
+    )
+    center / 4px 4px content-box,
+    hsl(var(--background));
+  transform: translate(-50%, -50%);
+  transition: border-color 150ms ease;
+}
+
+.playground-divider-line {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+/* Between the panes: a tall grip, a vertical line. */
+.playground-divider-x .playground-divider-grip {
+  width: 12px;
+  height: 22px;
+  padding: 4px 1px;
+}
+
+.playground-divider-x .playground-divider-line {
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      hsl(var(--primary)) 25%,
+      hsl(var(--primary)) 75%,
+      transparent
+    )
+    center / 2px 100% no-repeat,
+    radial-gradient(
+      ellipse 50% 22% at center,
+      hsl(var(--primary) / 0.28),
+      transparent 70%
+    );
+}
+
+/* On top of the Variables and Headers bar: a wide grip on its top edge. */
+.playground-divider-y .playground-divider-grip {
+  top: 0;
+  width: 22px;
+  height: 12px;
+  padding: 1px 4px;
+}
+
+.playground-divider-y .playground-divider-line {
+  top: -8px;
+  right: 0;
+  left: 0;
+  height: 16px;
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      hsl(var(--primary)) 25%,
+      hsl(var(--primary)) 75%,
+      transparent
+    )
+    center / 100% 2px no-repeat,
+    radial-gradient(
+      ellipse 22% 50% at center,
+      hsl(var(--primary) / 0.28),
+      transparent 70%
+    );
+}
+
+/* Not while over a tab of the Variables and Headers bar: that's a click. */
+.playground-divider:is(:hover, :active):not(:has(button:hover))
+.playground-divider-line {
+  opacity: 1;
+}
+
+.playground-divider:is(:hover, :active):not(:has(button:hover))
+  .playground-divider-grip {
+  border-color: hsl(var(--primary));
+}
 
 .drop {
   position: fixed;

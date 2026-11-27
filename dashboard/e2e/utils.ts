@@ -989,13 +989,19 @@ export async function navigateToGraphQLPlayground({
   await page
     .getByRole('button', { name: 'Execute GraphQL query' })
     .waitFor({ timeout: 30000 });
+  // The query editor shows a spinner until Monaco has loaded.
+  await page
+    .getByRole('region', { name: 'Query editor', exact: true })
+    .locator('.monaco-editor')
+    .waitFor({ timeout: 30000 });
 }
 
 /**
- * Selects a role in the GraphiQL playground's Role dropdown
- * (`UserAndRoleSelect`). Unlike editing the Headers JSON, this Radix Select
- * updates `selection` synchronously (no debounce), so the rebuilt fetcher
- * carries `x-hasura-role: <role>` on the next request the caller triggers.
+ * Selects a role in the GraphiQL playground's "Request as" controls
+ * (`UserAndRoleSelect`): opens the role dropdown and picks the role.
+ * Unlike editing the Headers JSON, this updates `selection` synchronously (no
+ * debounce), so the rebuilt transport carries `x-hasura-role: <role>` on the
+ * next request the caller triggers.
  *
  * @param page - The Playwright page object.
  * @param role - The role to select (e.g. `public`).
@@ -1008,12 +1014,12 @@ export async function selectGraphQLRole({
   page: Page;
   role: string;
 }) {
-  const roleTrigger = page.getByTestId('graphql-role-select');
+  const roleSelect = page.getByRole('combobox', { name: 'Role' });
 
   await expect(async () => {
-    await roleTrigger.click();
+    await roleSelect.click();
     await page.getByRole('option', { name: role, exact: true }).click();
-    await expect(roleTrigger).toContainText(role);
+    await expect(page.getByTestId('graphql-role-tag')).toHaveText(role);
   }).toPass();
 }
 
@@ -1022,6 +1028,9 @@ export async function selectGraphQLRole({
  * playground exactly as a user does; callers assert on the rendered Result
  * Window (`page.getByLabel('Result Window')` with web-first matchers), which is
  * what the user actually sees, rather than on the raw HTTP response body.
+ * The Result Window is a Monaco editor, which renders spaces as non-breaking
+ * spaces and indents wrapped lines: match it with strings, which Playwright
+ * normalizes, or with regular expressions that use `\s+` between words.
  *
  * @param page - The Playwright page object.
  * @param query - The GraphQL query to execute.
@@ -1033,15 +1042,18 @@ export async function runGraphQLQuery({
   page: Page;
   query: string;
 }) {
-  const queryEditor = page.getByRole('region', { name: 'Query Editor' });
+  const queryEditor = page
+    .getByRole('region', { name: 'Query editor', exact: true })
+    .locator('.monaco-editor');
 
-  await queryEditor.locator('.CodeMirror textarea').focus();
+  await queryEditor.click();
   await page.keyboard.press('ControlOrMeta+a');
   await page.keyboard.press('Backspace');
-  await page.keyboard.type(query, { delay: 5 });
+  // In one go: typed key by key, Monaco would add the closing brackets too.
+  await page.keyboard.insertText(query);
 
-  // Dismiss any open autocomplete dropdown so Enter/clicks do not get captured
-  // by a hint instead of executing the query.
+  // Dismiss any open autocomplete suggestions so the next key or click isn't
+  // taken by them instead of executing the query.
   await page.keyboard.press('Escape');
 
   await page.getByRole('button', { name: 'Execute GraphQL query' }).click();
