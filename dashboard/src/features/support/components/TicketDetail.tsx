@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, UserMinus, UserPlus } from 'lucide-react';
+import { Check, Copy, UserMinus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { z } from 'zod';
 import {
@@ -60,10 +60,39 @@ import {
   SupportTicketStatuses_Enum,
   type SupportTickets_Set_Input,
 } from '@/generated/graphql';
+import { copy } from '@/utils/copy';
 
 function sameIds(a: { id: unknown }[], b: { id: unknown }[]) {
   const ids = new Set(a.map((item) => item.id));
   return a.length === b.length && b.every((item) => ids.has(item.id));
+}
+
+interface CopyableIdentifierProps {
+  label: string;
+  value: string;
+}
+
+function CopyableIdentifier({ label, value }: CopyableIdentifierProps) {
+  const action = `Copy ${label.toLowerCase()}`;
+  return (
+    <div className="flex items-center gap-1 font-mono text-muted-foreground text-xs">
+      <span className="min-w-0 break-all">{value}</span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="subtle"
+            size="icon-xs"
+            aria-label={action}
+            className="-my-1 shrink-0"
+            onClick={() => copy(value, label)}
+          >
+            <Copy aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{action}</TooltipContent>
+      </Tooltip>
+    </div>
+  );
 }
 
 export default function TicketDetail() {
@@ -292,6 +321,8 @@ export default function TicketDetail() {
                     <span className="flex min-w-0 items-center gap-2 text-sm">
                       <Avatar
                         className="h-6 w-6 text-[0.625rem]"
+                        name={ticket.assigneeName}
+                        colorFromName
                         fallback={supportInitials(ticket.assigneeName)}
                       />
                       <span className="truncate">
@@ -443,16 +474,43 @@ export default function TicketDetail() {
                       </dd>
                     </div>
                   )}
-                  <div className="flex justify-between gap-3 py-2.5">
+                  <div className="space-y-1 py-2.5">
                     <dt className="text-muted-foreground">Organization</dt>
-                    <dd className="min-w-0 break-words text-right">
-                      {ticket.organizationName}
+                    <dd className="space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="min-w-0 break-words">
+                          {ticket.organizationName}
+                        </span>
+                        {ticket.organization?.plan?.name && (
+                          <Badge
+                            variant="outline"
+                            className="shrink-0 px-2 py-px font-medium"
+                          >
+                            {ticket.organization.plan.name}
+                            <span className="sr-only"> plan</span>
+                          </Badge>
+                        )}
+                      </div>
+                      {isAgent && ticket.organization?.slug && (
+                        <CopyableIdentifier
+                          label="Organization slug"
+                          value={ticket.organization.slug}
+                        />
+                      )}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-3 py-2.5">
+                  <div className="space-y-1 py-2.5">
                     <dt className="text-muted-foreground">Project</dt>
-                    <dd className="min-w-0 break-words text-right">
-                      {ticket.projectName ?? 'Organization-wide'}
+                    <dd className="space-y-1">
+                      <div className="break-words">
+                        {ticket.projectName ?? 'Organization-wide'}
+                      </div>
+                      {isAgent && ticket.project?.subdomain && (
+                        <CopyableIdentifier
+                          label="Project subdomain"
+                          value={ticket.project.subdomain}
+                        />
+                      )}
                     </dd>
                   </div>
                   {isAgent && (

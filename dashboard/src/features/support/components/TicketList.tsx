@@ -509,6 +509,8 @@ export default function TicketList() {
                         <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm">
                           <Avatar
                             className="h-6 w-6 text-[0.625rem]"
+                            name={ticket.assigneeName}
+                            colorFromName
                             fallback={supportInitials(ticket.assigneeName)}
                           />
                           {ticket.assigneeName}

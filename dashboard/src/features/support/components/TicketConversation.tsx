@@ -41,6 +41,11 @@ import {
 } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
 
+// Inline next to the author's name on small screens, where the timeline is
+// hidden; from `sm` up it sits in the timeline column.
+const MESSAGE_AVATAR_CLASS =
+  'h-6 w-6 text-[0.625rem] sm:h-9 sm:w-9 sm:text-sm+';
+
 const replySchema = z.object({
   body: z.string().trim().min(1, 'Write a reply').max(50000),
 });
@@ -70,6 +75,7 @@ export default function TicketConversation({
   disabled,
 }: TicketConversationProps) {
   const { user, isAgent, role, queryKey, request } = useSupportSession();
+  const replyAuthorName = user?.displayName || 'You';
   const attachmentScope = useMemo(() => ({ ticketId }), [ticketId]);
   const [attachmentPanel, setAttachmentPanel] = useState<HTMLDivElement | null>(
     null,
@@ -174,22 +180,19 @@ export default function TicketConversation({
                 const nhostReplied =
                   !teamReply && next?.authorRole === 'support';
                 return (
-                  <li
-                    key={message.id}
-                    className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3 sm:gap-6"
-                  >
+                  <li key={message.id} className="relative sm:pl-[3.75rem]">
                     {!comments.isError &&
                       (index < conversation.length || !closed) && (
                         <div
                           aria-hidden="true"
                           className={cn(
-                            'absolute top-9 bottom-0 left-[calc(1.125rem-0.5px)] border-l',
+                            'absolute top-9 bottom-0 left-[calc(1.125rem-0.5px)] hidden border-l sm:block',
                             index < conversation.length ? '-mb-5' : '-mb-6',
                           )}
                         />
                       )}
                     {showGap && (
-                      <div className="absolute top-9 -bottom-5 left-[1.125rem] flex -translate-x-1/2 items-center">
+                      <div className="absolute top-9 -bottom-5 left-[1.125rem] hidden -translate-x-1/2 items-center sm:flex">
                         <span
                           className={cn(
                             'whitespace-nowrap rounded-full border bg-background px-1.5 py-px text-[0.625rem] text-muted-foreground',
@@ -204,39 +207,41 @@ export default function TicketConversation({
                         </span>
                       </div>
                     )}
-                    <div aria-hidden="true">
-                      {teamReply ? (
-                        message.authorID && message.authorID === user?.id ? (
-                          <UserAvatar className="h-9 w-9" />
-                        ) : (
-                          <Avatar
-                            className="h-9 w-9"
-                            name={message.authorName}
-                          />
-                        )
-                      ) : (
-                        <Avatar
-                          className="h-9 w-9"
-                          fallback={supportInitials(message.authorName)}
-                        />
-                      )}
-                    </div>
                     <article className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-medium text-sm">
-                          {message.authorName}
-                        </h2>
-                        {teamReply && (
-                          <Badge variant="outline" className="text-primary">
-                            Nhost
-                          </Badge>
-                        )}
-                        <time
-                          dateTime={message.createdAt}
-                          className="text-muted-foreground text-xs"
+                      <div className="flex items-start gap-2">
+                        <div
+                          aria-hidden="true"
+                          className="shrink-0 sm:absolute sm:top-0 sm:left-0"
                         >
-                          {supportDate(message.createdAt)}
-                        </time>
+                          {teamReply &&
+                          message.authorID &&
+                          message.authorID === user?.id ? (
+                            <UserAvatar className={MESSAGE_AVATAR_CLASS} />
+                          ) : (
+                            <Avatar
+                              className={MESSAGE_AVATAR_CLASS}
+                              name={message.authorName}
+                              colorFromName
+                              fallback={supportInitials(message.authorName)}
+                            />
+                          )}
+                        </div>
+                        <div className="flex min-h-6 min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:min-h-0">
+                          <h2 className="font-medium text-sm">
+                            {message.authorName}
+                          </h2>
+                          {teamReply && (
+                            <Badge variant="outline" className="text-primary">
+                              Nhost
+                            </Badge>
+                          )}
+                          <time
+                            dateTime={message.createdAt}
+                            className="text-muted-foreground text-xs"
+                          >
+                            {supportDate(message.createdAt)}
+                          </time>
+                        </div>
                       </div>
                       <div
                         className={cn(
@@ -282,14 +287,16 @@ export default function TicketConversation({
                 need further help.
               </p>
             ) : (
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
-                <div aria-hidden="true">
+              <div className="grid items-start gap-6 sm:grid-cols-[auto_minmax(0,1fr)]">
+                <div aria-hidden="true" className="hidden sm:block">
                   {role === 'support' ? (
                     <UserAvatar className="h-9 w-9" />
                   ) : (
                     <Avatar
                       className="h-9 w-9"
-                      fallback={supportInitials(user?.displayName || 'You')}
+                      name={replyAuthorName}
+                      colorFromName
+                      fallback={supportInitials(replyAuthorName)}
                     />
                   )}
                 </div>
