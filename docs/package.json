@@ -20,17 +20,17 @@
     "test:prose": "vale --minAlertLevel=error src/content/docs/"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.3.9",
-    "@astrojs/sitemap": "^3.7.5",
+    "@astrojs/markdown-remark": "^7.3.10",
+    "@astrojs/sitemap": "^3.7.6",
     "@astrojs/starlight": "^0.41.11",
     "@astrojs/vercel": "^11.0.22",
-    "@babel/parser": "^7.29.14",
+    "@babel/parser": "^7.29.15",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
-    "@lucide/astro": "^1.73.0",
+    "@lucide/astro": "^1.81.0",
     "@readme/openapi-parser": "^6.3.1",
     "@resvg/resvg-js": "^2.6.2",
-    "asciinema-player": "^3.18.1",
-    "astro": "^7.4.12",
+    "asciinema-player": "^3.19.0",
+    "astro": "^7.4.13",
     "github-slugger": "^2.0.0",
     "glob": "^14.0.6",
     "gray-matter": "^4.0.3",
@@ -49,6 +49,6 @@
     "prettier": "^3.10.1",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
-    "vite": "^8.3.8"
+    "vite": "^8.4.0"
   }
 }

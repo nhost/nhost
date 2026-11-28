@@ -102,7 +102,7 @@ importers:
         specifier: workspace:^
         version: link:../../../packages/nhost-js
       next:
-        specifier: ^16.4.5
+        specifier: ^16.4.6
         version: 16.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: 19.1.0
@@ -336,13 +336,13 @@ packages:
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
 
-  baseline-browser-mapping@2.11.32:
-    resolution: {integrity: sha512-UvuxFU9P3hM29LrQdwu0cD6w6/+SFr+UlB9s/knI7+O2rK9xFxKUwSDWxGdbbqQ9/V7BJ5s0NI5nQAE4uJp3gQ==}
+  baseline-browser-mapping@2.11.40:
+    resolution: {integrity: sha512-WJhaQ3kW5+5BpOduI64ewvykhCyK/IHHG5jCIzivmW2nkYPRowUjs0DbBXY4CAr1LLrN7QEzZGL9727aXH9sJA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  caniuse-lite@1.0.30001819:
-    resolution: {integrity: sha512-LFUqIIAwpzsIuevnKnsR9qnStBcgzPShTX61lBwN9uFkkf8o8zLiebEjbW8AYtZiF+1YKDWfdt/pWDtMuG8Xwg==}
+  caniuse-lite@1.0.30001828:
+    resolution: {integrity: sha512-7MWeT+3DlrpuDybTWHl4Zb1Z80Z1fLLnOXuBjDXebzDVcqnEWUlV8JcbASg8B8BhcW8QT2UiR1KAtzYFIZHZYA==}
 
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
@@ -396,8 +396,8 @@ packages:
   scheduler@0.26.0:
     resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
 
-  semver@7.8.5:
-    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
+  semver@7.8.6:
+    resolution: {integrity: sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -427,14 +427,14 @@ packages:
       babel-plugin-macros:
         optional: true
 
-  tslib@2.8.1:
-    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+  tslib@2.9.1:
+    resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
 
 snapshots:
 
   '@emnapi/runtime@1.11.3':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
     optional: true
 
   '@img/colour@1.1.0':
@@ -572,11 +572,11 @@ snapshots:
 
   '@swc/helpers@0.5.23':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
-  baseline-browser-mapping@2.11.32: {}
+  baseline-browser-mapping@2.11.40: {}
 
-  caniuse-lite@1.0.30001819: {}
+  caniuse-lite@1.0.30001828: {}
 
   client-only@0.0.1: {}
 
@@ -589,8 +589,8 @@ snapshots:
     dependencies:
       '@next/env': 16.4.6
       '@swc/helpers': 0.5.23
-      baseline-browser-mapping: 2.11.32
-      caniuse-lite: 1.0.30001819
+      baseline-browser-mapping: 2.11.40
+      caniuse-lite: 1.0.30001828
       postcss: 8.5.23
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -627,14 +627,14 @@ snapshots:
 
   scheduler@0.26.0: {}
 
-  semver@7.8.5:
+  semver@7.8.6:
     optional: true
 
   sharp@0.35.5:
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
-      semver: 7.8.5
+      semver: 7.8.6
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.35.5
       '@img/sharp-darwin-x64': 0.35.5
@@ -670,4 +670,4 @@ snapshots:
       client-only: 0.0.1
       react: 19.1.0
 
-  tslib@2.8.1: {}
+  tslib@2.9.1: {}
