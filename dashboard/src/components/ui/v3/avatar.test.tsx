@@ -26,12 +26,18 @@ describe('Avatar', () => {
     expect(screen.getByText('JD')).toBeInTheDocument();
   });
 
+  it('keeps the neutral background unless colors are requested', () => {
+    render(<Avatar name="Jane Doe" fallback="JD" />);
+
+    expect(screen.getByText('JD')).toHaveClass('bg-grey-500', 'dark:bg-muted');
+  });
+
   it('picks a stable color from the full name, not just the initials', () => {
     render(
       <>
-        <Avatar name="Jane Doe" fallback="JD" />
-        <Avatar name=" jane doe " fallback="JD" />
-        <Avatar name="John Doe" fallback="JD" />
+        <Avatar name="Jane Doe" fallback="JD" colorFromName />
+        <Avatar name=" jane doe " fallback="JD" colorFromName />
+        <Avatar name="John Doe" fallback="JD" colorFromName />
       </>,
     );
 
@@ -43,7 +49,7 @@ describe('Avatar', () => {
   });
 
   it('keeps the neutral background when no name is available', () => {
-    render(<Avatar fallback="?" />);
+    render(<Avatar fallback="?" colorFromName />);
 
     expect(screen.getByText('?')).toHaveClass('bg-grey-500', 'dark:bg-muted');
   });

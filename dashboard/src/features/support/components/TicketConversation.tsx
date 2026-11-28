@@ -213,12 +213,15 @@ export default function TicketConversation({
                           <Avatar
                             className="h-9 w-9"
                             name={message.authorName}
+                            colorFromName
+                            fallback={supportInitials(message.authorName)}
                           />
                         )
                       ) : (
                         <Avatar
                           className="h-9 w-9"
                           name={message.authorName}
+                          colorFromName
                           fallback={supportInitials(message.authorName)}
                         />
                       )}
@@ -292,6 +295,7 @@ export default function TicketConversation({
                     <Avatar
                       className="h-9 w-9"
                       name={replyAuthorName}
+                      colorFromName
                       fallback={supportInitials(replyAuthorName)}
                     />
                   )}

@@ -293,6 +293,7 @@ export default function TicketDetail() {
                       <Avatar
                         className="h-6 w-6 text-[0.625rem]"
                         name={ticket.assigneeName}
+                        colorFromName
                         fallback={supportInitials(ticket.assigneeName)}
                       />
                       <span className="truncate">

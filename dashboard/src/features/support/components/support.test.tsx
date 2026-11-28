@@ -1490,16 +1490,19 @@ describe('native dashboard support', () => {
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
   });
-  it('uses the same initials and avatar color for the same person in the conversation and assignee panel', async () => {
-    ticket.assigneeName = ticket.requesterName;
+  it('uses the same initials and avatar color for a support agent in the conversation and assignee panel', async () => {
+    ticket.assigneeID = 'agent-id';
+    ticket.assigneeName = 'Support Bob';
     render(<TicketDetail />);
     const conversation = within(
       await screen.findByRole('region', { name: 'Conversation' }),
     );
-    const author = within(conversation.getByRole('list')).getByText('CA');
+    const author = await within(conversation.getByRole('list')).findByText(
+      'SB',
+    );
     const assignee = within(
       screen.getByRole('region', { name: 'Assignee' }),
-    ).getByText('CA');
+    ).getByText('SB');
     expect(author).not.toHaveClass('bg-grey-500');
     expect(author.className).toBe(assignee.className);
   });
