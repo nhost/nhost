@@ -48,7 +48,7 @@ query dashboardSupportTicket($id: uuid!) {
       }
     }
     project {
-      slug
+      subdomain
     }
   }
   supportTicketTransitions {

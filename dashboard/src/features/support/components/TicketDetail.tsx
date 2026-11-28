@@ -466,11 +466,13 @@ export default function TicketDetail() {
                       {ticket.projectName ?? 'Organization-wide'}
                     </dd>
                   </div>
-                  {ticket.project?.slug && (
+                  {ticket.project?.subdomain && (
                     <div className="flex justify-between gap-3 py-2.5">
-                      <dt className="text-muted-foreground">Project slug</dt>
+                      <dt className="text-muted-foreground">
+                        Project subdomain
+                      </dt>
                       <dd className="min-w-0 break-words text-right font-mono">
-                        {ticket.project.slug}
+                        {ticket.project.subdomain}
                       </dd>
                     </div>
                   )}

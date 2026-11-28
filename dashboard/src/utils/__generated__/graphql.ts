@@ -33432,7 +33432,7 @@ export type DashboardSupportTicketQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportTicketQuery = { __typename?: 'query_root', supportTicket?: { __typename?: 'supportTickets', description: string, resolvedAt?: any | null, closedAt?: any | null, id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, organization: { __typename?: 'organizations', slug: string, plan: { __typename?: 'plans', name: string, supportAllowedSeverities: Array<string> } }, project?: { __typename?: 'apps', slug: string } | null } | null, supportTicketTransitions: Array<{ __typename?: 'supportTicketTransitions', fromStatus: SupportTicketStatuses_Enum, toStatus: SupportTicketStatuses_Enum }> };
+export type DashboardSupportTicketQuery = { __typename?: 'query_root', supportTicket?: { __typename?: 'supportTickets', description: string, resolvedAt?: any | null, closedAt?: any | null, id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, organization: { __typename?: 'organizations', slug: string, plan: { __typename?: 'plans', name: string, supportAllowedSeverities: Array<string> } }, project?: { __typename?: 'apps', subdomain: string } | null } | null, supportTicketTransitions: Array<{ __typename?: 'supportTicketTransitions', fromStatus: SupportTicketStatuses_Enum, toStatus: SupportTicketStatuses_Enum }> };
 
 export type DashboardSupportCommentsQueryVariables = Exact<{
   id: Scalars['uuid'];
@@ -41059,7 +41059,7 @@ export const DashboardSupportTicketDocument = gql`
       }
     }
     project {
-      slug
+      subdomain
     }
   }
   supportTicketTransitions {

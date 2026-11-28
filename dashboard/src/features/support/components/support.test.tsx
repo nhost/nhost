@@ -93,7 +93,7 @@ const initialTicket: NonNullable<DashboardSupportTicketQuery['supportTicket']> =
         supportAllowedSeverities: ['low', 'normal', 'high', 'urgent'],
       },
     },
-    project: { slug: 'acme-production' },
+    project: { subdomain: 'qjnkgtwfxmyrcspbzhdt' },
   };
 const initialEvent: DashboardSupportEventsQuery['supportTicketEvents'][number] =
   {
@@ -1503,19 +1503,19 @@ describe('native dashboard support', () => {
     expect(author).not.toHaveClass('bg-grey-500');
     expect(author.className).toBe(assignee.className);
   });
-  it('shows the organization slug, project slug, and plan in Details', async () => {
+  it('shows the organization slug, project subdomain, and plan in Details', async () => {
     render(<TicketDetail />);
     const details = within(
       await screen.findByRole('region', { name: 'Details' }),
     );
     expect(details.getByText('Organization slug')).toBeInTheDocument();
     expect(details.getByText('acme-org')).toBeInTheDocument();
-    expect(details.getByText('Project slug')).toBeInTheDocument();
-    expect(details.getByText('acme-production')).toBeInTheDocument();
+    expect(details.getByText('Project subdomain')).toBeInTheDocument();
+    expect(details.getByText('qjnkgtwfxmyrcspbzhdt')).toBeInTheDocument();
     expect(details.getByText('Plan')).toBeInTheDocument();
     expect(details.getByText('Team')).toBeInTheDocument();
   });
-  it('shows the organization plan without a project slug for organization-wide tickets', async () => {
+  it('shows the organization plan without a project subdomain for organization-wide tickets', async () => {
     ticket.projectID = null;
     ticket.projectName = null;
     ticket.project = null;
@@ -1524,7 +1524,7 @@ describe('native dashboard support', () => {
       await screen.findByRole('region', { name: 'Details' }),
     );
     expect(details.getByText('Organization-wide')).toBeInTheDocument();
-    expect(details.queryByText('Project slug')).not.toBeInTheDocument();
+    expect(details.queryByText('Project subdomain')).not.toBeInTheDocument();
     expect(details.getByText('Team')).toBeInTheDocument();
   });
   it('renders tickets whose services are built-in object property names', async () => {
