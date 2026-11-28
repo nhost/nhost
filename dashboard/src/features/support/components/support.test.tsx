@@ -1506,19 +1506,41 @@ describe('native dashboard support', () => {
     expect(author).not.toHaveClass('bg-grey-500');
     expect(author.className).toBe(assignee.className);
   });
-  it('shows the organization slug, project subdomain, and plan in Details', async () => {
+  it('shows support agents copyable organization and project identifiers next to the plan in Details', async () => {
+    makeAgent();
+    const user = new TestUserEvent();
     render(<TicketDetail />);
     const details = within(
       await screen.findByRole('region', { name: 'Details' }),
     );
-    expect(details.getByText('Organization slug')).toBeInTheDocument();
+    expect(details.getByText('Team')).toHaveTextContent('Team plan');
     expect(details.getByText('acme-org')).toBeInTheDocument();
-    expect(details.getByText('Project subdomain')).toBeInTheDocument();
     expect(details.getByText('qjnkgtwfxmyrcspbzhdt')).toBeInTheDocument();
-    expect(details.getByText('Plan')).toBeInTheDocument();
-    expect(details.getByText('Team')).toBeInTheDocument();
+    expect(
+      details.getByRole('button', { name: 'Copy organization slug' }),
+    ).toBeInTheDocument();
+    await user.click(
+      details.getByRole('button', { name: 'Copy project subdomain' }),
+    );
+    await expect(navigator.clipboard.readText()).resolves.toBe(
+      'qjnkgtwfxmyrcspbzhdt',
+    );
   });
-  it('shows the organization plan without a project subdomain for organization-wide tickets', async () => {
+  it('shows customers the plan but not the organization or project identifiers', async () => {
+    render(<TicketDetail />);
+    const details = within(
+      await screen.findByRole('region', { name: 'Details' }),
+    );
+    expect(details.getByText('Team')).toHaveTextContent('Team plan');
+    expect(details.getByText('Production')).toBeInTheDocument();
+    expect(details.queryByText('acme-org')).not.toBeInTheDocument();
+    expect(details.queryByText('qjnkgtwfxmyrcspbzhdt')).not.toBeInTheDocument();
+    expect(
+      details.queryByRole('button', { name: /^Copy/ }),
+    ).not.toBeInTheDocument();
+  });
+  it('shows the organization slug without a project subdomain for organization-wide tickets', async () => {
+    makeAgent();
     ticket.projectID = null;
     ticket.projectName = null;
     ticket.project = null;
@@ -1527,7 +1549,10 @@ describe('native dashboard support', () => {
       await screen.findByRole('region', { name: 'Details' }),
     );
     expect(details.getByText('Organization-wide')).toBeInTheDocument();
-    expect(details.queryByText('Project subdomain')).not.toBeInTheDocument();
+    expect(details.getByText('acme-org')).toBeInTheDocument();
+    expect(
+      details.queryByRole('button', { name: 'Copy project subdomain' }),
+    ).not.toBeInTheDocument();
     expect(details.getByText('Team')).toBeInTheDocument();
   });
   it('renders tickets whose services are built-in object property names', async () => {
