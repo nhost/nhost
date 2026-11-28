@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"net/http"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -13,6 +14,14 @@ func (ctrl *Controller) SignOut( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 
 	if deptr(request.Body.All) {
+		if _, ok := ctrl.wf.jwtGetter.FromContext(ctx); !ok {
+			return ErrorResponse{
+				Status:  http.StatusUnauthorized,
+				Error:   api.InvalidRequest,
+				Message: "Authentication is required to sign out from all sessions",
+			}, nil
+		}
+
 		userID, apiErr := ctrl.wf.GetJWTInContext(ctx, logger)
 		if apiErr != nil {
 			return ctrl.sendError(apiErr), nil

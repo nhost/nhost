@@ -1,12 +1,17 @@
 package controller_test
 
 import (
+	"bytes"
+	"log/slog"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -130,8 +135,8 @@ func TestSignOut(t *testing.T) {
 			},
 			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
-				Status:  400,
+				Message: "Authentication is required to sign out from all sessions",
+				Status:  401,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
@@ -236,5 +241,37 @@ func TestSignOut(t *testing.T) {
 				ctx, t, c.SignOut, tc.request, tc.expectedResponse,
 			)
 		})
+	}
+}
+
+func TestSignOutAllWithoutTokenDoesNotLogError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	c, _ := getController(t, ctrl, getConfig, func(ctrl *gomock.Controller) controller.DBClient {
+		return mock.NewMockDBClient(ctrl)
+	})
+
+	var logs bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	ctx := oapimw.LoggerToContext(t.Context(), logger)
+
+	var expected api.SignOutResponseObject = controller.ErrorResponse{
+		Error:   "invalid-request",
+		Message: "Authentication is required to sign out from all sessions",
+		Status:  http.StatusUnauthorized,
+	}
+
+	assertRequest(
+		ctx, t, c.SignOut,
+		api.SignOutRequestObject{Body: &api.SignOutRequest{All: new(true)}},
+		expected,
+	)
+
+	if strings.Contains(logs.String(), "jwt token not found in context") {
+		t.Fatalf("missing access token was logged at ERROR level: %s", logs.String())
 	}
 }
