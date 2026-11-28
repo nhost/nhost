@@ -208,10 +208,10 @@ export default function TicketConversation({
                       </div>
                     )}
                     <article className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-start gap-2">
                         <div
                           aria-hidden="true"
-                          className="sm:absolute sm:top-0 sm:left-0"
+                          className="shrink-0 sm:absolute sm:top-0 sm:left-0"
                         >
                           {teamReply &&
                           message.authorID &&
@@ -226,20 +226,22 @@ export default function TicketConversation({
                             />
                           )}
                         </div>
-                        <h2 className="font-medium text-sm">
-                          {message.authorName}
-                        </h2>
-                        {teamReply && (
-                          <Badge variant="outline" className="text-primary">
-                            Nhost
-                          </Badge>
-                        )}
-                        <time
-                          dateTime={message.createdAt}
-                          className="text-muted-foreground text-xs"
-                        >
-                          {supportDate(message.createdAt)}
-                        </time>
+                        <div className="flex min-h-6 min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:min-h-0">
+                          <h2 className="font-medium text-sm">
+                            {message.authorName}
+                          </h2>
+                          {teamReply && (
+                            <Badge variant="outline" className="text-primary">
+                              Nhost
+                            </Badge>
+                          )}
+                          <time
+                            dateTime={message.createdAt}
+                            className="text-muted-foreground text-xs"
+                          >
+                            {supportDate(message.createdAt)}
+                          </time>
+                        </div>
                       </div>
                       <div
                         className={cn(
